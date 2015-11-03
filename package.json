@@ -1,0 +1,32 @@
+{
+  "name": "vsphere-connect",
+  "version": "0.0.1",
+  "description": "vSphere Connect",
+  "main": "lib/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bhoriuchi/vsphere-connect.git"
+  },
+  "keywords": [
+    "vsphere"
+  ],
+  "author": "Branden Horiuchi <bhoriuchi@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/bhoriuchi/vsphere-connect",
+  "bugs": {
+    "url": "https://github.com/bhoriuchi/vsphere-connect/issues"
+  },
+  "dependencies": {
+    "bluebird": "^2.10.2",
+    "soap": "^0.8.0",
+    "soap-cookie": "^0.10.1",
+    "object-to-xml": "^1.0.0",
+    "lodash": "^3.10.1"
+  },
+  "scripts": {
+    "test": "echo \\\"Error: no test specified\\\" && exit 1"
+  },
+  "directories": {
+    "example": "example"
+  }
+}
