@@ -7,10 +7,14 @@ var viclient;
 connect.client(cred.endpoint, cred.user, cred.password, cred.ignoreSSL)
 .then(function(client) {
 
+	console.log(client.client.wsdl.definitions.schemas['urn:vim25'].complexTypes.CustomFieldDef);
+	client.logOut();
+	/*
 	return client.searchManagedEntities({
 		type: 'VirtualMachine',
-		properties: [],
-		id: 'vm-812'
+		properties: ['name', 'config.changeVersion', 'config.name', 'id'],
+		id: ['vm-812', 'vm-778'],
+		//raw: true
 	}).then(function(result) {
 
 		console.log(JSON.stringify(result, null, '  '));
@@ -22,6 +26,6 @@ connect.client(cred.endpoint, cred.user, cred.password, cred.ignoreSSL)
 		return client.logOut();
 	})
 	.caught(function(err) {
-		console.log(err);
-	});
+		console.log(err, err.stack);
+	});*/
 });
