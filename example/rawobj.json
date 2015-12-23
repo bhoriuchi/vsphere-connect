@@ -1,0 +1,2486 @@
+{
+  "moRef": {
+    "id": "vm-812",
+    "type": "VirtualMachine"
+  },
+  "props": [
+    {
+      "name": "alarmActionsEnabled",
+      "val": {
+        "attributes": {
+          "xsi:type": "xsd:boolean"
+        },
+        "$value": "true"
+      }
+    },
+    {
+      "name": "availableField",
+      "val": {
+        "attributes": {
+          "xsi:type": "ArrayOfCustomFieldDef"
+        },
+        "CustomFieldDef": [
+          {
+            "attributes": {
+              "xsi:type": "CustomFieldDef"
+            },
+            "key": "1",
+            "name": "VRM Owner",
+            "type": "string",
+            "managedObjectType": "VirtualMachine"
+          },
+          {
+            "attributes": {
+              "xsi:type": "CustomFieldDef"
+            },
+            "key": "105",
+            "name": "com.vmware.vdp2.is-protected",
+            "type": "string",
+            "managedObjectType": "VirtualMachine",
+            "fieldDefPrivileges": {
+              "createPrivilege": "Global.ManageCustomFields",
+              "readPrivilege": "Global.ManageCustomFields",
+              "updatePrivilege": "Global.ManageCustomFields",
+              "deletePrivilege": "Global.ManageCustomFields"
+            },
+            "fieldInstancePrivileges": {
+              "createPrivilege": "Global.ManageCustomFields",
+              "readPrivilege": "Global.ManageCustomFields",
+              "updatePrivilege": "Global.ManageCustomFields",
+              "deletePrivilege": "Global.ManageCustomFields"
+            }
+          },
+          {
+            "attributes": {
+              "xsi:type": "CustomFieldDef"
+            },
+            "key": "104",
+            "name": "com.vmware.vdp2.protected-by",
+            "type": "string",
+            "managedObjectType": "VirtualMachine",
+            "fieldDefPrivileges": {
+              "createPrivilege": "Global.ManageCustomFields",
+              "readPrivilege": "Global.ManageCustomFields",
+              "updatePrivilege": "Global.ManageCustomFields",
+              "deletePrivilege": "Global.ManageCustomFields"
+            },
+            "fieldInstancePrivileges": {
+              "createPrivilege": "Global.ManageCustomFields",
+              "readPrivilege": "Global.ManageCustomFields",
+              "updatePrivilege": "Global.ManageCustomFields",
+              "deletePrivilege": "Global.ManageCustomFields"
+            }
+          },
+          {
+            "attributes": {
+              "xsi:type": "CustomFieldDef"
+            },
+            "key": "2",
+            "name": "vrmManagedMachine",
+            "type": "string",
+            "managedObjectType": "VirtualMachine"
+          }
+        ]
+      }
+    },
+    {
+      "name": "capability",
+      "val": {
+        "attributes": {
+          "xsi:type": "VirtualMachineCapability"
+        },
+        "snapshotOperationsSupported": "true",
+        "multipleSnapshotsSupported": "true",
+        "snapshotConfigSupported": "true",
+        "poweredOffSnapshotsSupported": "true",
+        "memorySnapshotsSupported": "true",
+        "revertToSnapshotSupported": "true",
+        "quiescedSnapshotsSupported": "true",
+        "disableSnapshotsSupported": "false",
+        "lockSnapshotsSupported": "true",
+        "consolePreferencesSupported": "false",
+        "cpuFeatureMaskSupported": "true",
+        "s1AcpiManagementSupported": "true",
+        "settingScreenResolutionSupported": "false",
+        "toolsAutoUpdateSupported": "true",
+        "vmNpivWwnSupported": "true",
+        "npivWwnOnNonRdmVmSupported": "true",
+        "vmNpivWwnDisableSupported": "true",
+        "vmNpivWwnUpdateSupported": "true",
+        "swapPlacementSupported": "true",
+        "toolsSyncTimeSupported": "true",
+        "virtualMmuUsageSupported": "true",
+        "diskSharesSupported": "true",
+        "bootOptionsSupported": "true",
+        "bootRetryOptionsSupported": "true",
+        "settingVideoRamSizeSupported": "true",
+        "settingDisplayTopologySupported": "false",
+        "recordReplaySupported": "true",
+        "changeTrackingSupported": "true",
+        "multipleCoresPerSocketSupported": "true",
+        "hostBasedReplicationSupported": "true",
+        "guestAutoLockSupported": "true",
+        "memoryReservationLockSupported": "true",
+        "featureRequirementSupported": "true",
+        "poweredOnMonitorTypeChangeSupported": "true",
+        "seSparseDiskSupported": "false",
+        "nestedHVSupported": "false",
+        "vPMCSupported": "false"
+      }
+    },
+    {
+      "name": "config",
+      "val": {
+        "attributes": {
+          "xsi:type": "VirtualMachineConfigInfo"
+        },
+        "changeVersion": "2015-09-01T22:05:03.204378Z",
+        "modified": "1970-01-01T00:00:00Z",
+        "name": "gtnpoc02",
+        "guestFullName": "Ubuntu Linux (64-bit)",
+        "version": "vmx-08",
+        "uuid": "422e3a43-a477-b90b-cb3d-d4444cf8d062",
+        "instanceUuid": "502ef436-351a-1ff9-06d3-ed21d1ff0a26",
+        "npivTemporaryDisabled": "true",
+        "locationId": "564d9cc5-a097-76f2-4427-46e635521352",
+        "template": "false",
+        "guestId": "ubuntu64Guest",
+        "alternateGuestName": {},
+        "files": {
+          "vmPathName": "[PZ0_C01_PZBN0315_L0001] gtnpoc02/gtnpoc02.vmx",
+          "snapshotDirectory": "[PZ0_C01_PZBN0315_L0001] gtnpoc02/",
+          "suspendDirectory": "[PZ0_C01_PZBN0315_L0001] gtnpoc02/",
+          "logDirectory": "[PZ0_C01_PZBN0315_L0001] gtnpoc02/"
+        },
+        "tools": {
+          "toolsVersion": "9344",
+          "afterPowerOn": "true",
+          "afterResume": "true",
+          "beforeGuestStandby": "true",
+          "beforeGuestShutdown": "true",
+          "toolsUpgradePolicy": "manual",
+          "syncTimeWithHost": "false",
+          "lastInstallInfo": {
+            "counter": "0"
+          }
+        },
+        "flags": {
+          "disableAcceleration": "false",
+          "enableLogging": "true",
+          "useToe": "false",
+          "runWithDebugInfo": "false",
+          "monitorType": "release",
+          "htSharing": "any",
+          "snapshotDisabled": "false",
+          "snapshotLocked": "false",
+          "diskUuidEnabled": "false",
+          "virtualMmuUsage": "automatic",
+          "virtualExecUsage": "hvAuto",
+          "snapshotPowerOffBehavior": "powerOff",
+          "recordReplayEnabled": "false"
+        },
+        "defaultPowerOps": {
+          "powerOffType": "soft",
+          "suspendType": "hard",
+          "resetType": "soft",
+          "defaultPowerOffType": "soft",
+          "defaultSuspendType": "hard",
+          "defaultResetType": "soft",
+          "standbyAction": "checkpoint"
+        },
+        "hardware": {
+          "numCPU": "4",
+          "numCoresPerSocket": "1",
+          "memoryMB": "8192",
+          "virtualICH7MPresent": "false",
+          "virtualSMCPresent": "false",
+          "device": [
+            {
+              "attributes": {
+                "xsi:type": "VirtualIDEController"
+              },
+              "key": "200",
+              "deviceInfo": {
+                "label": "IDE 0",
+                "summary": "IDE 0"
+              },
+              "busNumber": "0"
+            },
+            {
+              "attributes": {
+                "xsi:type": "VirtualIDEController"
+              },
+              "key": "201",
+              "deviceInfo": {
+                "label": "IDE 1",
+                "summary": "IDE 1"
+              },
+              "busNumber": "1",
+              "device": "3002"
+            },
+            {
+              "attributes": {
+                "xsi:type": "VirtualPS2Controller"
+              },
+              "key": "300",
+              "deviceInfo": {
+                "label": "PS2 controller 0",
+                "summary": "PS2 controller 0"
+              },
+              "busNumber": "0",
+              "device": [
+                "600",
+                "700"
+              ]
+            },
+            {
+              "attributes": {
+                "xsi:type": "VirtualPCIController"
+              },
+              "key": "100",
+              "deviceInfo": {
+                "label": "PCI controller 0",
+                "summary": "PCI controller 0"
+              },
+              "busNumber": "0",
+              "device": [
+                "500",
+                "12000",
+                "1000",
+                "4000"
+              ]
+            },
+            {
+              "attributes": {
+                "xsi:type": "VirtualSIOController"
+              },
+              "key": "400",
+              "deviceInfo": {
+                "label": "SIO controller 0",
+                "summary": "SIO controller 0"
+              },
+              "busNumber": "0",
+              "device": "8000"
+            },
+            {
+              "attributes": {
+                "xsi:type": "VirtualKeyboard"
+              },
+              "key": "600",
+              "deviceInfo": {
+                "label": "Keyboard",
+                "summary": "Keyboard"
+              },
+              "controllerKey": "300",
+              "unitNumber": "0"
+            },
+            {
+              "attributes": {
+                "xsi:type": "VirtualPointingDevice"
+              },
+              "key": "700",
+              "deviceInfo": {
+                "label": "Pointing device",
+                "summary": "Pointing device; Device"
+              },
+              "backing": {
+                "attributes": {
+                  "xsi:type": "VirtualPointingDeviceDeviceBackingInfo"
+                },
+                "deviceName": {},
+                "useAutoDetect": "false",
+                "hostPointingDevice": "autodetect"
+              },
+              "controllerKey": "300",
+              "unitNumber": "1"
+            },
+            {
+              "attributes": {
+                "xsi:type": "VirtualMachineVideoCard"
+              },
+              "key": "500",
+              "deviceInfo": {
+                "label": "Video card",
+                "summary": "Video card"
+              },
+              "controllerKey": "100",
+              "unitNumber": "0",
+              "videoRamSizeInKB": "4096",
+              "numDisplays": "1",
+              "useAutoDetect": "false",
+              "enable3DSupport": "false",
+              "use3dRenderer": "automatic"
+            },
+            {
+              "attributes": {
+                "xsi:type": "VirtualMachineVMCIDevice"
+              },
+              "key": "12000",
+              "deviceInfo": {
+                "label": "VMCI device",
+                "summary": "Device on the virtual machine PCI bus that provides support for the virtual machine communication interface"
+              },
+              "controllerKey": "100",
+              "unitNumber": "17",
+              "id": "-1",
+              "allowUnrestrictedCommunication": "false"
+            },
+            {
+              "attributes": {
+                "xsi:type": "VirtualLsiLogicController"
+              },
+              "key": "1000",
+              "deviceInfo": {
+                "label": "SCSI controller 0",
+                "summary": "LSI Logic"
+              },
+              "controllerKey": "100",
+              "unitNumber": "3",
+              "busNumber": "0",
+              "device": "2000",
+              "hotAddRemove": "true",
+              "sharedBus": "noSharing",
+              "scsiCtlrUnitNumber": "7"
+            },
+            {
+              "attributes": {
+                "xsi:type": "VirtualCdrom"
+              },
+              "key": "3002",
+              "deviceInfo": {
+                "label": "CD/DVD drive 1",
+                "summary": "Remote ATAPI"
+              },
+              "backing": {
+                "attributes": {
+                  "xsi:type": "VirtualCdromRemoteAtapiBackingInfo"
+                },
+                "deviceName": {},
+                "useAutoDetect": "false"
+              },
+              "connectable": {
+                "startConnected": "false",
+                "allowGuestControl": "true",
+                "connected": "false",
+                "status": "ok"
+              },
+              "controllerKey": "201",
+              "unitNumber": "0"
+            },
+            {
+              "attributes": {
+                "xsi:type": "VirtualDisk"
+              },
+              "key": "2000",
+              "deviceInfo": {
+                "label": "Hard disk 1",
+                "summary": "52,428,800 KB"
+              },
+              "backing": {
+                "attributes": {
+                  "xsi:type": "VirtualDiskFlatVer2BackingInfo"
+                },
+                "fileName": "[PZ0_C01_PZBN0315_L0001] gtnpoc02/gtnpoc02.vmdk",
+                "datastore": {
+                  "attributes": {
+                    "type": "Datastore"
+                  },
+                  "$value": "datastore-837"
+                },
+                "diskMode": "persistent",
+                "split": "false",
+                "writeThrough": "false",
+                "thinProvisioned": "true",
+                "uuid": "6000C29c-fab8-600f-0688-bd77f31bf015",
+                "contentId": "8967bc0849b6f68e77c07d89bdcad3f8",
+                "digestEnabled": "false"
+              },
+              "controllerKey": "1000",
+              "unitNumber": "0",
+              "capacityInKB": "52428800",
+              "shares": {
+                "shares": "1000",
+                "level": "normal"
+              },
+              "storageIOAllocation": {
+                "limit": "-1",
+                "shares": {
+                  "shares": "1000",
+                  "level": "normal"
+                }
+              }
+            },
+            {
+              "attributes": {
+                "xsi:type": "VirtualFloppy"
+              },
+              "key": "8000",
+              "deviceInfo": {
+                "label": "Floppy drive 1",
+                "summary": "Remote"
+              },
+              "backing": {
+                "attributes": {
+                  "xsi:type": "VirtualFloppyRemoteDeviceBackingInfo"
+                },
+                "deviceName": {},
+                "useAutoDetect": "false"
+              },
+              "connectable": {
+                "startConnected": "false",
+                "allowGuestControl": "true",
+                "connected": "false",
+                "status": "ok"
+              },
+              "controllerKey": "400",
+              "unitNumber": "0"
+            },
+            {
+              "attributes": {
+                "xsi:type": "VirtualE1000"
+              },
+              "key": "4000",
+              "deviceInfo": {
+                "label": "Network adapter 1",
+                "summary": "DVSwitch: 3b 09 2e 50 6e 41 38 e2-35 87 1b e2 a4 f8 34 4b"
+              },
+              "backing": {
+                "attributes": {
+                  "xsi:type": "VirtualEthernetCardDistributedVirtualPortBackingInfo"
+                },
+                "port": {
+                  "switchUuid": "3b 09 2e 50 6e 41 38 e2-35 87 1b e2 a4 f8 34 4b",
+                  "portgroupKey": "dvportgroup-815",
+                  "portKey": "809",
+                  "connectionCookie": "1523847953"
+                }
+              },
+              "connectable": {
+                "startConnected": "true",
+                "allowGuestControl": "true",
+                "connected": "true",
+                "status": "ok"
+              },
+              "controllerKey": "100",
+              "unitNumber": "7",
+              "addressType": "assigned",
+              "macAddress": "00:50:56:ae:13:3e",
+              "wakeOnLanEnabled": "true"
+            }
+          ]
+        },
+        "cpuAllocation": {
+          "reservation": "0",
+          "expandableReservation": "false",
+          "limit": "-1",
+          "shares": {
+            "shares": "1000",
+            "level": "normal"
+          }
+        },
+        "memoryAllocation": {
+          "reservation": "0",
+          "expandableReservation": "false",
+          "limit": "-1",
+          "shares": {
+            "shares": "10240",
+            "level": "normal"
+          },
+          "overheadLimit": "102"
+        },
+        "latencySensitivity": {
+          "level": "normal"
+        },
+        "memoryHotAddEnabled": "false",
+        "cpuHotAddEnabled": "false",
+        "cpuHotRemoveEnabled": "false",
+        "hotPlugMemoryLimit": "8192",
+        "hotPlugMemoryIncrementSize": "0",
+        "extraConfig": [
+          {
+            "key": "sched.cpu.latencySensitivity",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "normal"
+            }
+          },
+          {
+            "key": "vmci.filter.enable",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "true"
+            }
+          },
+          {
+            "key": "sched.scsi0:0.throughputCap",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "off"
+            }
+          },
+          {
+            "key": "tools.guest.desktop.autolock",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "false"
+            }
+          },
+          {
+            "key": "nvram",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "gtnpoc02.nvram"
+            }
+          },
+          {
+            "key": "pciBridge0.present",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "true"
+            }
+          },
+          {
+            "key": "svga.present",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "true"
+            }
+          },
+          {
+            "key": "pciBridge4.present",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "true"
+            }
+          },
+          {
+            "key": "pciBridge4.virtualDev",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "pcieRootPort"
+            }
+          },
+          {
+            "key": "pciBridge4.functions",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "8"
+            }
+          },
+          {
+            "key": "pciBridge5.present",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "true"
+            }
+          },
+          {
+            "key": "pciBridge5.virtualDev",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "pcieRootPort"
+            }
+          },
+          {
+            "key": "pciBridge5.functions",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "8"
+            }
+          },
+          {
+            "key": "pciBridge6.present",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "true"
+            }
+          },
+          {
+            "key": "pciBridge6.virtualDev",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "pcieRootPort"
+            }
+          },
+          {
+            "key": "pciBridge6.functions",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "8"
+            }
+          },
+          {
+            "key": "pciBridge7.present",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "true"
+            }
+          },
+          {
+            "key": "pciBridge7.virtualDev",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "pcieRootPort"
+            }
+          },
+          {
+            "key": "pciBridge7.functions",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "8"
+            }
+          },
+          {
+            "key": "hpet0.present",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "true"
+            }
+          },
+          {
+            "key": "virtualHW.productCompatibility",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "hosted"
+            }
+          },
+          {
+            "key": "replay.supported",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "false"
+            }
+          },
+          {
+            "key": "pciBridge0.pciSlotNumber",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "17"
+            }
+          },
+          {
+            "key": "pciBridge4.pciSlotNumber",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "21"
+            }
+          },
+          {
+            "key": "pciBridge5.pciSlotNumber",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "22"
+            }
+          },
+          {
+            "key": "pciBridge6.pciSlotNumber",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "23"
+            }
+          },
+          {
+            "key": "pciBridge7.pciSlotNumber",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "24"
+            }
+          },
+          {
+            "key": "scsi0.pciSlotNumber",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "16"
+            }
+          },
+          {
+            "key": "ethernet0.pciSlotNumber",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "32"
+            }
+          },
+          {
+            "key": "vmci0.pciSlotNumber",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "33"
+            }
+          },
+          {
+            "key": "hostCPUID.0",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "0000000b756e65476c65746e49656e69"
+            }
+          },
+          {
+            "key": "hostCPUID.1",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "000206f200200800029ee3ffbfebfbff"
+            }
+          },
+          {
+            "key": "hostCPUID.80000001",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "0000000000000000000000012c100800"
+            }
+          },
+          {
+            "key": "guestCPUID.0",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "0000000b756e65476c65746e49656e69"
+            }
+          },
+          {
+            "key": "guestCPUID.1",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "000206f200010800829822030fabfbff"
+            }
+          },
+          {
+            "key": "guestCPUID.80000001",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "00000000000000000000000128100800"
+            }
+          },
+          {
+            "key": "userCPUID.0",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "0000000b756e65476c65746e49656e69"
+            }
+          },
+          {
+            "key": "userCPUID.1",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "000206f200200800029822030fabfbff"
+            }
+          },
+          {
+            "key": "userCPUID.80000001",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "00000000000000000000000128100800"
+            }
+          },
+          {
+            "key": "evcCompatibilityMode",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "false"
+            }
+          },
+          {
+            "key": "vmotion.checkpointFBSize",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "4194304"
+            }
+          },
+          {
+            "key": "softPowerOff",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "false"
+            }
+          },
+          {
+            "key": "toolsInstallManager.lastInstallError",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "0"
+            }
+          },
+          {
+            "key": "tools.remindInstall",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "false"
+            }
+          },
+          {
+            "key": "toolsInstallManager.updateCounter",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "1"
+            }
+          },
+          {
+            "key": "ethernet0.shares",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "normal"
+            }
+          },
+          {
+            "key": "migrate.hostlog",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "./gtnpoc02-bf115b58.hlog"
+            }
+          },
+          {
+            "key": "sched.swap.derivedName",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "/vmfs/volumes/55e60958-4989a56c-6b97-90e2ba3670c6/gtnpoc02/gtnpoc02-bf115b58.vswp"
+            }
+          },
+          {
+            "key": "replay.filename",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              }
+            }
+          },
+          {
+            "key": "scsi0:0.redo",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              }
+            }
+          },
+          {
+            "key": "vmware.tools.internalversion",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "9344"
+            }
+          },
+          {
+            "key": "vmware.tools.requiredversion",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "9344"
+            }
+          },
+          {
+            "key": "migrate.hostLogState",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "success"
+            }
+          },
+          {
+            "key": "migrate.migrationId",
+            "value": {
+              "attributes": {
+                "xsi:type": "xsd:string"
+              },
+              "$value": "1441144780643820"
+            }
+          }
+        ],
+        "datastoreUrl": {
+          "name": "PZ0_C01_PZBN0315_L0001",
+          "url": "/vmfs/volumes/55e60958-4989a56c-6b97-90e2ba3670c6"
+        },
+        "swapPlacement": "inherit",
+        "bootOptions": {
+          "bootDelay": "0",
+          "enterBIOSSetup": "false",
+          "bootRetryEnabled": "false",
+          "bootRetryDelay": "10000"
+        },
+        "vAssertsEnabled": "false",
+        "changeTrackingEnabled": "false",
+        "firmware": "bios",
+        "maxMksConnections": "40",
+        "guestAutoLockEnabled": "false",
+        "memoryReservationLockedToMax": "false",
+        "nestedHVEnabled": "false",
+        "vPMCEnabled": "false",
+        "scheduledHardwareUpgradeInfo": {
+          "upgradePolicy": "never",
+          "scheduledHardwareUpgradeStatus": "none"
+        }
+      }
+    },
+    {
+      "name": "configIssue",
+      "val": {
+        "attributes": {
+          "xsi:type": "ArrayOfEvent"
+        }
+      }
+    },
+    {
+      "name": "configStatus",
+      "val": {
+        "attributes": {
+          "xsi:type": "ManagedEntityStatus"
+        },
+        "$value": "green"
+      }
+    },
+    {
+      "name": "customValue",
+      "val": {
+        "attributes": {
+          "xsi:type": "ArrayOfCustomFieldValue"
+        }
+      }
+    },
+    {
+      "name": "datastore",
+      "val": {
+        "attributes": {
+          "xsi:type": "ArrayOfManagedObjectReference"
+        },
+        "ManagedObjectReference": {
+          "attributes": {
+            "type": "Datastore",
+            "xsi:type": "ManagedObjectReference"
+          },
+          "$value": "datastore-837"
+        }
+      }
+    },
+    {
+      "name": "declaredAlarmState",
+      "val": {
+        "attributes": {
+          "xsi:type": "ArrayOfAlarmState"
+        },
+        "AlarmState": [
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-10.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-10"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.096753Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-101.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-101"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.096753Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-11.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-11"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.096753Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-2.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-2"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.096753Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-202.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-202"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.096753Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-203.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-203"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.096753Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-204.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-204"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.096753Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-206.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-206"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.110793Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-207.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-207"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.110793Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-208.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-208"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.110793Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-209.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-209"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.110793Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-210.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-210"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.110793Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-211.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-211"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.110793Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-212.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-212"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.110793Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-213.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-213"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.110793Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-214.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-214"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.110793Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-215.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-215"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.110793Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-216.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-216"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.124833Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-217.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-217"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.124833Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-218.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-218"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.124833Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-23.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-23"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.124833Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-26.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-26"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.124833Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-30.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-30"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.124833Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-50.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-50"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.138873Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-51.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-51"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.138873Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-52.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-52"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.138873Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-6.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-6"
+            },
+            "overallStatus": "green",
+            "time": "2015-03-26T19:28:36.106999Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-61.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-61"
+            },
+            "overallStatus": "gray",
+            "time": "2015-12-22T21:53:23.138873Z",
+            "acknowledged": "false"
+          },
+          {
+            "attributes": {
+              "xsi:type": "AlarmState"
+            },
+            "key": "alarm-7.vm-812",
+            "entity": {
+              "attributes": {
+                "type": "VirtualMachine"
+              },
+              "$value": "vm-812"
+            },
+            "alarm": {
+              "attributes": {
+                "type": "Alarm"
+              },
+              "$value": "alarm-7"
+            },
+            "overallStatus": "green",
+            "time": "2015-03-26T19:28:36.106999Z",
+            "acknowledged": "false"
+          }
+        ]
+      }
+    },
+    {
+      "name": "disabledMethod",
+      "val": {
+        "attributes": {
+          "xsi:type": "ArrayOfString"
+        },
+        "string": [
+          {
+            "attributes": {
+              "xsi:type": "xsd:string"
+            },
+            "$value": "Destroy_Task"
+          },
+          {
+            "attributes": {
+              "xsi:type": "xsd:string"
+            },
+            "$value": "UnregisterVM"
+          },
+          {
+            "attributes": {
+              "xsi:type": "xsd:string"
+            },
+            "$value": "RevertToCurrentSnapshot_Task"
+          },
+          {
+            "attributes": {
+              "xsi:type": "xsd:string"
+            },
+            "$value": "RemoveAllSnapshots_Task"
+          },
+          {
+            "attributes": {
+              "xsi:type": "xsd:string"
+            },
+            "$value": "UnmountToolsInstaller"
+          },
+          {
+            "attributes": {
+              "xsi:type": "xsd:string"
+            },
+            "$value": "AnswerVM"
+          },
+          {
+            "attributes": {
+              "xsi:type": "xsd:string"
+            },
+            "$value": "UpgradeVM_Task"
+          },
+          {
+            "attributes": {
+              "xsi:type": "xsd:string"
+            },
+            "$value": "TurnOffFaultToleranceForVM_Task"
+          },
+          {
+            "attributes": {
+              "xsi:type": "xsd:string"
+            },
+            "$value": "MakePrimaryVM_Task"
+          },
+          {
+            "attributes": {
+              "xsi:type": "xsd:string"
+            },
+            "$value": "TerminateFaultTolerantVM_Task"
+          },
+          {
+            "attributes": {
+              "xsi:type": "xsd:string"
+            },
+            "$value": "DisableSecondaryVM_Task"
+          },
+          {
+            "attributes": {
+              "xsi:type": "xsd:string"
+            },
+            "$value": "EnableSecondaryVM_Task"
+          },
+          {
+            "attributes": {
+              "xsi:type": "xsd:string"
+            },
+            "$value": "StopRecording_Task"
+          },
+          {
+            "attributes": {
+              "xsi:type": "xsd:string"
+            },
+            "$value": "StopReplaying_Task"
+          },
+          {
+            "attributes": {
+              "xsi:type": "xsd:string"
+            },
+            "$value": "CustomizeVM_Task"
+          },
+          {
+            "attributes": {
+              "xsi:type": "xsd:string"
+            },
+            "$value": "MarkAsTemplate"
+          },
+          {
+            "attributes": {
+              "xsi:type": "xsd:string"
+            },
+            "$value": "ResetGuestInformation"
+          },
+          {
+            "attributes": {
+              "xsi:type": "xsd:string"
+            },
+            "$value": "ExportVm"
+          },
+          {
+            "attributes": {
+              "xsi:type": "xsd:string"
+            },
+            "$value": "PowerOnVM_Task"
+          },
+          {
+            "attributes": {
+              "xsi:type": "xsd:string"
+            },
+            "$value": "MarkAsVirtualMachine"
+          }
+        ]
+      }
+    },
+    {
+      "name": "effectiveRole",
+      "val": {
+        "attributes": {
+          "xsi:type": "ArrayOfInt"
+        },
+        "int": {
+          "attributes": {
+            "xsi:type": "xsd:int"
+          },
+          "$value": "-1"
+        }
+      }
+    },
+    {
+      "name": "environmentBrowser",
+      "val": {
+        "attributes": {
+          "type": "EnvironmentBrowser",
+          "xsi:type": "ManagedObjectReference"
+        },
+        "$value": "envbrowser-812"
+      }
+    },
+    {
+      "name": "guest",
+      "val": {
+        "attributes": {
+          "xsi:type": "GuestInfo"
+        },
+        "toolsStatus": "toolsOk",
+        "toolsVersionStatus": "guestToolsCurrent",
+        "toolsVersionStatus2": "guestToolsCurrent",
+        "toolsRunningStatus": "guestToolsRunning",
+        "toolsVersion": "9344",
+        "guestId": "ubuntu64Guest",
+        "guestFamily": "linuxGuest",
+        "guestFullName": "Ubuntu Linux (64-bit)",
+        "hostName": "gtnpoc02",
+        "ipAddress": "10.205.20.17",
+        "net": {
+          "network": "3b 09 2e 50 6e 41 38 e2-35 87 1b e2 a4 f8 34 4b",
+          "ipAddress": [
+            "10.205.20.17",
+            "fe80::250:56ff:feae:133e"
+          ],
+          "macAddress": "00:50:56:ae:13:3e",
+          "connected": "true",
+          "deviceConfigId": "4000",
+          "ipConfig": {
+            "ipAddress": [
+              {
+                "ipAddress": "10.205.20.17",
+                "prefixLength": "24",
+                "state": "preferred"
+              },
+              {
+                "ipAddress": "fe80::250:56ff:feae:133e",
+                "prefixLength": "64",
+                "state": "unknown"
+              }
+            ]
+          }
+        },
+        "ipStack": {
+          "dnsConfig": {
+            "dhcp": "false",
+            "hostName": "gtnpoc02",
+            "domainName": {},
+            "ipAddress": [
+              "147.22.116.240",
+              "147.22.178.40"
+            ],
+            "searchDomain": {}
+          },
+          "ipRouteConfig": {
+            "ipRoute": [
+              {
+                "network": "0.0.0.0",
+                "prefixLength": "0",
+                "gateway": {
+                  "ipAddress": "10.205.20.254",
+                  "device": "0"
+                }
+              },
+              {
+                "network": "10.205.20.0",
+                "prefixLength": "24",
+                "gateway": {
+                  "device": "0"
+                }
+              },
+              {
+                "network": "fe80::",
+                "prefixLength": "64",
+                "gateway": {
+                  "device": "0"
+                }
+              },
+              {
+                "network": "ff00::",
+                "prefixLength": "8",
+                "gateway": {
+                  "device": "0"
+                }
+              }
+            ]
+          }
+        },
+        "disk": [
+          {
+            "diskPath": "/",
+            "capacity": "51368374272",
+            "freeSpace": "46923870208"
+          },
+          {
+            "diskPath": "/boot",
+            "capacity": "246755328",
+            "freeSpace": "176003072"
+          }
+        ],
+        "screen": {
+          "width": "800",
+          "height": "600"
+        },
+        "guestState": "running",
+        "guestOperationsReady": "true",
+        "interactiveGuestOperationsReady": "false"
+      }
+    },
+    {
+      "name": "guestHeartbeatStatus",
+      "val": {
+        "attributes": {
+          "xsi:type": "ManagedEntityStatus"
+        },
+        "$value": "gray"
+      }
+    },
+    {
+      "name": "layout",
+      "val": {
+        "attributes": {
+          "xsi:type": "VirtualMachineFileLayout"
+        },
+        "configFile": [
+          "gtnpoc02.vmxf",
+          "gtnpoc02.nvram",
+          "gtnpoc02.vmsd"
+        ],
+        "logFile": [
+          "vmware.log",
+          "vmware-0.log"
+        ],
+        "disk": {
+          "key": "2000",
+          "diskFile": "[PZ0_C01_PZBN0315_L0001] gtnpoc02/gtnpoc02.vmdk"
+        }
+      }
+    },
+    {
+      "name": "layoutEx",
+      "val": {
+        "attributes": {
+          "xsi:type": "VirtualMachineFileLayoutEx"
+        },
+        "file": [
+          {
+            "key": "0",
+            "name": "[PZ0_C01_PZBN0315_L0001] gtnpoc02/gtnpoc02.vmx",
+            "type": "config",
+            "size": "3379",
+            "uniqueSize": "3379"
+          },
+          {
+            "key": "1",
+            "name": "[PZ0_C01_PZBN0315_L0001] gtnpoc02/gtnpoc02.vmxf",
+            "type": "extendedConfig",
+            "size": "0",
+            "uniqueSize": "0"
+          },
+          {
+            "key": "2",
+            "name": "[PZ0_C01_PZBN0315_L0001] gtnpoc02/gtnpoc02.nvram",
+            "type": "nvram",
+            "size": "8684",
+            "uniqueSize": "8684"
+          },
+          {
+            "key": "3",
+            "name": "[PZ0_C01_PZBN0315_L0001] gtnpoc02/gtnpoc02.vmsd",
+            "type": "snapshotList",
+            "size": "0",
+            "uniqueSize": "0"
+          },
+          {
+            "key": "4",
+            "name": "[PZ0_C01_PZBN0315_L0001] gtnpoc02/gtnpoc02.vmdk",
+            "type": "diskDescriptor",
+            "size": "0",
+            "uniqueSize": "0"
+          },
+          {
+            "key": "5",
+            "name": "[PZ0_C01_PZBN0315_L0001] gtnpoc02/gtnpoc02-flat.vmdk",
+            "type": "diskExtent",
+            "size": "11981029376",
+            "uniqueSize": "11981029376"
+          },
+          {
+            "key": "6",
+            "name": "[PZ0_C01_PZBN0315_L0001] gtnpoc02/vmx-gtnpoc02-3205585752-1.vswp",
+            "type": "uwswap",
+            "size": "117440512",
+            "uniqueSize": "117440512"
+          },
+          {
+            "key": "7",
+            "name": "[PZ0_C01_PZBN0315_L0001] gtnpoc02/vmware.log",
+            "type": "log",
+            "size": "229234",
+            "uniqueSize": "229234"
+          },
+          {
+            "key": "8",
+            "name": "[PZ0_C01_PZBN0315_L0001] gtnpoc02/vmware-0.log",
+            "type": "log",
+            "size": "644895",
+            "uniqueSize": "644895"
+          }
+        ],
+        "disk": {
+          "key": "2000",
+          "chain": {
+            "fileKey": [
+              "4",
+              "5"
+            ]
+          }
+        },
+        "timestamp": "2015-12-22T22:04:08.737411Z"
+      }
+    },
+    {
+      "name": "name",
+      "val": {
+        "attributes": {
+          "xsi:type": "xsd:string"
+        },
+        "$value": "gtnpoc02"
+      }
+    },
+    {
+      "name": "network",
+      "val": {
+        "attributes": {
+          "xsi:type": "ArrayOfManagedObjectReference"
+        },
+        "ManagedObjectReference": {
+          "attributes": {
+            "type": "DistributedVirtualPortgroup",
+            "xsi:type": "ManagedObjectReference"
+          },
+          "$value": "dvportgroup-815"
+        }
+      }
+    },
+    {
+      "name": "overallStatus",
+      "val": {
+        "attributes": {
+          "xsi:type": "ManagedEntityStatus"
+        },
+        "$value": "green"
+      }
+    },
+    {
+      "name": "parent",
+      "val": {
+        "attributes": {
+          "type": "Folder",
+          "xsi:type": "ManagedObjectReference"
+        },
+        "$value": "group-v807"
+      }
+    },
+    {
+      "name": "permission",
+      "val": {
+        "attributes": {
+          "xsi:type": "ArrayOfPermission"
+        }
+      }
+    },
+    {
+      "name": "recentTask",
+      "val": {
+        "attributes": {
+          "xsi:type": "ArrayOfManagedObjectReference"
+        }
+      }
+    },
+    {
+      "name": "resourceConfig",
+      "val": {
+        "attributes": {
+          "xsi:type": "ResourceConfigSpec"
+        },
+        "entity": {
+          "attributes": {
+            "type": "VirtualMachine"
+          },
+          "$value": "vm-812"
+        },
+        "cpuAllocation": {
+          "reservation": "0",
+          "expandableReservation": "false",
+          "limit": "-1",
+          "shares": {
+            "shares": "1000",
+            "level": "normal"
+          }
+        },
+        "memoryAllocation": {
+          "reservation": "0",
+          "expandableReservation": "false",
+          "limit": "-1",
+          "shares": {
+            "shares": "10240",
+            "level": "normal"
+          },
+          "overheadLimit": "102"
+        }
+      }
+    },
+    {
+      "name": "resourcePool",
+      "val": {
+        "attributes": {
+          "type": "ResourcePool",
+          "xsi:type": "ManagedObjectReference"
+        },
+        "$value": "resgroup-51"
+      }
+    },
+    {
+      "name": "rootSnapshot",
+      "val": {
+        "attributes": {
+          "xsi:type": "ArrayOfManagedObjectReference"
+        }
+      }
+    },
+    {
+      "name": "runtime",
+      "val": {
+        "attributes": {
+          "xsi:type": "VirtualMachineRuntimeInfo"
+        },
+        "device": {
+          "runtimeState": {
+            "attributes": {
+              "xsi:type": "VirtualMachineDeviceRuntimeInfoVirtualEthernetCardRuntimeState"
+            },
+            "vmDirectPathGen2Active": "false",
+            "vmDirectPathGen2InactiveReasonVm": "vmNptIncompatibleAdapterType"
+          },
+          "key": "4000"
+        },
+        "host": {
+          "attributes": {
+            "type": "HostSystem"
+          },
+          "$value": "host-603"
+        },
+        "connectionState": "connected",
+        "powerState": "poweredOn",
+        "faultToleranceState": "notConfigured",
+        "toolsInstallerMounted": "false",
+        "suspendInterval": "0",
+        "memoryOverhead": "84123648",
+        "maxCpuUsage": "9572",
+        "maxMemoryUsage": "8192",
+        "numMksConnections": "0",
+        "recordReplayState": "inactive",
+        "onlineStandby": "false",
+        "consolidationNeeded": "false",
+        "featureRequirement": [
+          {
+            "key": "cpuid.SSE3",
+            "featureName": "cpuid.SSE3",
+            "value": "Bool:Min:1"
+          },
+          {
+            "key": "cpuid.PCLMULQDQ",
+            "featureName": "cpuid.PCLMULQDQ",
+            "value": "Bool:Min:1"
+          },
+          {
+            "key": "cpuid.SSSE3",
+            "featureName": "cpuid.SSSE3",
+            "value": "Bool:Min:1"
+          },
+          {
+            "key": "cpuid.CMPXCHG16B",
+            "featureName": "cpuid.CMPXCHG16B",
+            "value": "Bool:Min:1"
+          },
+          {
+            "key": "cpuid.SSE41",
+            "featureName": "cpuid.SSE41",
+            "value": "Bool:Min:1"
+          },
+          {
+            "key": "cpuid.SSE42",
+            "featureName": "cpuid.SSE42",
+            "value": "Bool:Min:1"
+          },
+          {
+            "key": "cpuid.POPCNT",
+            "featureName": "cpuid.POPCNT",
+            "value": "Bool:Min:1"
+          },
+          {
+            "key": "cpuid.AES",
+            "featureName": "cpuid.AES",
+            "value": "Bool:Min:1"
+          },
+          {
+            "key": "cpuid.DS",
+            "featureName": "cpuid.DS",
+            "value": "Bool:Min:1"
+          },
+          {
+            "key": "cpuid.SS",
+            "featureName": "cpuid.SS",
+            "value": "Bool:Min:1"
+          },
+          {
+            "key": "cpuid.LAHF64",
+            "featureName": "cpuid.LAHF64",
+            "value": "Bool:Min:1"
+          },
+          {
+            "key": "cpuid.NX",
+            "featureName": "cpuid.NX",
+            "value": "Bool:Min:1"
+          },
+          {
+            "key": "cpuid.RDTSCP",
+            "featureName": "cpuid.RDTSCP",
+            "value": "Bool:Min:1"
+          },
+          {
+            "key": "cpuid.LM",
+            "featureName": "cpuid.LM",
+            "value": "Bool:Min:1"
+          },
+          {
+            "key": "cpuid.Intel",
+            "featureName": "cpuid.Intel",
+            "value": "Bool:Min:1"
+          }
+        ]
+      }
+    },
+    {
+      "name": "storage",
+      "val": {
+        "attributes": {
+          "xsi:type": "VirtualMachineStorageInfo"
+        },
+        "perDatastoreUsage": {
+          "datastore": {
+            "attributes": {
+              "type": "Datastore"
+            },
+            "$value": "datastore-837"
+          },
+          "committed": "12099356080",
+          "uncommitted": "50295996961",
+          "unshared": "12099356080"
+        },
+        "timestamp": "2015-12-22T22:04:08.737Z"
+      }
+    },
+    {
+      "name": "summary",
+      "val": {
+        "attributes": {
+          "xsi:type": "VirtualMachineSummary"
+        },
+        "vm": {
+          "attributes": {
+            "type": "VirtualMachine"
+          },
+          "$value": "vm-812"
+        },
+        "runtime": {
+          "device": {
+            "runtimeState": {
+              "attributes": {
+                "xsi:type": "VirtualMachineDeviceRuntimeInfoVirtualEthernetCardRuntimeState"
+              },
+              "vmDirectPathGen2Active": "false",
+              "vmDirectPathGen2InactiveReasonVm": "vmNptIncompatibleAdapterType"
+            },
+            "key": "4000"
+          },
+          "host": {
+            "attributes": {
+              "type": "HostSystem"
+            },
+            "$value": "host-603"
+          },
+          "connectionState": "connected",
+          "powerState": "poweredOn",
+          "faultToleranceState": "notConfigured",
+          "toolsInstallerMounted": "false",
+          "suspendInterval": "0",
+          "memoryOverhead": "84123648",
+          "maxCpuUsage": "9572",
+          "maxMemoryUsage": "8192",
+          "numMksConnections": "0",
+          "recordReplayState": "inactive",
+          "onlineStandby": "false",
+          "consolidationNeeded": "false",
+          "featureRequirement": [
+            {
+              "key": "cpuid.SSE3",
+              "featureName": "cpuid.SSE3",
+              "value": "Bool:Min:1"
+            },
+            {
+              "key": "cpuid.PCLMULQDQ",
+              "featureName": "cpuid.PCLMULQDQ",
+              "value": "Bool:Min:1"
+            },
+            {
+              "key": "cpuid.SSSE3",
+              "featureName": "cpuid.SSSE3",
+              "value": "Bool:Min:1"
+            },
+            {
+              "key": "cpuid.CMPXCHG16B",
+              "featureName": "cpuid.CMPXCHG16B",
+              "value": "Bool:Min:1"
+            },
+            {
+              "key": "cpuid.SSE41",
+              "featureName": "cpuid.SSE41",
+              "value": "Bool:Min:1"
+            },
+            {
+              "key": "cpuid.SSE42",
+              "featureName": "cpuid.SSE42",
+              "value": "Bool:Min:1"
+            },
+            {
+              "key": "cpuid.POPCNT",
+              "featureName": "cpuid.POPCNT",
+              "value": "Bool:Min:1"
+            },
+            {
+              "key": "cpuid.AES",
+              "featureName": "cpuid.AES",
+              "value": "Bool:Min:1"
+            },
+            {
+              "key": "cpuid.DS",
+              "featureName": "cpuid.DS",
+              "value": "Bool:Min:1"
+            },
+            {
+              "key": "cpuid.SS",
+              "featureName": "cpuid.SS",
+              "value": "Bool:Min:1"
+            },
+            {
+              "key": "cpuid.LAHF64",
+              "featureName": "cpuid.LAHF64",
+              "value": "Bool:Min:1"
+            },
+            {
+              "key": "cpuid.NX",
+              "featureName": "cpuid.NX",
+              "value": "Bool:Min:1"
+            },
+            {
+              "key": "cpuid.RDTSCP",
+              "featureName": "cpuid.RDTSCP",
+              "value": "Bool:Min:1"
+            },
+            {
+              "key": "cpuid.LM",
+              "featureName": "cpuid.LM",
+              "value": "Bool:Min:1"
+            },
+            {
+              "key": "cpuid.Intel",
+              "featureName": "cpuid.Intel",
+              "value": "Bool:Min:1"
+            }
+          ]
+        },
+        "guest": {
+          "guestId": "ubuntu64Guest",
+          "guestFullName": "Ubuntu Linux (64-bit)",
+          "toolsStatus": "toolsOk",
+          "toolsVersionStatus": "guestToolsCurrent",
+          "toolsVersionStatus2": "guestToolsCurrent",
+          "toolsRunningStatus": "guestToolsRunning",
+          "hostName": "gtnpoc02",
+          "ipAddress": "10.205.20.17"
+        },
+        "config": {
+          "name": "gtnpoc02",
+          "template": "false",
+          "vmPathName": "[PZ0_C01_PZBN0315_L0001] gtnpoc02/gtnpoc02.vmx",
+          "memorySizeMB": "8192",
+          "cpuReservation": "0",
+          "memoryReservation": "0",
+          "numCpu": "4",
+          "numEthernetCards": "1",
+          "numVirtualDisks": "1",
+          "uuid": "422e3a43-a477-b90b-cb3d-d4444cf8d062",
+          "instanceUuid": "502ef436-351a-1ff9-06d3-ed21d1ff0a26",
+          "guestId": "ubuntu64Guest",
+          "guestFullName": "Ubuntu Linux (64-bit)",
+          "installBootRequired": "false"
+        },
+        "storage": {
+          "committed": "12099356080",
+          "uncommitted": "50295996961",
+          "unshared": "12099356080",
+          "timestamp": "2015-12-22T22:04:08.737411Z"
+        },
+        "quickStats": {
+          "overallCpuUsage": "0",
+          "overallCpuDemand": "0",
+          "guestMemoryUsage": "81",
+          "hostMemoryUsage": "3521",
+          "guestHeartbeatStatus": "gray",
+          "distributedCpuEntitlement": "0",
+          "distributedMemoryEntitlement": "986",
+          "staticCpuEntitlement": "9572",
+          "staticMemoryEntitlement": "8294",
+          "privateMemory": "3397",
+          "sharedMemory": "199",
+          "swappedMemory": "0",
+          "balloonedMemory": "0",
+          "consumedOverheadMemory": "52",
+          "ftLogBandwidth": "-1",
+          "ftSecondaryLatency": "-1",
+          "ftLatencyStatus": "gray",
+          "compressedMemory": "0",
+          "uptimeSeconds": "9681677",
+          "ssdSwappedMemory": "0"
+        },
+        "overallStatus": "green"
+      }
+    },
+    {
+      "name": "tag",
+      "val": {
+        "attributes": {
+          "xsi:type": "ArrayOfTag"
+        }
+      }
+    },
+    {
+      "name": "triggeredAlarmState",
+      "val": {
+        "attributes": {
+          "xsi:type": "ArrayOfAlarmState"
+        }
+      }
+    },
+    {
+      "name": "value",
+      "val": {
+        "attributes": {
+          "xsi:type": "ArrayOfCustomFieldValue"
+        }
+      }
+    }
+  ]
+}

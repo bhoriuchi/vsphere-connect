@@ -8,8 +8,9 @@ connect.client(cred.endpoint, cred.user, cred.password, cred.ignoreSSL)
 .then(function(client) {
 
 	return client.searchManagedEntities({
-		type: 'VirtualMachine'
-		//properties: ['name']
+		type: 'VirtualMachine',
+		properties: [],
+		id: 'vm-812'
 	}).then(function(result) {
 
 		console.log(JSON.stringify(result, null, '  '));
