@@ -7,16 +7,18 @@ var viclient;
 connect.client(cred.endpoint, cred.user, cred.password, cred.ignoreSSL)
 .then(function(client) {
 
+	/*
 	return client.searchManagedEntities({
 		type: 'VirtualMachine',
 		properties: ['name', 'config.changeVersion', 'config.name', 'id'],
 		id: ['vm-812', 'vm-778'],
 		//raw: true
-	}).then(function(result) {
+	})*/
 
+	return client.findVmByDnsName('gtnpoc02')
+	.then(function(result) {
 		console.log(JSON.stringify(result, null, '  '));
-		
-		
+
 		return result;
 	})
 	.then(function() {
