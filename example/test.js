@@ -15,7 +15,15 @@ connect.client(cred.endpoint, cred.user, cred.password, cred.ignoreSSL)
 		//raw: true
 	})*/
 
+	/*
 	return client.findVmByDnsName('gtnpoc02')
+
+	*/
+	return client.getServiceProperties({
+		type: 'SessionManager',
+		id: 'SessionManager',
+		properties: ['currentSession', 'sessionList']
+	})
 	.then(function(result) {
 		console.log(JSON.stringify(result, null, '  '));
 
