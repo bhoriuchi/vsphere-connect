@@ -2,9 +2,9 @@ var connect = require('../lib');
 var cred    = require('../credentials');
 var _       = require('lodash');
 
-var viclient;
+var viclient = new connect.Client();
 
-connect.client(cred.endpoint, cred.user, cred.password, cred.ignoreSSL)
+viclient(cred.endpoint, cred.user, cred.password, cred.ignoreSSL)
 .then(function(client) {
 
 	/*
