@@ -21,7 +21,6 @@
     "bluebird": "^3.1.1",
     "soap": "^0.8.0",
     "soap-cookie": "^0.10.1",
-    "object-to-xml": "^1.0.0",
     "nodexml": "^1.0.2",
     "lodash": "^4.2.1"
   },
