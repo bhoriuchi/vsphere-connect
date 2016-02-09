@@ -7,23 +7,28 @@ var viclient = new connect.Client();
 viclient(cred.endpoint, cred.user, cred.password, cred.ignoreSSL)
 .then(function(client) {
 
-	/*
+	
 	return client.searchManagedEntities({
 		type: 'VirtualMachine',
-		properties: ['name', 'config.changeVersion', 'config.name', 'id'],
-		id: ['vm-812', 'vm-778'],
+		properties: ['name', 'id'],
+		//id: ['vm-812', 'vm-778'],
 		//raw: true
-	})*/
+	})
 
 	/*
 	return client.findVmByDnsName('gtnpoc02')
 
 	*/
-	return client.getServiceProperties({
+	/*return client.getServiceProperties({
 		type: 'SessionManager',
 		id: 'SessionManager',
 		properties: ['currentSession', 'sessionList']
-	})
+	})*/
+	/*return client.searchManagedObjects({
+		type: 'Task',
+		//id: 'task-20826'
+		properties: ['info']
+	})*/
 	.then(function(result) {
 		console.log(JSON.stringify(result, null, '  '));
 
@@ -33,6 +38,9 @@ viclient(cred.endpoint, cred.user, cred.password, cred.ignoreSSL)
 		return client.logOut();
 	})
 	.caught(function(err) {
-		console.log(err, err.stack);
+		try {
+			err = JSON.stringify(err, null, '  ');
+		} catch(e) {}
+		console.log(err);
 	});
 });
