@@ -1,5 +1,5 @@
 var connect = require('../lib');
-var cred    = require('../credentials');
+//var cred    = require('../credentials');
 var _       = require('lodash');
 
 var viclient = new connect.Client();
@@ -25,9 +25,10 @@ viclient(cred.endpoint, cred.user, cred.password, cred.ignoreSSL)
 		properties: ['currentSession', 'sessionList']
 	})*/
 	return client.searchManagedObjects({
-		type: 'Task',
-		//id: 'task-20838'
-		//id: ['vm-624', 'vm-821'],
+		type: 'ScheduledTask',
+		//id: 'EventManager',
+		//id: ['vm-624'],
+		//properties: ['latestEvent']
 		//properties: 'all'
 	})
 	.then(function(result) {

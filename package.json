@@ -17,12 +17,12 @@
     "url": "https://github.com/bhoriuchi/vsphere-connect/issues"
   },
   "dependencies": {
-    "vsphere-schema": "git+https://github.com/bhoriuchi/vsphere-schema.git",
-    "bluebird": "^3.1.1",
-    "soap": "^0.8.0",
+    "vsphere-schema": "^0.0.1",
+    "bluebird": "^3.2.2",
+    "soap": "^0.12.0",
     "soap-cookie": "^0.10.1",
     "nodexml": "^1.0.2",
-    "lodash": "^4.2.1"
+    "lodash": "^4.3.0"
   },
   "scripts": {
     "test": "echo \\\"Error: no test specified\\\" && exit 1"
