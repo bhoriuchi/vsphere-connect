@@ -12,7 +12,7 @@ A Promise based vSphere client. Allows you to search managed objects and execute
 
 ```js
 // require module
-var connect = require('../lib');
+var connect = require('vsphere-connect');
 
 // create a new client instance
 var viclient = new connect.Client();
@@ -22,7 +22,7 @@ viclient('myhost.mydomain.com', 'vSphereUsername', 'password', true)
 .then(function(client) {
 
     // search for a specific VM
-    return client.searchManagedObjects({
+    return client.retrieve({
 		type: 'VirtualMachine',
 		id: ['vm-123'],      // omit to return all VMs
 		properties: ['name'] // string literal all for all properties
@@ -45,7 +45,7 @@ viclient('myhost.mydomain.com', 'vSphereUsername', 'password', true)
 
 ```js
 // require module
-var connect = require('../lib');
+var connect = require('vsphere-connect');
 var util    = connect.util;
 
 // create a new client instance
