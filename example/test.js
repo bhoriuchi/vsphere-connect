@@ -10,6 +10,7 @@ var args = {
 	password: cred.password,
 	ignoreSSL: cred.ignoreSSL,
 	autoLogin: true,
+	exclusive: true,
 	events: {
 		interval: 10000
 	}
