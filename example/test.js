@@ -1,19 +1,32 @@
 var connect = require('../lib');
+var util    = connect.util;
 var cred    = require('../credentials');
 var _       = require('lodash');
 
-var viclient = new connect.Client();
 
 var args = {
 	host: cred.endpoint,
 	username: cred.user,
 	password: cred.password,
 	ignoreSSL: cred.ignoreSSL,
-	autoLogin: true
+	autoLogin: true,
+	events: {
+		interval: 10000
+	}
 };
 
-viclient(args)
-.then(function(client) {
+connect.createClient(args).then(function(client) {
+	
+	client.on('TaskEvent', function(event) {
+		console.log('---------');
+		console.log(event);
+		console.log('---------');
+	});
+	
+	//client.on('emitlog', function(l) {
+	//	console.log(l);
+	//});
+	
 	//console.log(client.serviceContent.rootFolder);
 	
 	/* group-d870
@@ -36,6 +49,22 @@ viclient(args)
 	})
 	
 	/*
+	var start = (new Date((new Date()).valueOf() - (60000 * 10))).toISOString();
+	
+	console.log('Now', (new Date()).toISOString());
+	console.log('Begin', start);
+	
+	
+	return client.method('QueryEvents', {
+		_this: util.moRef('EventManager', 'EventManager'),
+		filter: {
+			time: {
+				beginTime: start
+			}
+		}
+	})
+	*/
+	/*
 	return client.destroy({
 		id: 'group-d884',
 		type: 'Folder',
@@ -49,14 +78,15 @@ viclient(args)
 		recursive: true,
 		properties: ['name']
 	})*/
+	
 	.then(function(result) {
 		console.log(JSON.stringify(result, null, '  '));
 
 		return result;
 	})
-	.then(function() {
-		return client.logOut();
-	})
+	//.then(function() {
+	//	return client.logOut();
+	//})
 	.caught(function(err) {
 		try {
 			err = JSON.stringify(err, null, '  ');
