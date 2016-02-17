@@ -155,6 +155,21 @@ Rename a Managed Object
 
 ---
 
+##### client.findParentType(`args`)
+Finds the next parent of a specific type from a starting object (i.e. find the cluster a VM is located in even if there are resource pools in between). Optionally if parent types are nested (like resource pools) a root option can be passed to get the root parent type. 
+
+**`Parameters`**
+* **`args`** `{Object}` - Arguments hash
+  * **`type`** `{string}` - Managed Object type
+  * **`id`** `{string}` - Id of object to rename
+  * **`parentType`** `{string}` - Parent type name
+  * **[`root=false`]** `{boolean}` - Whether or not to ascend up the parent tree until the root parent is found
+
+**`Returns`** `{Promise}` - Returns a Promise that resolves to the parent reference
+
+---
+
+
 ##### client.time()
 Returns the server time
 

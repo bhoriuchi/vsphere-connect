@@ -11,19 +11,20 @@ var args = {
 	ignoreSSL: cred.ignoreSSL,
 	autoLogin: true,
 	exclusive: true,
-	events: {
-		interval: 10000
-	}
+	//events: {
+	//	interval: 10000
+	//}
 };
 
 connect.createClient(args).then(function(client) {
 	
+	/*
 	client.on('TaskEvent', function(event) {
 		console.log('---------');
 		console.log(event);
 		console.log('---------');
 	});
-	
+	*/
 	//client.on('emitlog', function(l) {
 	//	console.log(l);
 	//});
@@ -40,14 +41,25 @@ connect.createClient(args).then(function(client) {
 		properties: ['currentSession', 'sessionList']
 	})*/
 	
-	
+	/*
 	return client.retrieve({
-		type: 'Folder',
+		type: 'ResourcePool',
 		//id: 'group-v3',
 		//id: ['vm-624'],
-		properties: ['name']
+		properties: ['name', 'parent']
 		//properties: 'all'
+	})*/
+	
+	return client.findParentType({
+		client: client,
+		type: 'ResourcePool',
+		id: 'resgroup-50',
+		parentType: 'ResourcePool1',
+		root: true
 	})
+	
+	
+	// resgroup-50 should return 47
 	
 	/*
 	var start = (new Date((new Date()).valueOf() - (60000 * 10))).toISOString();
