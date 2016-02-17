@@ -62,6 +62,16 @@ Creates a new vSphere client
 
 ---
 
+##### connect.format(`result`)
+Formats the SOAP response from `client.method()` into a `JSON` object
+
+**`Parameters`**
+* **`result`** `{Object}` - Result of a call to `client.method()`
+
+**`Returns`** `{Object}` - Returns a formatted `JSON` object
+
+---
+
 ##### client.logIn(`args`)
 Log into vSphere. Not necessary if `autoLogin=true` was passed to `createClient()`
 
@@ -100,7 +110,7 @@ Executes a vSphere method
 ---
 
 ##### client.retrieve(`args`)
-Creates a new vSphere client
+Retrieves a set of objects with the specified properties by type or id
 
 **`Parameters`**
 * **`args`** `{Object}` - Arguments hash
@@ -130,7 +140,7 @@ Destroy a Managed Object
 ---
 
 ##### client.rename(`args`)
-Destroy a Managed Object
+Rename a Managed Object
 
 **`Parameters`**
 * **`args`** `{Object}` - Arguments hash
