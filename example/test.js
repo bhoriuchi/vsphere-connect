@@ -41,7 +41,7 @@ connect.createClient(args).then(function(client) {
 		properties: ['currentSession', 'sessionList']
 	})*/
 	
-	
+	/*
 	return client.retrieve([{
 		type: 'ResourcePool',
 		properties: ['name']
@@ -49,17 +49,20 @@ connect.createClient(args).then(function(client) {
 		type: 'Datacenter',
 		properties: ['name', 'parent']
 	}])
+*/	
 	
 	
-	/*
 	client.on('updates', function(updates) {
 		console.log(JSON.stringify(updates, null, '  '));
 	});
 	
-	client.emitUpdates({
+	client.emitUpdates([{
 		type: 'Folder',
 		properties: ['name']
-	});*/
+	}, {
+		type: 'ClusterComputeResource',
+		properties: ['name']
+	}]);
 	
 	
 	
@@ -106,12 +109,13 @@ connect.createClient(args).then(function(client) {
 		recursive: true,
 		properties: ['name']
 	})*/
-	
+	/*
 	.then(function(result) {
 		console.log(JSON.stringify(result, null, '  '));
 
 		return result;
 	})
+
 	//.then(function() {
 	//	return client.logOut();
 	//})
@@ -120,7 +124,7 @@ connect.createClient(args).then(function(client) {
 			err = JSON.stringify(err, null, '  ');
 		} catch(e) {}
 		console.log(err);
-	});
+	});*/
 })
 .caught(function(err) {
 	console.log('error');
