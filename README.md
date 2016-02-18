@@ -86,7 +86,8 @@ Log into vSphere. Not necessary if `autoLogin=true` was passed to `createClient(
 
 **`Returns`** `{Promise}` - Returns a Promise that resolves to a session object
 
-**`Events`** - `login`
+**`Events`**
+  * **`login`** `{Object | string}` - The session or session id
 
 ---
 
@@ -95,7 +96,8 @@ Log out of vSphere
 
 **`Returns`** `{Promise}` - Returns a Promise
 
-**`Events`** - `logout`
+**`Events`**
+  * **`logout`** `{string[]}` - Array of session IDs logged out or terminated
 
 ---
 
@@ -124,6 +126,10 @@ Retrieves a set of objects with the specified properties by type or id
   * **[`maxObjects`]** `{number}` - Maximum objects retrieved
 
 **`Returns`** `{Promise}` - Returns a Promise that resolves to the results of the retrieval
+
+**`Events`**
+* **`result`** `{Object}` - Result output of the method
+* **`error`** `{Object}` - Error thrown by method
 
 ---
 
@@ -172,7 +178,7 @@ Finds the next parent of a specific type from a starting object (i.e. find the c
 
 ---
 
-##### client.emitUpdates(`args`, `options`)
+##### client.emitUpdates(`args`, [`options`])
 Monitors a list of properties on one or more object types for changes and emits the changes as an event. Updates are checked on an interval that must be greater than or equal to one minute.
 
 **`Parameters`**
@@ -182,9 +188,11 @@ Monitors a list of properties on one or more object types for changes and emits 
   * **[`container=rootFolder`]** `{ManagedObjectReference}` - Container to start search from
   * **[`recursive=true`]** `{boolean}` - Recursive search
   * **[`properties`]** `{string | string[]}` - if "all" all properties retrieved. Otherwise array of dot notation properties
+* **[`options`]** `{Object}` - Options hash
+  * **[`interval`]** `{number}` - Time in milliseconds between update checks
 
 **`Events`**
-* **`updates`** `{Object[]} - The objects and their updates. No event will be emitted if there are no updates
+* **`updates`** `{Object[]}` - The objects and their updates. No event will be emitted if there are no updates
 
 ---
 
