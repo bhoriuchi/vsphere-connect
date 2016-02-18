@@ -6,6 +6,7 @@
 A [`bluebird`](https://github.com/petkaantonov/bluebird) Promise based vSphere client. Allows you to search managed objects and execute methods. More functionality will be provided in future releases.
 
 [`WIKI`](https://github.com/bhoriuchi/vsphere-connect/wiki)
+[`Change Log`](https://github.com/bhoriuchi/vsphere-connect/wiki/Change-Log)
 
 ---
 
@@ -109,7 +110,7 @@ Executes a vSphere method
 
 ---
 
-##### client.retrieve(`args`)
+##### client.retrieve(`args`, [`options`])
 Retrieves a set of objects with the specified properties by type or id
 
 **`Parameters`**
@@ -119,6 +120,8 @@ Retrieves a set of objects with the specified properties by type or id
   * **[`container=rootFolder`]** `{ManagedObjectReference}` - Container to start search from
   * **[`recursive=true`]** `{boolean}` - Recursive search
   * **[`properties`]** `{string | string[]}` - if "all" all properties retrieved. Otherwise array of dot notation properties
+* **[`options`]** `{Object}` - Options hash
+  * **[`maxObjects`]** `{number}` - Maximum objects retrieved
 
 **`Returns`** `{Promise}` - Returns a Promise that resolves to the results of the retrieval
 
@@ -168,6 +171,23 @@ Finds the next parent of a specific type from a starting object (i.e. find the c
 **`Returns`** `{Promise}` - Returns a Promise that resolves to the parent reference
 
 ---
+
+##### client.emitUpdates(`args`, `options`)
+Monitors a list of properties on one or more object types for changes and emits the changes as an event. Updates are checked on an interval that must be greater than or equal to one minute.
+
+**`Parameters`**
+* **`args`** `{Object | Object[]}` - Arguments hash or array of arguments hash. If an array, multiple types can be specified for retrieval each with their own unique property set
+  * **`type`** `{string}` - Managed Object type
+  * **[`id`]** `{string | string[]}` - Id or array of Ids to retrieve
+  * **[`container=rootFolder`]** `{ManagedObjectReference}` - Container to start search from
+  * **[`recursive=true`]** `{boolean}` - Recursive search
+  * **[`properties`]** `{string | string[]}` - if "all" all properties retrieved. Otherwise array of dot notation properties
+
+**`Events`**
+* **`updates`** `{Object[]} - The objects and their updates. No event will be emitted if there are no updates
+
+---
+
 
 
 ##### client.time()

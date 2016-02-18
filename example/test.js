@@ -50,6 +50,19 @@ connect.createClient(args).then(function(client) {
 		properties: ['name', 'parent']
 	}])
 	
+	
+	/*
+	client.on('updates', function(updates) {
+		console.log(JSON.stringify(updates, null, '  '));
+	});
+	
+	client.emitUpdates({
+		type: 'Folder',
+		properties: ['name']
+	});*/
+	
+	
+	
 	/*
 	return client.findParentType({
 		client: client,
