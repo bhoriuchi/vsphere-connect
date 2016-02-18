@@ -113,7 +113,7 @@ Executes a vSphere method
 Retrieves a set of objects with the specified properties by type or id
 
 **`Parameters`**
-* **`args`** `{Object}` - Arguments hash
+* **`args`** `{Object | Object[]}` - Arguments hash or array of arguments hash. If an array, multiple types can be specified for retrieval each with their own unique property set
   * **`type`** `{string}` - Managed Object type
   * **[`id`]** `{string | string[]}` - Id or array of Ids to retrieve
   * **[`container=rootFolder`]** `{ManagedObjectReference}` - Container to start search from

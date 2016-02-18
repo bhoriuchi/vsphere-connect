@@ -41,15 +41,16 @@ connect.createClient(args).then(function(client) {
 		properties: ['currentSession', 'sessionList']
 	})*/
 	
-	/*
-	return client.retrieve({
-		type: 'ResourcePool',
-		//id: 'group-v3',
-		//id: ['vm-624'],
-		properties: ['name', 'parent']
-		//properties: 'all'
-	})*/
 	
+	return client.retrieve([{
+		type: 'ResourcePool',
+		properties: ['name']
+	}, {
+		type: 'Datacenter',
+		properties: ['name', 'parent']
+	}])
+	
+	/*
 	return client.findParentType({
 		client: client,
 		type: 'ResourcePool',
@@ -57,6 +58,7 @@ connect.createClient(args).then(function(client) {
 		parentType: 'ResourcePool1',
 		root: true
 	})
+	*/
 	
 	
 	// resgroup-50 should return 47
