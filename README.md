@@ -125,7 +125,7 @@ Retrieves a set of objects with the specified properties by type or id
 * **[`options`]** `{Object}` - Options hash
   * **[`maxObjects`]** `{number}` - Maximum objects retrieved
 
-**`Returns`** `{Promise}` - Returns a Promise that resolves to the results of the retrieval
+**`Returns`** `{Promise}` - Returns a Promise that resolves to the formatted results of the retrieval
 
 **`Events`**
 * **`result`** `{Object}` - Result output of the method
@@ -144,7 +144,7 @@ Destroy a Managed Object
   * **[`delay=250`]** `{number}` - Delay in milliseconds between monitor queries for `async=false`
   * **[`timeout=0`]** `{number}` - Time in milliseconds before the monitor operation should timeout, 0 for never
 
-**`Returns`** `{Promise}` - Returns a Promise that resolves to the destroy task
+**`Returns`** `{Promise}` - Returns a Promise that resolves to the ManagedObjectReference of the destroy task
 
 ---
 
@@ -160,7 +160,7 @@ Rename a Managed Object
   * **[`delay=250`]** `{number}` - Delay in milliseconds between monitor queries for `async=false`
   * **[`timeout=0`]** `{number}` - Time in milliseconds before the monitor operation should timeout, 0 for never
 
-**`Returns`** `{Promise}` - Returns a Promise that resolves to the rename task
+**`Returns`** `{Promise}` - Returns a Promise that resolves to the ManagedObjectReference of the rename task
 
 ---
 
@@ -174,7 +174,7 @@ Finds the next parent of a specific type from a starting object (i.e. find the c
   * **`parentType`** `{string}` - Parent type name
   * **[`root=false`]** `{boolean}` - Whether or not to ascend up the parent tree until the root parent is found
 
-**`Returns`** `{Promise}` - Returns a Promise that resolves to the parent reference
+**`Returns`** `{Promise}` - Returns a Promise that resolves to the parent's ManagedObjectReference
 
 ---
 
