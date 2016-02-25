@@ -16,7 +16,57 @@ var args = {
 	//}
 };
 
+
+function findKey(obj, key, path, seen, results) {
+	
+	path    = path || [];
+	seen    = seen || [];
+	results = results || [];
+	
+	if (Array.isArray(obj)) {
+		_.forEach(obj, function(o) {
+			if (!_.includes(seen, o)) {
+				findKey(o, key, _.clone(path), seen, results);
+			}
+		});
+	}
+	else if (_.isObject(obj)) {
+		
+		seen.push(obj);
+		
+		_.forEach(obj, function(v, k) {
+			
+			//var rx       = new RegExp(k, 'i');
+			var thisPath = _.clone(path);
+			thisPath.push(k);
+			
+			if (_.lowerCase(k) === _.lowerCase(key)) {
+				console.log(thisPath.join('.'));
+				results.push(thisPath.join('.'));
+			}
+			
+			if (!_.includes(seen, v)) {
+				findKey(v, key, thisPath, seen, results);
+			}
+		});
+	}
+	
+	return results;
+}
+
+
 connect.createClient(args).then(function(client) {
+
+	console.log(client.types.MethodFault());
+	
+	//findKey(client.client.wsdl, 'ManagedObjectReference');
+	
+	//console.log(client.client.wsdl._includesWsdl[0].definitions.schemas['urn:vim25'].types.VsanHostNodeState);
+	//console.log(_.keys(client.client.wsdl.services.VimService.ports.VimPort.binding.topElements));
+	//console.log(JSON.stringify(client.client.wsdl._includesWsdl[0].definitions.schemas['urn:vim25'].types.VsanHostNodeState, null, '  '));
+	
+	//_includesWsdl.definitions.schemas.urn:vim25.complexTypes
+	//definitions.schemas.urn:vim25.complexTypes
 	
 	/*
 	client.on('TaskEvent', function(event) {
@@ -51,7 +101,7 @@ connect.createClient(args).then(function(client) {
 	}])
 */	
 	
-	
+	/*
 	client.on('updates', function(updates) {
 		console.log(JSON.stringify(updates, null, '  '));
 	});
@@ -64,7 +114,7 @@ connect.createClient(args).then(function(client) {
 		properties: ['name']
 	}]);
 	
-	
+	*/
 	
 	/*
 	return client.findParentType({
