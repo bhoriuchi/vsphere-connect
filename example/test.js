@@ -57,16 +57,15 @@ function findKey(obj, key, path, seen, results) {
 
 connect.createClient(args).then(function(client) {
 
-	console.log(client.types.MethodFault());
-	
-	//findKey(client.client.wsdl, 'ManagedObjectReference');
-	
-	//console.log(client.client.wsdl._includesWsdl[0].definitions.schemas['urn:vim25'].types.VsanHostNodeState);
-	//console.log(_.keys(client.client.wsdl.services.VimService.ports.VimPort.binding.topElements));
-	//console.log(JSON.stringify(client.client.wsdl._includesWsdl[0].definitions.schemas['urn:vim25'].types.VsanHostNodeState, null, '  '));
-	
-	//_includesWsdl.definitions.schemas.urn:vim25.complexTypes
-	//definitions.schemas.urn:vim25.complexTypes
+	/*
+	return client.method('CreateVM_Task', {
+		_this: util.moRef('EventManager', 'EventManager'),
+		filter: {
+			time: {
+				beginTime: start
+			}
+		}
+	})*/
 	
 	/*
 	client.on('TaskEvent', function(event) {
@@ -90,17 +89,16 @@ connect.createClient(args).then(function(client) {
 		id: 'SessionManager',
 		properties: ['currentSession', 'sessionList']
 	})*/
+
 	
-	/*
 	return client.retrieve([{
 		type: 'ResourcePool',
 		properties: ['name']
 	}, {
-		type: 'Datacenter',
-		properties: ['name', 'parent']
-	}])
-*/	
-	
+		type: 'Folder',
+		properties: ['name']
+	}])	
+
 	/*
 	client.on('updates', function(updates) {
 		console.log(JSON.stringify(updates, null, '  '));
@@ -159,22 +157,22 @@ connect.createClient(args).then(function(client) {
 		recursive: true,
 		properties: ['name']
 	})*/
-	/*
+	
 	.then(function(result) {
 		console.log(JSON.stringify(result, null, '  '));
 
 		return result;
 	})
 
-	//.then(function() {
-	//	return client.logOut();
-	//})
+	.then(function() {
+		return client.logOut();
+	})
 	.caught(function(err) {
 		try {
 			err = JSON.stringify(err, null, '  ');
 		} catch(e) {}
 		console.log(err);
-	});*/
+	});
 })
 .caught(function(err) {
 	console.log('error');
