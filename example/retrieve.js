@@ -22,7 +22,7 @@ connect.createClient(args).then(function(client) {
 	
 	// clone the vm. use your environment specific values
 	return client.retrieve([{
-		type: 'ComputeResource',
+		type: 'VirtualMachine',
 		id: ['vm-800'],
 		properties: ['name', 'config.hardware.device']
 	}])
