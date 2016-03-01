@@ -57,15 +57,6 @@ function findKey(obj, key, path, seen, results) {
 
 connect.createClient(args).then(function(client) {
 
-	/*
-	return client.method('CreateVM_Task', {
-		_this: util.moRef('EventManager', 'EventManager'),
-		filter: {
-			time: {
-				beginTime: start
-			}
-		}
-	})*/
 	
 	/*
 	client.on('TaskEvent', function(event) {
@@ -97,7 +88,7 @@ connect.createClient(args).then(function(client) {
 	}, {
 		type: 'Folder',
 		properties: ['name']
-	}])	
+	}])
 
 	/*
 	client.on('updates', function(updates) {

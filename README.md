@@ -145,7 +145,7 @@ Destroy a Managed Object
   * **`type`** `{string}` - Managed Object type
   * **`id`** `{string}` - Id of object to destroy
   * **[`async=true`]** `{boolean}` - If `false`, the task generated will be monitored to completion and returned
-  * **[`delay=250`]** `{number}` - Delay in milliseconds between monitor queries for `async=false`
+  * **[`delay=1000`]** `{number}` - Delay in milliseconds between monitor queries for `async=false`
   * **[`timeout=0`]** `{number}` - Time in milliseconds before the monitor operation should timeout, 0 for never
 
 **`Returns`** `{Promise}` - Returns a Promise that resolves to the ManagedObjectReference of the destroy task
@@ -161,7 +161,7 @@ Rename a Managed Object
   * **`id`** `{string}` - Id of object to rename
   * **`name`** `{string}` - New Name
   * **[`async=true`]** `{boolean}` - If `false`, the task generated will be monitored to completion and returned
-  * **[`delay=250`]** `{number}` - Delay in milliseconds between monitor queries for `async=false`
+  * **[`delay=1000`]** `{number}` - Delay in milliseconds between monitor queries for `async=false`
   * **[`timeout=0`]** `{number}` - Time in milliseconds before the monitor operation should timeout, 0 for never
 
 **`Returns`** `{Promise}` - Returns a Promise that resolves to the ManagedObjectReference of the rename task
@@ -208,6 +208,21 @@ Returns the server time
 **`Returns`** `{Promise}` - Returns a Promise that resolves to the server time
 
 ---
+
+
+##### client.monitor.task(`id`, [`delay`], [`timeout`])
+Monitors a task until it completes or times out
+
+**`Parameters`**
+* **`id`** `{String}` - Task id to monitor
+* **[`delay=1000`]** `{number}` - Delay in milliseconds between status polls
+* **[`timeout=0`]** `{number}` - Time in milliseconds before the monitor times out. 0 for no timeout
+
+**`Returns`** `{Promise}` - Returns a Promise that resolves to task info after the task has been completed
+
+**`Events`**
+* **`task.state`** `{Object}` - Emits the task id and state on each poll cycle
+
 
 ##### util.moRef(`type`, `id`)
 Creates a ManagedObjectReference
