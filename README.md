@@ -110,6 +110,10 @@ Executes a vSphere method
 
 **`Returns`** `{Promise}` - Returns a Promise that resolves to the method output
 
+**`Events`**
+  * **`method.error`** `{SoapError}` - SOAP Error
+  * **`method.result`** `{SoapResult}` - SOAP Result
+
 ---
 
 ##### client.retrieve(`args`, [`options`])
