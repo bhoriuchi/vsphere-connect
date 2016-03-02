@@ -131,9 +131,6 @@ Retrieves a set of objects with the specified properties by type or id
 
 **`Returns`** `{Promise}` - Returns a Promise that resolves to the formatted results of the retrieval
 
-**`Events`**
-* **`result`** `{Object}` - Result output of the method
-* **`error`** `{Object}` - Error thrown by method
 
 ---
 
