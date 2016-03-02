@@ -19,7 +19,7 @@ var args = {
 
 
 connect.createClient(args).then(function(client) {
-	
+
 	// clone the vm. use your environment specific values
 	return client.retrieve([{
 		type: 'VirtualMachine',
@@ -35,7 +35,4 @@ connect.createClient(args).then(function(client) {
 	.caught(function(err) {
 		throw err;
 	});
-})
-.caught(function(err) {
-	console.log(err);
 });
