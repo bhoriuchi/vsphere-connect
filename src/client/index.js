@@ -1,35 +1,30 @@
 import _ from 'lodash'
-import soap from 'soap'
+import { soap } from 'strong-soap'
 import path from 'path'
+import 'json-js'
+import fs from 'fs'
+import urlencode from 'urlencode'
 import LocalStorage from 'node-localstorage'
 
 export const BASE_DIR = path.resolve(__dirname.replace(/^(.*\/vsphere-connect)(.*)$/, '$1'))
 
-export function circular (obj, value = '[Circular]') {
-  let circularEx = (_obj, key = null, seen = [], path = '') => {
-    seen.push(_obj)
-    if (_.isObject(_obj)) {
-      _.forEach(_obj, (o, i) => {
-        let pathStr = _.isArray(_obj) ? `[${i}]` : `.${i}`
-        if (_.includes(seen, o)) _obj[i] = _.isFunction(value) ? value(_obj, key, seen.slice(0), path) : value
-        else circularEx(o, i, seen.slice(0), `${path}${pathStr}`)
-      })
-    }
-    return _obj
+export function readCache (storage, key) {
+  key = urlencode(key)
+  try {
+    let cache = fs.readFileSync(path.resolve(`${BASE_DIR}/WSDL_CACHE/${key}`), 'utf8')
+    // let cache = storage.getItem(key)
+    if (!cache) return null
+    cache = JSON.retrocycle(JSON.parse(cache))
+    return cache
+  } catch (err) {
+    return null
   }
-
-  if (!obj) throw new Error('circular requires an object to examine')
-  return circularEx(obj, value)
 }
 
-export function reconnectWSDL (root, current) {
-  if (_.isObject(current)) {
-    _.forEach(current, (v, k) => {
-      if (k === 'WSDL_CACHE' && v === '[Circular]') current[k] = root
-      else if (_.isObject(v)) reconnectWSDL(root, v)
-    })
-  }
-  return root
+export function writeCache (storage, key, cache) {
+  key = urlencode(key)
+  fs.writeFileSync(path.resolve(`${BASE_DIR}/WSDL_CACHE/${key}`), JSON.stringify(JSON.decycle(cache)))
+  //storage.setItem(key, JSON.stringify(JSON.decycle(cache)))
 }
 
 export class VSphereClient {
@@ -38,23 +33,17 @@ export class VSphereClient {
 
     this._host = host
     this._options = options
-    this._endpoint = `https://${host}/sdk/vimService`
+    this._endpoint = `https://${this._host}/sdk/vimService`
     this._wsdl = `${this._endpoint}.wsdl`
 
     let localStorage = new LocalStorage.LocalStorage(path.resolve(`${BASE_DIR}/WSDL_CACHE`))
-    let WSDL_CACHE = localStorage.getItem(this._wsdl)
 
     let soapOptions = {
-      forceSoap12Headers: false,
       endpoint: this._endpoint
     }
 
-    /*
-    if (WSDL_CACHE) {
-      let cache = JSON.parse(WSDL_CACHE)
-      soapOptions.WSDL_CACHE = reconnectWSDL(cache, cache)
-    }
-    */
+    let WSDL_CACHE = readCache(localStorage, this._wsdl)
+    if (WSDL_CACHE) soapOptions.WSDL_CACHE = WSDL_CACHE
 
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 
@@ -62,17 +51,13 @@ export class VSphereClient {
       if (err) throw err
       this._soapClient = client
 
-      _.forEach(_.get(client, 'wsdl.definitions.messages'), function(msg) {
-        msg.$name = msg.$name.replace(/RequestMsg$/, '');
-      })
+      if (!WSDL_CACHE) writeCache(localStorage, this._wsdl, client.wsdl.WSDL_CACHE)
 
-      if (!WSDL_CACHE) localStorage.setItem(this._wsdl, JSON.stringify(circular(client.wsdl.WSDL_CACHE), null, ' '))
-
-      this._soapClient.VimService.VimPort.RetrieveServiceContent({
+      this._soapClient.RetrieveServiceContent({
         '_this': 'ServiceInstance'
       }, (err, result) => {
         if (err) throw err
-        // console.log(result)
+        console.log(result)
       })
     })
   }
