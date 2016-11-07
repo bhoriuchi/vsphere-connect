@@ -1,10 +1,4 @@
 {
-  "apiVersions": [
-    "6.0",
-    "5.5"
-  ],
-  "endpoints": {
-    "https://192.168.0.91/sdk/vimService.wsdl": "6.0",
-    "https://10.5.227.100/sdk/vimService.wsdl": "5.5"
-  }
+  "apiVersions": [],
+  "endpoints": {}
 }
