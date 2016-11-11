@@ -1,20 +1,14 @@
 import _ from 'lodash'
 import { soap } from 'strong-soap'
-import path from 'path'
+import methods from './methods/index'
 import { getCache, setCache } from './cache'
-
-export const BASE_DIR = path.resolve(__dirname.replace(/^(.*\/vsphere-connect)(.*)$/, '$1'))
+import { errorHandler, resultHandler } from './common'
 
 export class VSphereClient {
   constructor (host, options, callback) {
-    if (!options) {
-      options = {}
-      callback = () => false
-    } else if (_.isFunction(options)) {
-      options = {}
-      callback = options
-    }
-    if (!_.isFunction(callback)) callback = () => false
+    if (!options) options = {}, callback = () => null
+    else if (_.isFunction(options)) options = {}, callback = options
+    if (!_.isFunction(callback)) callback = () => null
 
     return new Promise((resolve, reject) => {
       if (!host) throw new Error('No host specified')
@@ -28,24 +22,21 @@ export class VSphereClient {
 
       if (this._options.ignoreSSL) process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 
-      soap.createClient(cacheFile || this._wsdl, soapOptions, (err, client) => {
-        if (err) throw err
+      return soap.createClient(cacheFile || this._wsdl, soapOptions, (err, client) => {
+        if (err) return errorHandler(err, callback, reject)
         this._soapClient = client
         this.WSDL_CACHE = client.wsdl.WSDL_CACHE
 
         // retrieve service content
-        this._soapClient.RetrieveServiceContent({
-          '_this': 'ServiceInstance'
+        return this._soapClient.RetrieveServiceContent({
+          _this: 'ServiceInstance'
         }, (err, result) => {
-          if (err) {
-            callback(err)
-            return reject(err)
-          }
+          if (err) return errorHandler(err, callback, reject)
           this.serviceContent = result.returnval
-          this.apiVersion = _.get(this.serviceContent, 'about.apiVersion') || _.get(this.serviceContent, 'about.version')
+          this.apiVersion = _.get(this.serviceContent, 'about.apiVersion')
           if (!cacheFile) setCache(this.WSDL_CACHE, this._wsdl, this.apiVersion)
-          callback(null, this)
-          return resolve(this)
+          _.forEach(methods, (fn, name) => { this[name] = fn.bind(this) })
+          return resultHandler(this, callback, resolve)
         })
       })
     })

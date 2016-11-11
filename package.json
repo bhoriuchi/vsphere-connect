@@ -17,17 +17,14 @@
     "url": "https://github.com/bhoriuchi/vsphere-connect/issues"
   },
   "dependencies": {
-    "vsphere-schema": "^1.0.0",
-    "bluebird": "^3.4.6",
     "strong-soap": "^1.0.2",
     "soap-cookie": "^0.10.1",
-    "node-localstorage": "^1.3.0",
     "nodexml": "^1.0.2",
-    "lodash": "^4.16.4",
-    "json-js": "^1.1.2",
-    "urlencode": "^1.1.0"
+    "lodash": "^4.16.4"
   },
   "devDependencies": {
+    "vsphere-schema": "^1.0.0",
+    "bluebird": "^3.4.6",
     "chalk": "^1.1.3",
     "chai": "^3.5.0",
     "babel-core": "^6.0.0",
