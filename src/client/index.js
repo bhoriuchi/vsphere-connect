@@ -25,6 +25,7 @@ export class VSphereClient {
       return soap.createClient(cacheFile || this._wsdl, soapOptions, (err, client) => {
         if (err) return errorHandler(err, callback, reject)
         this._soapClient = client
+        this._VimPort = _.get(client, 'VimService.VimPort')
         this.WSDL_CACHE = client.wsdl.WSDL_CACHE
 
         // retrieve service content
@@ -32,7 +33,7 @@ export class VSphereClient {
           _this: 'ServiceInstance'
         }, (err, result) => {
           if (err) return errorHandler(err, callback, reject)
-          this.serviceContent = result.returnval
+          this.serviceContent = _.get(result, 'returnval')
           this.apiVersion = _.get(this.serviceContent, 'about.apiVersion')
           if (!cacheFile) setCache(this.WSDL_CACHE, this._wsdl, this.apiVersion)
           _.forEach(methods, (fn, name) => { this[name] = fn.bind(this) })

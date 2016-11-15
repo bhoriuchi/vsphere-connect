@@ -17,8 +17,7 @@
     "url": "https://github.com/bhoriuchi/vsphere-connect/issues"
   },
   "dependencies": {
-    "strong-soap": "^1.0.2",
-    "soap-cookie": "^0.10.1",
+    "strong-soap": "git+https://github.com/bhoriuchi/strong-soap.git#temp",
     "nodexml": "^1.0.2",
     "lodash": "^4.16.4"
   },

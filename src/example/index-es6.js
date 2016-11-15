@@ -43,6 +43,7 @@ VSphere(host, { ignoreSSL: true }).then((client) => {
   // console.log(_.keys(s.elements.versionURI))
   // console.log(_.keys(s.elements))
 
+
   return client.login({ username, password }).then((session) => {
     console.log(session)
     return client.method('RetrievePropertiesEx', pl2).then((props) => {
@@ -53,6 +54,7 @@ VSphere(host, { ignoreSSL: true }).then((client) => {
     })
   })
 
+  console.log('Runn took', (Date.now() - start) / 1000, 'seconds')
 })
   .catch((err) => {
     console.log(chalk.red(JSON.stringify(err, null, '  ')))

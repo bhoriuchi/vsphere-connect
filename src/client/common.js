@@ -23,6 +23,19 @@ export function errorHandler (err, callback, reject) {
   return reject(err)
 }
 
+export function moRef (type, id) {
+  if (_.isObject(type) && !id) {
+    return {
+      type: _.get(type, '$attributes.type') || _.get(type, '$attributes.xsi:type'),
+      id: _.get(type, '$value')
+    }
+  }
+  return {
+    $attributes: { type },
+    $value: id
+  }
+}
+
 export function resultHandler (result, callback, resolve) {
   callback(null, result)
   return resolve(result)
@@ -31,5 +44,6 @@ export function resultHandler (result, callback, resolve) {
 export default {
   getSessionId,
   errorHandler,
-  resultHandler
+  resultHandler,
+  moRef
 }
