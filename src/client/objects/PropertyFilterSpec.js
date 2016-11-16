@@ -1,0 +1,78 @@
+import _ from 'lodash'
+import mo from './mo'
+import ObjectSpec from './ObjectSpec'
+import PropertySpec from './PropertySpec'
+
+export class PropertyFilterSpec {
+  constructor (obj, client) {
+    this.obj = obj
+    this.client = client
+  }
+  get spec () {
+    let [ type, container, recursive ] = [ null, null, null ]
+    let resolveView = Promise.resolve(null)
+    let viewManager = this.client.serviceContent.viewManager
+
+    if (_.isString(this.obj)) {
+      type       = this.obj
+      container  = this.client.serviceContent.rootFolder
+      recursive  = true
+    } else if (!this.obj.type) {
+      return Promise.reject('Missing required argument "type"')
+    }
+
+    type = type || this.obj.type
+    container = container || this.obj.container || this.client.serviceContent.rootFolder
+    recursive = (this.obj.recursive === false) ? false : true
+
+    let listSpec = _.get(mo, `["${this.client.apiVersion}"]["${type}"].listSpec`)
+    if (!listSpec && !this.obj.id) return Promise.reject('Unable to list vSphere type, try with a specific object id')
+
+    // get the container view if no object specified
+    // this is used for listing entire collections of object types
+    if (!this.obj.id && listSpec.type === 'ContainerView') {
+      resolveView = this.client.method('CreateContainerView', { _this: viewManager, container, type, recursive })
+    }
+
+    return resolveView.then((containerView) => {
+      this.obj.containerView = containerView
+      this.obj.listSpec = listSpec
+
+      return {
+        objSet: !_.isArray(obj) ? [ObjectSpec(obj)] : _.map(obj, ObjectSpec),
+        propSet: !_.isArray(obj) ? [PropertySpec(obj)] : _.map(obj, PropertySpec)
+      }
+    })
+  }
+}
+
+export default function (obj, client) {
+  return new PropertyFilterSpec(obj, client)
+}
+
+
+// example
+
+/*
+let spec = [
+  [
+    {
+      type: 'VirtualMachine',
+      id: 'vm-100',
+      properties: ['name']
+    },
+    {
+      type: 'VirtualMachine',
+      id: 'vm-200',
+      properties: ['name']
+    },
+    {
+      type: 'Folder',
+      id: 'group-101',
+      properties: ['name']
+    }
+  ]
+]
+
+*/
+
