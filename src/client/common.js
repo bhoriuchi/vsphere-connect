@@ -41,9 +41,21 @@ export function resultHandler (result, callback, resolve) {
   return resolve(result)
 }
 
+export function makeDotPath (obj, list = [], path = []) {
+  _.forEach(obj, (val, key) => {
+    let prop = path.slice(0)
+    prop.push(key)
+    if (val === true) list.push(prop.join('.'))
+    else makeDotPath(val, list, prop)
+  })
+  return list
+}
+
+
 export default {
   getSessionId,
   errorHandler,
   resultHandler,
+  makeDotPath,
   moRef
 }

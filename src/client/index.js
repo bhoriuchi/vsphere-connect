@@ -1,43 +1,55 @@
 import _ from 'lodash'
 import { soap } from 'strong-soap'
 import methods from './methods/index'
+import query from './query'
+import { makeDotPath } from './common'
 import { getCache, setCache } from './cache'
-
-export function query (q) {
-  let [ idx, val, chain, len, breakLoop, type ] = [ 0, null, q._chain, q._chain.length, false, null ]
-
-  for (let c of chain) {
-    switch (c.method) {
-      case 'logout':
-        val = q.client.logout()
-        breakLoop = true
-        break
-
-      case 'type':
-        type = c.name
-        break
-
-      default:
-        break
-    }
-    if (breakLoop) return val
-    idx++
-  }
-  return val
-}
 
 export class v {
   constructor (client, value = null, chain = [], prev = null, type = null) {
-    this.client = client
+    this._client = client
     this._value = value
     this._chain = chain
     this._prev = prev
     this._type = type
   }
 
+  // allow direct access to the client
+  client (callback = () => false) {
+    return new Promise((resolve, reject) => {
+      return this._client._connection
+        .then(() => {
+          callback(null, this._client)
+          return resolve(this._client)
+        })
+        .catch((err) => {
+          callback(err)
+          return reject(err)
+        })
+    })
+  }
+
   type (name) {
-    let method = 'type'
-    this._chain.push({ method, prev: this._prev, name })
+    if (!name) throw new Error('type method requires a type name')
+    return new v(this._client, null, [], null, name)
+  }
+
+  pluck () {
+    let method = 'pluck'
+    let props = []
+    let args = [...arguments]
+    if (!this._type) throw new Error('a type must be selected first')
+    if (!args.length) throw new Error('pluck requires one or more fields')
+    _.forEach(args, (arg) => {
+      if (_.isString(arg)) {
+        props = _.union(props, [arg])
+      } else if (_.isArray(arg)) {
+        props = _.union(props, arg)
+      } else if (_.isObject(arg)) {
+        props = _.union(props, makeDotPath(arg))
+      }
+    })
+    this._chain.push({ method, prev: this._prev, props })
     this._prev = method
     return this
   }

@@ -2,6 +2,7 @@ import chalk from 'chalk'
 import VSphere from '../client/index'
 import cred from '../../credentials'
 let { host, username, password } = cred
+import _ from 'lodash'
 
 let v = VSphere(host, { username, password, ignoreSSL: true })
 
