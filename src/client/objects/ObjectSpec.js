@@ -1,17 +1,26 @@
 import _ from 'lodash'
+import SelectionSpec from './SelectionSpec'
 import { moRef } from '../common'
 
 export class ObjectSpec {
   constructor (obj) {
-    if (!obj.id) {
-      this.obj = obj.containerView ? obj.containerView : moRef(obj.listSpec.type, obj.listSpec.id)
-    } else {
-
-    }
+    this.obj = obj
   }
 
   get spec () {
-
+    if (!this.obj.id.length) {
+      return [
+        {
+          obj: this.obj.containerView ? this.obj.containerView : moRef(this.obj.listSpec.type, this.obj.listSpec.id),
+          skip: true,
+          selectSet: SelectionSpec(this.obj)
+        }
+      ]
+    } else {
+      return _.map(this.obj.id, (id) => {
+        return { obj: moRef(this.obj.type, id) }
+      })
+    }
   }
 }
 

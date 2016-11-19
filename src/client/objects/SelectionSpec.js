@@ -1,10 +1,16 @@
+import _ from 'lodash'
+import TraversalSpec from './TraversalSpec'
+
 export class SelectionSpec {
   constructor (obj) {
-    this.name = obj.name
+    this.obj = obj
   }
   get spec () {
+    if (_.has(obj, 'listSpec.type') && _.has(obj, 'listSpec.path')) {
+      return TraversalSpec(this.obj.listSpec).spec
+    }
     return {
-      name: this.name
+      name: this.obj.name
     }
   }
 }

@@ -8,7 +8,9 @@ let start = Date.now()
 
 import { buildMessage } from '../client/types'
 
-VSphere(host, { ignoreSSL: true }).then((client) => {
+let v = VSphere(host, { username, password, ignoreSSL: true })
+
+v.client().then((client) => {
   // console.log(client._types['urn:vim25'].RetrievePropertiesExRequestType)
 
   let pl1 = {
@@ -43,18 +45,21 @@ VSphere(host, { ignoreSSL: true }).then((client) => {
   // console.log(_.keys(s.elements.versionURI))
   // console.log(_.keys(s.elements))
 
+  /*
+  return client.method('RetrievePropertiesEx', pl2).then((props) => {
+    console.log(JSON.stringify(props, null, '  '))
 
-  return client.login({ username, password }).then((session) => {
-    console.log(session)
-    return client.method('RetrievePropertiesEx', pl2).then((props) => {
-      console.log(JSON.stringify(props, null, '  '))
-      return client.logout().then(() => {
-        console.log('Runn took', (Date.now() - start) / 1000, 'seconds')
-      })
-    })
   })
+  */
+  return client.retrieve({ type: 'VirtualMachine', properties: ['name'] }).then((vms) => {
+    console.log(vms)
 
-  console.log('Runn took', (Date.now() - start) / 1000, 'seconds')
+    return client.logout().then(() => {
+      console.log('Runn took', (Date.now() - start) / 1000, 'seconds')
+    })
+
+    console.log('Runn took', (Date.now() - start) / 1000, 'seconds')
+  })
 })
   .catch((err) => {
     console.log(chalk.red(JSON.stringify(err, null, '  ')))

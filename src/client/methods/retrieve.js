@@ -5,30 +5,30 @@ export function graphSpec (specSet) {
   let types = {}
 
   _.forEach(_.isArray(specSet) ? specSet : [specSet], (spec) => {
+    if (_.isString(spec)) spec = { type: spec }
+    if (!spec.type) return
+    if (!_.has(types, spec.type)) _.set(types, spec.type, { ids: [], props: [] })
     if (spec.id) {
-      _.forEach(_.isArray(spec.id) ? spec.id : [spec.id], (id) => {
-        if (!_.isArray(spec.properties) || !spec.properties.length) {
-          _.set(types, `["${spec.type}"].all["${id}"]`, true)
-        } else {
-          _.forEach(spec.properties, (prop) => {
-            _.set(types, `["${spec.type}"].props["${prop}"]["${id}"]`, true)
-          })
-        }
-      })
-    } else {
-      if (!_.isArray(spec.properties) || !spec.properties.length) {
-        _.set(types, `["${spec.type}"].all`, true)
-      } else {
-        _.forEach(spec.properties, (prop) => {
-          _.set(types, `["${spec.type}"].props["${prop}"].all`, true)
-        })
-      }
+      let ids = _.isArray(spec.id) ? spec.id : [spec.id]
+      types[spec.type].ids = _.union(types[spec.type].ids, ids)
+    }
+    if (spec.properties) {
+      let props = _.isArray(spec.properties) ? spec.properties : [spec.properties]
+      types[spec.type].props = _.union(types[spec.type].props, props)
     }
   })
-  return types
+
+  return _.map(types, (obj, type) => {
+    return {
+      type,
+      id: obj.ids,
+      properties: obj.props
+    }
+  })
 }
 
 export default function retrieve (args = {}, options, callback) {
+  console.log('called retrieve')
   if (_.isFunction(options)) {
     callback = options
     options = {}
@@ -37,10 +37,11 @@ export default function retrieve (args = {}, options, callback) {
   options = options || {}
 
   let retrieveMethod = this._VimPort.RetrievePropertiesEx ? 'RetrievePropertiesEx' : 'RetrieveProperties'
-  args = _.isArray(args) ? args : [args]
-
-  return Promise.all(_.map(args), (arg) => PropertyFilterSpec(arg, this).spec)
+  let specMap = _.map(graphSpec(args), (s) => PropertyFilterSpec(s, this).spec)
+  console.log(specMap)
+  return Promise.all(specMap)
     .then((specSet) => {
+      console.log(specSet)
       return this.method(retrieveMethod, {
         _this: this.serviceContent.propertyCollector,
         specSet,

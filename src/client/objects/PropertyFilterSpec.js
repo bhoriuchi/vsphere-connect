@@ -26,11 +26,13 @@ export class PropertyFilterSpec {
     recursive = (this.obj.recursive === false) ? false : true
 
     let listSpec = _.get(mo, `["${this.client.apiVersion}"]["${type}"].listSpec`)
-    if (!listSpec && !this.obj.id) return Promise.reject('Unable to list vSphere type, try with a specific object id')
+    if (!listSpec && !this.obj.id.length) {
+      return Promise.reject('Unable to list vSphere type, try with a specific object id')
+    }
 
     // get the container view if no object specified
     // this is used for listing entire collections of object types
-    if (!this.obj.id && listSpec.type === 'ContainerView') {
+    if (!this.obj.id.length && listSpec.type === 'ContainerView') {
       resolveView = this.client.method('CreateContainerView', { _this: viewManager, container, type, recursive })
     }
 
@@ -38,10 +40,12 @@ export class PropertyFilterSpec {
       this.obj.containerView = containerView
       this.obj.listSpec = listSpec
 
-      return {
-        objSet: !_.isArray(obj) ? [ObjectSpec(obj)] : _.map(obj, ObjectSpec),
-        propSet: !_.isArray(obj) ? [PropertySpec(obj)] : _.map(obj, PropertySpec)
-      }
+      let objectSet = ObjectSpec(this.obj).spec
+      let propSet = [PropertySpec(this.obj).spec]
+
+      console.log('objSet', objectSet)
+
+      return { objectSet, propSet }
     })
   }
 }
