@@ -14,6 +14,12 @@ export function setAttrs (obj, args, attrs) {
   })
 }
 
+export function getElementKeys (type) {
+  return _.map(_.get(type, 'descriptor.elements'), (el) => {
+    return el.name || el.$name || _.get(el, 'qname.name')
+  })
+}
+
 export function buildType (schemas, type, obj) {
   let o = {}
   let els = type.elements || type.descriptor.elements
@@ -34,8 +40,23 @@ export function buildType (schemas, type, obj) {
       let val = _.get(obj, `["${el.qname.name}"]`)
       let { nsURI, name } = el.type
       let t = getType(schemas, nsURI, name)
+      let objKeys = !_.isArray(val) ? _.isObject(val) ? _.keys(val) : [] : _.reduce(val, (l, r) => {
+        return _.isObject(r) && !_.isArray(r) ? _.union(l, _.keys(r)) : _.union(l, [])
+      }, [])
+      let elKeys = getElementKeys(t)
+      let propMatch = _.intersection(objKeys, elKeys).length
 
-      if (val) {
+      _.forEach(_.get(t, 'descriptor.inheritance'), ({ name, xmlns }) => {
+        let curElType = getType(schemas, xmlns || nsURI, name)
+        let curElKeys = getElementKeys(curElType)
+        let curPropMatch = _.intersection(objKeys, curElKeys).length
+        if (curPropMatch > propMatch) {
+          propMatch = curPropMatch
+          t = curElType
+        }
+      })
+
+      if (val || val === false) {
         if (el.isMany) {
           if (_.isArray(val)) {
             o[el.qname.name] = _.map(val, (v) => {
@@ -44,6 +65,7 @@ export function buildType (schemas, type, obj) {
             setAttrs (o[el.qname.name], val, el.attributes)
           }
         } else {
+          console.log(el.qname.name, el.isSimple, val)
           o[el.qname.name] = el.isSimple ? val : buildType(schemas, t, val)
           setAttrs (o[el.qname.name], val, el.attributes)
         }

@@ -4,6 +4,7 @@ import { errorHandler, resultHandler } from '../common'
 
 export default function method (name, args = {}, callback = () => null) {
   let obj = buildMessage(_.get(this, '_soapClient.wsdl'), name, args)
+  console.log(JSON.stringify(obj, null, '  '))
   return new Promise((resolve, reject) => {
     try {
       let fn = _.get(this._VimPort, `["${name}"]`)

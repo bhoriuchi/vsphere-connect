@@ -13,7 +13,7 @@ export class ObjectSpec {
         {
           obj: this.obj.containerView ? this.obj.containerView : moRef(this.obj.listSpec.type, this.obj.listSpec.id),
           skip: true,
-          selectSet: SelectionSpec(this.obj)
+          selectSet: [SelectionSpec(this.obj).spec]
         }
       ]
     } else {

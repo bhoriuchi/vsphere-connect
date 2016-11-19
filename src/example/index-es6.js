@@ -13,6 +13,9 @@ let v = VSphere(host, { username, password, ignoreSSL: true })
 v.client().then((client) => {
   // console.log(client._types['urn:vim25'].RetrievePropertiesExRequestType)
 
+  // console.log(client._soapClient.wsdl.definitions.schemas['urn:vim25'].complexTypes.SelectionSpec.descriptor.inheritance.TraversalSpec)
+  // process.exit()
+
   let pl1 = {
     _this: 'ServiceInstance'
   }

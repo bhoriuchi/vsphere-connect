@@ -1,5 +1,3 @@
-import _ from 'lodash'
-
 export class TraversalSpec {
   constructor ({ type, path }) {
     this.type = type
@@ -7,6 +5,7 @@ export class TraversalSpec {
   }
   get spec () {
     return {
+      name: `${this.type}${Date.now()}`,
       type: this.type,
       path: this.path,
       skip: false

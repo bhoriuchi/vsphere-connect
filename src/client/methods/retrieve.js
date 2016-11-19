@@ -28,7 +28,6 @@ export function graphSpec (specSet) {
 }
 
 export default function retrieve (args = {}, options, callback) {
-  console.log('called retrieve')
   if (_.isFunction(options)) {
     callback = options
     options = {}
@@ -38,10 +37,9 @@ export default function retrieve (args = {}, options, callback) {
 
   let retrieveMethod = this._VimPort.RetrievePropertiesEx ? 'RetrievePropertiesEx' : 'RetrieveProperties'
   let specMap = _.map(graphSpec(args), (s) => PropertyFilterSpec(s, this).spec)
-  console.log(specMap)
   return Promise.all(specMap)
     .then((specSet) => {
-      console.log(specSet)
+      // console.log(JSON.stringify(specSet, null, '  '))
       return this.method(retrieveMethod, {
         _this: this.serviceContent.propertyCollector,
         specSet,

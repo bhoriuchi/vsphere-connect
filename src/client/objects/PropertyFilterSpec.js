@@ -42,9 +42,6 @@ export class PropertyFilterSpec {
 
       let objectSet = ObjectSpec(this.obj).spec
       let propSet = [PropertySpec(this.obj).spec]
-
-      console.log('objSet', objectSet)
-
       return { objectSet, propSet }
     })
   }

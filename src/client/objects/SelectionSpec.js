@@ -6,11 +6,11 @@ export class SelectionSpec {
     this.obj = obj
   }
   get spec () {
-    if (_.has(obj, 'listSpec.type') && _.has(obj, 'listSpec.path')) {
+    if (_.has(this.obj, 'listSpec.type') && _.has(this.obj, 'listSpec.path')) {
       return TraversalSpec(this.obj.listSpec).spec
     }
     return {
-      name: this.obj.name
+      name: _.get(this.obj, 'name')
     }
   }
 }
