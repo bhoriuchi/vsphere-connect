@@ -65,7 +65,6 @@ export function buildType (schemas, type, obj) {
             setAttrs (o[el.qname.name], val, el.attributes)
           }
         } else {
-          console.log(el.qname.name, el.isSimple, val)
           o[el.qname.name] = el.isSimple ? val : buildType(schemas, t, val)
           setAttrs (o[el.qname.name], val, el.attributes)
         }
@@ -80,6 +79,7 @@ export function buildMessage (wsdl, op, data) {
   let schemas = _.get(definitions, 'schemas')
   let operations = _.get(definitions, `portTypes.VimPortType.operations`)
   let msgType = _.get(operations, `["${op}"].input.message.parts.parameters.element.type`)
+
   return _.omit(buildType(schemas, msgType, data), ['$attributes'])
 }
 

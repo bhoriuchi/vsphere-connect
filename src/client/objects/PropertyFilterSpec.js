@@ -13,8 +13,8 @@ export class PropertyFilterSpec {
     let resolveView = Promise.resolve(null)
     let viewManager = this.client.serviceContent.viewManager
 
-    if (_.isString(this.obj)) {
-      type       = this.obj
+    if (!this.obj.id.length) {
+      type       = this.obj.type
       container  = this.client.serviceContent.rootFolder
       recursive  = true
     } else if (!this.obj.type) {

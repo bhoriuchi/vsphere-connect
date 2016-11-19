@@ -11,6 +11,9 @@ import { buildMessage } from '../client/types'
 let v = VSphere(host, { username, password, ignoreSSL: true })
 
 v.client().then((client) => {
+  client._soapClient.on('message', (body) => {
+    console.log(body)
+  })
   // console.log(client._types['urn:vim25'].RetrievePropertiesExRequestType)
 
   // console.log(client._soapClient.wsdl.definitions.schemas['urn:vim25'].complexTypes.SelectionSpec.descriptor.inheritance.TraversalSpec)
@@ -54,7 +57,7 @@ v.client().then((client) => {
 
   })
   */
-  return client.retrieve({ type: 'VirtualMachine', properties: ['name'] }).then((vms) => {
+  return client.retrieve({ type: 'VirtualMachine', properties: ['name', 'id'] }).then((vms) => {
     console.log(vms)
 
     return client.logout().then(() => {

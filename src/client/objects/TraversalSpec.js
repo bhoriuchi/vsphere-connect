@@ -5,7 +5,7 @@ export class TraversalSpec {
   }
   get spec () {
     return {
-      name: `${this.type}${Date.now()}`,
+      // name: `${this.type}${Date.now()}`,
       type: this.type,
       path: this.path,
       skip: false
