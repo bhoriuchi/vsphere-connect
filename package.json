@@ -22,6 +22,7 @@
     "lodash": "^4.16.4"
   },
   "devDependencies": {
+    "xmldom": "^0.1.22",
     "soap": "^0.13.0",
     "soap-cookie": "^0.10.1",
     "vsphere-schema": "^1.0.0",
