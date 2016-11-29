@@ -1,9 +1,8 @@
 import _ from 'lodash'
 import nodexml from 'nodexml'
 
-export function getSessionId(headers) {
-  let [ key, sessionId ] = _.first(_.get(headers, 'set-cookie', ';').split(';')).split('=')
-  return sessionId
+export function getToken(headers) {
+  return _.get(_.get(headers, 'set-cookie[0]', '').match(/"(.*)"/), '[1]', null)
 }
 
 export function errorHandler (err, callback, reject) {
@@ -49,7 +48,7 @@ export function makeDotPath (obj, list = [], path = []) {
 
 
 export default {
-  getSessionId,
+  getToken,
   errorHandler,
   resultHandler,
   makeDotPath,

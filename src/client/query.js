@@ -12,6 +12,19 @@ export default function query (q) {
         breakLoop = true
         break
 
+      case 'session':
+        val = Promise.resolve(q._session)
+        break
+
+      case 'token':
+        val = Promise.resolve(q._token)
+        break
+
+      case 'on':
+        q._client._soapClient.on(c.evt, c.handler)
+        val = null
+        break
+
       case 'type':
         type = c.name
         break

@@ -4,11 +4,14 @@ import cred from '../../credentials'
 let { host, username, password } = cred
 import _ from 'lodash'
 
-let v = VSphere(host, { username, password, ignoreSSL: true })
+let token = '522f65d5-f468-def8-4278-2304966c4dc9'
 
-console.log(v)
+let v = VSphere(host, { token, ignoreSSL: true })
+// let v = VSphere(host, { username, password, ignoreSSL: true })
 
-v.logout().run().then((res) => {
+// console.log(v)
+
+v.token().run().then((res) => {
   console.log(res)
   process.exit()
 }).catch(console.error)

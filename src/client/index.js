@@ -1,7 +1,9 @@
 import _ from 'lodash'
+import EventEmitter from 'events'
 import soap from 'soap-connect'
 import methods from './methods/index'
 import query from './query'
+import { EVENTS_ENUM } from './const'
 
 export class v {
   constructor (client, value = null, chain = [], prev = null, type = null) {
@@ -49,15 +51,41 @@ export class v {
     return this
   }
 
+  session () {
+    let method = 'session'
+    this._chain.push({ method, prev: this._prev })
+    this._prev = method
+    return this
+  }
+
+  token () {
+    let method = 'token'
+    this._chain.push({ method, prev: this._prev })
+    this._prev = method
+    return this
+  }
+
+  on (evt, handler) {
+    if (!_.isString(evt) || !_.includes(EVENTS_ENUM, evt)) throw new Error(`invalid event "${evt}"`)
+    if (!_.isFunction(handler)) throw new Error('on method requires a handler function')
+    let method = 'on'
+    this._chain.push({ method, prev: this._prev, evt, handler })
+    this._prev = method
+    return this
+  }
+
   run () {
     return this._client._connection.then(() => {
+      this._token = this._client._token
+      this._session = this._client._session
       return query(this)
     })
   }
 }
 
-export class VSphereClient {
+export class VSphereClient extends EventEmitter {
   constructor (host, options = {}) {
+    super()
     if (!host) throw new Error('No host specified')
     this._host = host
     this._options = options
@@ -69,11 +97,20 @@ export class VSphereClient {
     this._connection = new Promise((resolve, reject) => {
       return soap.createClient(this._wsdl, this._options, (err, client) => {
         if (err) return reject(err)
+        client.on('soap.request', (data) => { this.emit('request', data) })
+        client.on('soap.response', (data) => { this.emit('response', data) })
+        client.on('soap.error', (data) => { this.emit('error', data) })
+        client.on('soap.fault', (data) => { this.emit('fault', data) })
+
+        this.on('response', (data) => {
+          console.log(data.body)
+        })
+
         this._soapClient = client
         this._VimPort = _.get(client, 'services.VimService.VimPort')
 
         // retrieve service content
-        return this._soapClient.RetrieveServiceContent({
+        return this._VimPort.RetrieveServiceContent({
           _this: {
             type: 'ServiceInstance',
             value: 'ServiceInstance'
@@ -86,10 +123,7 @@ export class VSphereClient {
 
           if (options.login !== false) {
             return this.login(this._options)
-              .then((session) => {
-                this.session = session
-                return resolve()
-              })
+              .then(resolve)
               .catch(reject)
           }
           return resolve()
