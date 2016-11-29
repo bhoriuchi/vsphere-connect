@@ -1,10 +1,6 @@
-import _ from 'lodash'
-import soap from 'strong-soap'
+import soap from 'soap-connect'
 import { errorHandler, resultHandler, getSessionId } from '../common'
-
-export function getSoapCookie (lastResponseHeaders) {
-  return _.get(_.get(lastResponseHeaders, '["set-cookie"][0]', '').split(';'), '[0]', '')
-}
+let CookieSecurity = soap.Security.CookieSecurity
 
 export default function login (args = {}, callback = () => false) {
   let { username, password, sessionId } = args
@@ -12,7 +8,7 @@ export default function login (args = {}, callback = () => false) {
     try {
       if (sessionId) {
         this._cookie = `vmware_soap_session="${sessionId}"`
-        this._soapClient.setSecurity(new soap.CookieSecurity(this._cookie))
+        this._soapClient.setSecurity(CookieSecurity(this._cookie))
         this._sessionId = sessionId
 
       } else if (username && password) {
@@ -22,9 +18,8 @@ export default function login (args = {}, callback = () => false) {
           password
         }, (err, result) => {
           if (err) return errorHandler(err, callback, reject)
-          this._cookie = getSoapCookie(this._soapClient.lastResponseHeaders)
-          this._soapClient.setSecurity(new soap.CookieSecurity(this._cookie))
-          this._sessionId = getSessionId(this._cookie)
+          this._soapClient.setSecurity(CookieSecurity(this._soapClient.lastResponse.headers))
+          this._sessionId = getSessionId(this._soapClient.lastResponse.headers)
           this._session = result
           return resultHandler(result, callback, resolve)
         })

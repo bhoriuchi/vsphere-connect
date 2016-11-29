@@ -1,13 +1,9 @@
 import _ from 'lodash'
 import nodexml from 'nodexml'
 
-export function getSessionId(cookie) {
-  let cookies = _.get(cookie, 'cookies')
-  if (_.isString(cookies)) {
-    let idx = cookies.indexOf('=');
-    if (idx !== -1) return _.trim(cookies.substring(idx + 1), '"') || null;
-  }
-  return null;
+export function getSessionId(headers) {
+  let [ key, sessionId ] = _.first(_.get(headers, 'set-cookie', ';').split(';')).split('=')
+  return sessionId
 }
 
 export function errorHandler (err, callback, reject) {

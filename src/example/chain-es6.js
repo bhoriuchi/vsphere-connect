@@ -6,7 +6,7 @@ import _ from 'lodash'
 
 let v = VSphere(host, { username, password, ignoreSSL: true })
 
-// console.log(v)
+console.log(v)
 
 v.logout().run().then((res) => {
   console.log(res)

@@ -1,8 +1,7 @@
 import _ from 'lodash'
-import { soap } from 'strong-soap'
+import soap from 'soap-connect'
 import methods from './methods/index'
 import query from './query'
-import { getCache, setCache } from './cache'
 
 export class v {
   constructor (client, value = null, chain = [], prev = null, type = null) {
@@ -51,7 +50,7 @@ export class v {
   }
 
   run () {
-    return this.client._connection.then(() => {
+    return this._client._connection.then(() => {
       return query(this)
     })
   }
@@ -65,24 +64,24 @@ export class VSphereClient {
     this._endpoint = `https://${this._host}/sdk/vimService`
     this._wsdl = `${this._endpoint}.wsdl`
 
-    let cacheFile = getCache(this._wsdl)
-    let soapOptions = { endpoint: this._endpoint }
-
     if (this._options.ignoreSSL) process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 
     this._connection = new Promise((resolve, reject) => {
-      return soap.createClient(cacheFile || this._wsdl, soapOptions, (err, client) => {
+      return soap.createClient(this._wsdl, this._options, (err, client) => {
         if (err) return reject(err)
         this._soapClient = client
-        this._VimPort = _.get(client, 'VimService.VimPort')
-        this.WSDL_CACHE = client.wsdl.WSDL_CACHE
+        this._VimPort = _.get(client, 'services.VimService.VimPort')
 
         // retrieve service content
-        return this._soapClient.RetrieveServiceContent({ _this: 'ServiceInstance' }, (err, result) => {
+        return this._soapClient.RetrieveServiceContent({
+          _this: {
+            type: 'ServiceInstance',
+            value: 'ServiceInstance'
+          }
+        }, (err, result) => {
           if (err) return reject(err)
           this.serviceContent = _.get(result, 'returnval')
           this.apiVersion = _.get(this.serviceContent, 'about.apiVersion')
-          if (!cacheFile) setCache(this.WSDL_CACHE, this._wsdl, this.apiVersion)
           _.forEach(methods, (fn, name) => { this[name] = fn.bind(this) })
 
           if (options.login !== false) {
