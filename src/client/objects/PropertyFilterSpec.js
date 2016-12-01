@@ -51,29 +51,3 @@ export default function (obj, client) {
   return new PropertyFilterSpec(obj, client)
 }
 
-
-// example
-
-/*
-let spec = [
-  [
-    {
-      type: 'VirtualMachine',
-      id: 'vm-100',
-      properties: ['name']
-    },
-    {
-      type: 'VirtualMachine',
-      id: 'vm-200',
-      properties: ['name']
-    },
-    {
-      type: 'Folder',
-      id: 'group-101',
-      properties: ['name']
-    }
-  ]
-]
-
-*/
-

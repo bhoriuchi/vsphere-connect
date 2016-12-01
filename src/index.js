@@ -1,3 +1,7 @@
-/**
- * Created by bh172y on 10/20/16.
- */
+import client from './client'
+import { VSphereClient } from './client'
+
+export { client }
+export { VSphereClient }
+
+export default client

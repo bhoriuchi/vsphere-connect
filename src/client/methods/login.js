@@ -9,15 +9,14 @@ export default function login (args = {}, callback = () => false) {
     try {
       if (token) {
         this._token = token
-        this._soapClient.setSecurity(CookieSecurity(`vmware_soap_session="${this._token}"`))
-        return this.getServiceProperties({
+        this.setSecurity(CookieSecurity(`vmware_soap_session="${this._token}"`))
+        return this.retrieve({
           type: 'SessionManager',
           id: 'SessionManager',
           properties: ['currentSession']
         }, (err, sessions) => {
-          // if (err) return errorHandler(err, callback, reject)
+          if (err) return errorHandler(err, callback, reject)
           this._session = _.get(sessions, '[0].currentSession')
-          // console.log(JSON.stringify(sessions, null, '  '))
           return resultHandler(this._session, callback, resolve)
         })
       } else if (username && password) {

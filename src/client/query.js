@@ -4,10 +4,19 @@ import { makeDotPath } from './common'
 let CookieSecurity = soap.Security.CookieSecurity
 
 export default function query (q) {
-  let [ idx, val, breakLoop, type, props ] = [ 0, null, false, null, [] ]
-  let [ chain, len, client ] = [ q._chain, q._chain.length, q._client ]
+  let [ idx, val, breakLoop, props ] = [ 0, null, false, [] ]
+  let [ chain, len, client, type ] = [ q._chain, q._chain.length, q._client, q._type ]
+
+  // check for a new instantiation
+  if (!len) {
+    if (type) {
+      return client.retrieve({ type })
+    }
+    return Promise.reject(new Error('Invalid query chain'))
+  }
 
   for (let c of chain) {
+    let isLast = idx === (len - 1)
     switch (c.method) {
       case 'logout':
         val = client.logout()
@@ -19,17 +28,13 @@ export default function query (q) {
         break
 
       case 'token':
-        if (c.token) client._soapClient.setSecurity(CookieSecurity(`vmware_soap_session="${this._token}"`))
+        if (c.token) client.setSecurity(CookieSecurity(`vmware_soap_session="${this._token}"`))
         val = Promise.resolve(q._token)
         break
 
       case 'on':
         client._soapClient.on(c.evt, c.handler)
-        val = null
-        break
-
-      case 'type':
-        type = c.name
+        val = Promise.resolve(null)
         break
 
       case 'retrieve':

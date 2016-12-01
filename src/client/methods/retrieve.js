@@ -1,31 +1,30 @@
 import _ from 'lodash'
 import PropertyFilterSpec from '../objects/PropertyFilterSpec'
-import { convertRetrievedProperties } from '../common'
+import { graphSpec, convertRetrievedProperties } from '../common'
 
-export function graphSpec (specSet) {
-  let types = {}
+function getResults (result, objects, callback) {
+  if (!result) {
+    callback(null, objects)
+    return Promise.resolve(objects)
+  }
+  let objs = _.union(objects, convertRetrievedProperties(result))
 
-  _.forEach(_.isArray(specSet) ? specSet : [specSet], (spec) => {
-    if (_.isString(spec)) spec = { type: spec }
-    if (!spec.type) return
-    if (!_.has(types, spec.type)) _.set(types, spec.type, { ids: [], props: [] })
-    if (spec.id) {
-      let ids = _.isArray(spec.id) ? spec.id : [spec.id]
-      types[spec.type].ids = _.union(types[spec.type].ids, ids)
-    }
-    if (spec.properties) {
-      let props = _.isArray(spec.properties) ? spec.properties : [spec.properties]
-      types[spec.type].props = _.union(types[spec.type].props, props)
-    }
-  })
-
-  return _.map(types, (obj, type) => {
-    return {
-      type,
-      id: obj.ids,
-      properties: obj.props
-    }
-  })
+  if (result.token) {
+    return this.method('ContinueRetrievePropertiesEx', {
+      _this: this.serviceContent.propertyCollector,
+      token: result.token
+    })
+      .then(function(results) {
+        return getResults.call(this, results, objs, callback)
+      })
+      .catch((err) => {
+        callback(err)
+        return Promise.reject(err)
+      })
+  } else {
+    callback(null, objs)
+    return Promise.resolve(objs)
+  }
 }
 
 export default function retrieve (args = {}, options, callback) {
@@ -40,16 +39,13 @@ export default function retrieve (args = {}, options, callback) {
   let specMap = _.map(graphSpec(args), (s) => PropertyFilterSpec(s, this).spec)
   return Promise.all(specMap)
     .then((specSet) => {
-      console.log(JSON.stringify(specSet, null, '  '))
       return this.method(retrieveMethod, {
         _this: this.serviceContent.propertyCollector,
         specSet,
         options
       })
         .then((result) => {
-          let obj = convertRetrievedProperties(result)
-          callback(null, obj)
-          return obj
+          return getResults.call(this, result, [], callback)
         })
         .catch((err) => {
           callback(err)

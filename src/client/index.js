@@ -143,6 +143,9 @@ export class VSphereClient extends EventEmitter {
 
     return new v(this)
   }
+  setSecurity (securityObject) {
+    this._soapClient.setSecurity(securityObject)
+  }
 }
 
 // convenience method to create a new client
