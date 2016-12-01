@@ -1,5 +1,7 @@
 import _ from 'lodash'
+import soap from 'soap-connect'
 import { makeDotPath } from './common'
+let CookieSecurity = soap.Security.CookieSecurity
 
 export default function query (q) {
   let [ idx, val, breakLoop, type, props ] = [ 0, null, false, null, [] ]
@@ -17,16 +19,21 @@ export default function query (q) {
         break
 
       case 'token':
+        if (c.token) client._soapClient.setSecurity(CookieSecurity(`vmware_soap_session="${this._token}"`))
         val = Promise.resolve(q._token)
         break
 
       case 'on':
-        q._client._soapClient.on(c.evt, c.handler)
+        client._soapClient.on(c.evt, c.handler)
         val = null
         break
 
       case 'type':
         type = c.name
+        break
+
+      case 'retrieve':
+        val = client.retrieve(c.args)
         break
 
       case 'pluck':

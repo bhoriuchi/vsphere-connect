@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import PropertyFilterSpec from '../objects/PropertyFilterSpec'
+import { convertRetrievedProperties } from '../common'
 
 export function graphSpec (specSet) {
   let types = {}
@@ -39,12 +40,21 @@ export default function retrieve (args = {}, options, callback) {
   let specMap = _.map(graphSpec(args), (s) => PropertyFilterSpec(s, this).spec)
   return Promise.all(specMap)
     .then((specSet) => {
-      // console.log(JSON.stringify(specSet, null, '  '))
+      console.log(JSON.stringify(specSet, null, '  '))
       return this.method(retrieveMethod, {
         _this: this.serviceContent.propertyCollector,
         specSet,
         options
-      }, callback)
+      })
+        .then((result) => {
+          let obj = convertRetrievedProperties(result)
+          callback(null, obj)
+          return obj
+        })
+        .catch((err) => {
+          callback(err)
+          return Promise.reject(err)
+        })
     })
 }
 

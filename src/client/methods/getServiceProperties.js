@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import { convertRetrievedProperties } from '../common'
 
 export default function getServiceProperties (args = {}, callback = () => false) {
   let { id, type, properties } = args
@@ -16,5 +17,14 @@ export default function getServiceProperties (args = {}, callback = () => false)
       }
     ],
     options: {}
-  }, callback)
+  })
+    .then((result) => {
+      let obj = convertRetrievedProperties(result)
+      callback(null, obj)
+      return obj
+    })
+    .catch((err) => {
+      callback(err)
+      return Promise.reject(err)
+    })
 }

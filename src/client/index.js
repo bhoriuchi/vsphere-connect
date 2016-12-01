@@ -58,9 +58,16 @@ export class v {
     return this
   }
 
-  token () {
+  token (tkn) {
     let method = 'token'
-    this._chain.push({ method, prev: this._prev })
+    this._chain.push({ method, prev: this._prev, token: tkn })
+    this._prev = method
+    return this
+  }
+
+  retrieve (args) {
+    let method = 'retrieve'
+    this._chain.push({ method, prev: this._prev, args })
     this._prev = method
     return this
   }
@@ -102,9 +109,11 @@ export class VSphereClient extends EventEmitter {
         client.on('soap.error', (data) => { this.emit('error', data) })
         client.on('soap.fault', (data) => { this.emit('fault', data) })
 
-        this.on('response', (data) => {
+        /*
+        this.on('fault', (data) => {
           console.log(data.body)
         })
+        */
 
         this._soapClient = client
         this._VimPort = _.get(client, 'services.VimService.VimPort')

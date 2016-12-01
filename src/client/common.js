@@ -5,6 +5,20 @@ export function getToken(headers) {
   return _.get(_.get(headers, 'set-cookie[0]', '').match(/"(.*)"/), '[1]', null)
 }
 
+export function convertRetrievedProperties (results) {
+  let objs = _.get(results, 'objects') || _.get(results, 'returnval.objects')
+  return _.map(_.isArray(objs) ? objs : [], (result) => {
+    let o = {}
+    let { obj, propSet } = result
+    o.moRef = obj
+    _.forEach(propSet, (prop) => {
+      let { name, val } = prop
+      _.set(o, name, val)
+    })
+    return o
+  })
+}
+
 export function errorHandler (err, callback, reject) {
   /*
   let e = {}
@@ -48,6 +62,7 @@ export function makeDotPath (obj, list = [], path = []) {
 
 
 export default {
+  convertRetrievedProperties,
   getToken,
   errorHandler,
   resultHandler,
