@@ -11,7 +11,7 @@ let v = VSphere(host, { token, ignoreSSL: true })
 
 // console.log(v)
 
-v.token().run().then((res) => {
+v.retrieve({ type: 'VirtualMachine', properties: ['name'] }).run().then((res) => {
   console.log(res)
   process.exit()
 }).catch(console.error)

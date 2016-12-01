@@ -109,11 +109,10 @@ export class VSphereClient extends EventEmitter {
         client.on('soap.error', (data) => { this.emit('error', data) })
         client.on('soap.fault', (data) => { this.emit('fault', data) })
 
-        /*
-        this.on('fault', (data) => {
+
+        this.on('response', (data) => {
           console.log(data.body)
         })
-        */
 
         this._soapClient = client
         this._VimPort = _.get(client, 'services.VimService.VimPort')

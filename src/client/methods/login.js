@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import soap from 'soap-connect'
 import { errorHandler, resultHandler, getToken } from '../common'
 let CookieSecurity = soap.Security.CookieSecurity
@@ -12,11 +13,12 @@ export default function login (args = {}, callback = () => false) {
         return this.getServiceProperties({
           type: 'SessionManager',
           id: 'SessionManager',
-          properties: ['currentSession', 'sessionList']
+          properties: ['currentSession']
         }, (err, sessions) => {
-          if (err) return errorHandler(err, callback, reject)
-          console.log(JSON.stringify(sessions, null, '  '))
-          return resultHandler(this._token, callback, resolve)
+          // if (err) return errorHandler(err, callback, reject)
+          this._session = _.get(sessions, '[0].currentSession')
+          // console.log(JSON.stringify(sessions, null, '  '))
+          return resultHandler(this._session, callback, resolve)
         })
       } else if (username && password) {
         return this.method('Login', {
