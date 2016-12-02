@@ -3,6 +3,7 @@ import EventEmitter from 'events'
 import soap from 'soap-connect'
 import methods from './methods/index'
 import query from './query'
+import cacheKey from './utils/cacheKey'
 import { EVENTS_ENUM } from './const'
 
 export class v {
@@ -93,6 +94,7 @@ export class VSphereClient extends EventEmitter {
     if (!host) throw new Error('No host specified')
     this._host = host
     this._options = options
+    this._options.cacheKey = this._options.cacheKey || cacheKey
     this._endpoint = `https://${this._host}/sdk/vimService`
     this._wsdl = `${this._endpoint}.wsdl`
 
@@ -106,9 +108,8 @@ export class VSphereClient extends EventEmitter {
         client.on('soap.error', (data) => { this.emit('error', data) })
         client.on('soap.fault', (data) => { this.emit('fault', data) })
 
-
         /*
-        this.on('response', (data) => {
+        this.on('request', (data) => {
           console.log(data.body)
         })
         */
