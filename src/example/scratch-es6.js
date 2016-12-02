@@ -1,3 +1,4 @@
+/*
 import { graphSpec } from '../client/methods/retrieve'
 
 let spec0 =   {
@@ -27,3 +28,7 @@ let spec3 = [spec0, spec1, spec4, spec5]
 let output = graphSpec(spec3)
 
 console.log(JSON.stringify(output, null, '  '))
+*/
+import vclient from '../index'
+
+vclient.Cache.clear()

@@ -14,7 +14,7 @@ let v = VSphere(host, { username, password, ignoreSSL: true })
 
 // v.token().run().then((res) => {
 v.retrieve({
-  properties: ['name'],
+  properties: ['name', 'summary'],
   type: 'VirtualMachine',
   id: ['vm-16']
 })

@@ -9,9 +9,12 @@ function getToken(headers) {
 
 export default function login (args = {}, callback = () => false) {
   let { username, password, token } = args
+  let isHostAgent = _.get(this, 'serviceContent.about.apiType') === 'HostAgent'
   return new Promise((resolve, reject) => {
     try {
       if (token) {
+        if (isHostAgent) throw new Error('token/cookie authentication is not supposted when connecting to a host, ' +
+          'please use username/password')
         this._token = token
         this.setSecurity(CookieSecurity(`vmware_soap_session="${this._token}"`))
         return this.retrieve({
@@ -29,7 +32,7 @@ export default function login (args = {}, callback = () => false) {
           userName: username,
           password
         }, (err, session) => {
-          if (err) return errorHandler(err, callback, reject)
+          if (err) throw err
           this._soapClient.setSecurity(CookieSecurity(this._soapClient.lastResponse.headers))
           this._token = getToken(this._soapClient.lastResponse.headers)
           this._session = session

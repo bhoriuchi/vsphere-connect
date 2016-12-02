@@ -1,92 +1,9 @@
 import _ from 'lodash'
 import EventEmitter from 'events'
 import soap from 'soap-connect'
+import v from './v'
 import methods from './methods/index'
-import query from './query'
 import cacheKey from './utils/cacheKey'
-import { EVENTS_ENUM } from './const'
-
-export class v {
-  constructor (client, value = null, chain = [], prev = null, type = null) {
-    this._client = client
-    this._chain = chain
-    this._prev = prev
-    this._type = type
-  }
-
-  // allow direct access to the client
-  client (callback = () => false) {
-    return client._connection
-      .then(() => {
-        callback(null, this._client)
-        return this._client
-      })
-      .catch((err) => {
-        callback(err)
-        return Promise.reject(err)
-      })
-  }
-
-  type (name) {
-    if (!name) throw new Error('type method requires a type name')
-    return new v(this._client, null, [], null, name)
-  }
-
-  pluck () {
-    let method = 'pluck'
-    let args = [...arguments]
-    if (!this._type) throw new Error('a type must be selected first')
-    if (!args.length) throw new Error('pluck requires one or more fields')
-    this._chain.push({ method, prev: this._prev, args })
-    this._prev = method
-    return this
-  }
-
-  logout () {
-    let method = 'logout'
-    this._chain.push({ method, prev: this._prev })
-    this._prev = method
-    return this
-  }
-
-  session () {
-    let method = 'session'
-    this._chain.push({ method, prev: this._prev })
-    this._prev = method
-    return this
-  }
-
-  token (tkn) {
-    let method = 'token'
-    this._chain.push({ method, prev: this._prev, token: tkn })
-    this._prev = method
-    return this
-  }
-
-  retrieve (args) {
-    let method = 'retrieve'
-    this._chain.push({ method, prev: this._prev, args })
-    this._prev = method
-    return this
-  }
-
-  on (evt, handler) {
-    if (!_.isString(evt) || !_.includes(EVENTS_ENUM, evt)) throw new Error(`invalid event "${evt}"`)
-    if (!_.isFunction(handler)) throw new Error('on method requires a handler function')
-    let method = 'on'
-    this._chain.push({ method, prev: this._prev, evt, handler })
-    this._prev = method
-    return this
-  }
-
-  run () {
-    return this._client._connection.then(() => {
-      this._token = this._client._token
-      this._session = this._client._session
-      return query(this)
-    })
-  }
-}
 
 export class VSphereClient extends EventEmitter {
   constructor (host, options = {}) {
@@ -97,22 +14,17 @@ export class VSphereClient extends EventEmitter {
     this._options.cacheKey = this._options.cacheKey || cacheKey
     this._endpoint = `https://${this._host}/sdk/vimService`
     this._wsdl = `${this._endpoint}.wsdl`
+    let soapEvents = this._options.soapEvents = this._options.soapEvents || {}
 
     if (this._options.ignoreSSL) process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 
     this._connection = new Promise((resolve, reject) => {
       return soap.createClient(this._wsdl, this._options, (err, client) => {
         if (err) return reject(err)
-        client.on('soap.request', (data) => { this.emit('request', data) })
-        client.on('soap.response', (data) => { this.emit('response', data) })
-        client.on('soap.error', (data) => { this.emit('error', data) })
-        client.on('soap.fault', (data) => { this.emit('fault', data) })
-
-        /*
-        this.on('request', (data) => {
-          console.log(data.body)
-        })
-        */
+        if (_.isFunction(soapEvents.request)) client.on('soap.request', soapEvents.request)
+        if (_.isFunction(soapEvents.response)) client.on('soap.response', soapEvents.response)
+        if (_.isFunction(soapEvents.error)) client.on('soap.error', soapEvents.error)
+        if (_.isFunction(soapEvents.fault)) client.on('soap.fault', soapEvents.fault)
 
         this._soapClient = client
         this._VimPort = _.get(client, 'services.VimService.VimPort')
@@ -147,6 +59,11 @@ export class VSphereClient extends EventEmitter {
 }
 
 // convenience method to create a new client
-export default function (host, options = {}) {
+function client (host, options = {}) {
   return new VSphereClient(host, options)
 }
+
+// add cache functions to the main function
+client.Cache = soap.Cache
+
+export default client
