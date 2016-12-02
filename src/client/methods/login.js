@@ -1,7 +1,11 @@
 import _ from 'lodash'
 import soap from 'soap-connect'
-import { errorHandler, resultHandler, getToken } from '../common'
+import { errorHandler, resultHandler } from '../utils/index'
 let CookieSecurity = soap.Security.CookieSecurity
+
+function getToken(headers) {
+  return _.get(_.get(headers, 'set-cookie[0]', '').match(/"(.*)"/), '[1]', null)
+}
 
 export default function login (args = {}, callback = () => false) {
   let { username, password, token } = args

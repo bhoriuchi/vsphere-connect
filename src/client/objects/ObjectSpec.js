@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import SelectionSpec from './SelectionSpec'
-import { moRef } from '../common'
+import { moRef } from '../utils/index'
 
 export class ObjectSpec {
   constructor (obj) {

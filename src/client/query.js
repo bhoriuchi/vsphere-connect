@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import soap from 'soap-connect'
-import { makeDotPath } from './common'
+import { makeDotPath } from './utils/index'
 let CookieSecurity = soap.Security.CookieSecurity
 
 export default function query (q) {

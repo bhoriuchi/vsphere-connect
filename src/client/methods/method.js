@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import { errorHandler, resultHandler } from '../common'
+import { errorHandler, resultHandler } from '../utils/index'
 
 export default function method (name, args = {}, callback = () => null) {
   return new Promise((resolve, reject) => {

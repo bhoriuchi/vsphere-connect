@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import PropertyFilterSpec from '../objects/PropertyFilterSpec'
-import { graphSpec, convertRetrievedProperties } from '../common'
+import { graphSpec, convertRetrievedProperties } from '../utils/index'
 
 function getResults (result, objects, callback) {
   if (!result) {

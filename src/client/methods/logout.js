@@ -1,4 +1,4 @@
-import { errorHandler, resultHandler } from '../common'
+import { errorHandler, resultHandler } from '../utils/index'
 
 export default function logout (callback = () => false) {
   return new Promise((resolve, reject) => {
