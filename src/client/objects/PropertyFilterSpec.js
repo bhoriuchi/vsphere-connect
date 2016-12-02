@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import mo from './mo'
+import mo from '../utils/mo'
 import ObjectSpec from './ObjectSpec'
 import PropertySpec from './PropertySpec'
 
