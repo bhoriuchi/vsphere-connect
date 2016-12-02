@@ -8,7 +8,6 @@ import { EVENTS_ENUM } from './const'
 export class v {
   constructor (client, value = null, chain = [], prev = null, type = null) {
     this._client = client
-    this._value = value
     this._chain = chain
     this._prev = prev
     this._type = type
@@ -16,17 +15,15 @@ export class v {
 
   // allow direct access to the client
   client (callback = () => false) {
-    return new Promise((resolve, reject) => {
-      return this._client._connection
-        .then(() => {
-          callback(null, this._client)
-          return resolve(this._client)
-        })
-        .catch((err) => {
-          callback(err)
-          return reject(err)
-        })
-    })
+    return client._connection
+      .then(() => {
+        callback(null, this._client)
+        return this._client
+      })
+      .catch((err) => {
+        callback(err)
+        return Promise.reject(err)
+      })
   }
 
   type (name) {
