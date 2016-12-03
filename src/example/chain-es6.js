@@ -13,11 +13,14 @@ let v = VSphere(host, { username, password, ignoreSSL: true })
 // console.log(v)
 
 // v.token().run().then((res) => {
+/*
 v.retrieve({
   properties: ['name', 'summary'],
   type: 'VirtualMachine',
   id: ['vm-16']
 })
+*/
+v.type('VirtualMachine').pluck({ name: true, summary: { guest: true }}).get('vm-16')
   .run()
   .then((res) => {
     console.log('Time:', (Date.now() - st) / 1000, 'seconds')

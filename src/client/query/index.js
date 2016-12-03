@@ -1,11 +1,18 @@
 import _ from 'lodash'
 import soap from 'soap-connect'
-import { makeDotPath } from '../utils/index'
+import get from './get'
+import { buildPropList } from '../utils/index'
+
+const ENTITY = 'entity'
+const LIST = 'list'
+
 let CookieSecurity = soap.Security.CookieSecurity
 
 export default function query (q) {
-  let [ idx, val, breakLoop, props ] = [ 0, null, false, [] ]
+  let [ limit, offset, val ] = [ null, null, null ]
+  let [ idx, breakLoop, properties ] = [ 0, false, [] ]
   let [ chain, len, client, type ] = [ q._chain, q._chain.length, q._client, q._type ]
+  let queryType = q._type ? LIST : null
 
   // check for a new instantiation
   if (!len) {
@@ -18,6 +25,12 @@ export default function query (q) {
   for (let c of chain) {
     let isLast = idx === (len - 1)
     switch (c.method) {
+      case 'get':
+        if (!type) return Promise.reject(new Error('no type specified'))
+        queryType = ENTITY
+        val = get(client, type, c.id, properties)
+        break
+
       case 'logout':
         val = client.logout()
         breakLoop = true
@@ -33,20 +46,11 @@ export default function query (q) {
         break
 
       case 'retrieve':
-        val = client.retrieve(c.args)
+        val = client.retrieve(c.args, { maxObjects: limit })
         break
 
       case 'pluck':
-        props = []
-        _.forEach(c.args, (arg) => {
-          if (_.isString(arg)) {
-            props = _.union(props, [arg])
-          } else if (_.isArray(arg)) {
-            props = _.union(props, arg)
-          } else if (_.isObject(arg)) {
-            props = _.union(props, makeDotPath(arg))
-          }
-        })
+        properties = buildPropList(c.args)
         break
 
       default:
