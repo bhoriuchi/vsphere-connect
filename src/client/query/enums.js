@@ -1,0 +1,10 @@
+export const RESULT_TYPE = {
+  OBJECT: 'OBJECT',
+  COLLECTION: 'COLLECTION',
+  STRING: 'STRING',
+  NUMBER: 'NUMBER'
+}
+
+export default {
+  RESULT_TYPE
+}
