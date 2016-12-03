@@ -1,9 +1,9 @@
 import _ from 'lodash'
 
-export default function get (client, type, id, properties) {
+export default function get (client, type, id, properties, single) {
   return client.retrieve({ type, id, properties })
     .then((result) => {
-      return _.get(result, '[0]', null)
+      return single ? _.get(result, '[0]', null) : result
     })
     .catch(Promise.reject)
 }

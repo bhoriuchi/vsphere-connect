@@ -38,7 +38,7 @@ export default class v {
   }
 
   limit (val) {
-    if (!_.isNumber(val)) throw new Error('limit must be a number')
+    if (!_.isNumber(val)) throw new Error('limit must be an integer')
     let method = 'limit'
     this._chain.push({ method, prev: this._prev, limit: parseInt(val) })
     this._prev = method
@@ -52,8 +52,16 @@ export default class v {
     return this
   }
 
+  nth (idx, def) {
+    if (!_.isNumber(idx)) throw new Error('nth selection must be an integer')
+    let method = 'nth'
+    this._chain.push({ method, prev: this._prev, nth: parseInt(idx), default: def })
+    this._prev = method
+    return this
+  }
+
   offset (val) {
-    if (!_.isNumber(val)) throw new Error('offset must be a number')
+    if (!_.isNumber(val)) throw new Error('offset must be an integer')
     let method = 'offset'
     this._chain.push({ method, prev: this._prev, offset: parseInt(val) })
     this._prev = method

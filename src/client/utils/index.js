@@ -6,6 +6,7 @@ import graphSpec from './graphSpec'
 import makeDotPath from './makeDotPath'
 import mo from './mo'
 import moRef from './moRef'
+import pluck from './pluck'
 import resultHandler from './resultHandler'
 import typeResolver from './typeResolver'
 
@@ -17,6 +18,7 @@ export { graphSpec }
 export { makeDotPath }
 export { mo }
 export { moRef }
+export { pluck }
 export { resultHandler }
 export { typeResolver }
 
@@ -29,6 +31,7 @@ export default {
   makeDotPath,
   mo,
   moRef,
+  pluck,
   resultHandler,
   typeResolver
 }
