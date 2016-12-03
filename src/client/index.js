@@ -3,7 +3,7 @@ import EventEmitter from 'events'
 import soap from 'soap-connect'
 import v from './v'
 import methods from './methods/index'
-import cacheKey from './utils/cacheKey'
+import { cacheKey, typeResolver } from './utils/index'
 
 export class VSphereClient extends EventEmitter {
   constructor (host, options = {}) {
@@ -39,6 +39,7 @@ export class VSphereClient extends EventEmitter {
           if (err) return reject(err)
           this.serviceContent = _.get(result, 'returnval')
           this.apiVersion = _.get(this.serviceContent, 'about.apiVersion')
+          this.typeResolver = typeResolver(this.apiVersion)
           _.forEach(methods, (fn, name) => { this[name] = fn.bind(this) })
 
           if (options.login !== false) {

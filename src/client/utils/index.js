@@ -7,6 +7,7 @@ import makeDotPath from './makeDotPath'
 import mo from './mo'
 import moRef from './moRef'
 import resultHandler from './resultHandler'
+import typeResolver from './typeResolver'
 
 export { buildPropList }
 export { cacheKey }
@@ -17,6 +18,7 @@ export { makeDotPath }
 export { mo }
 export { moRef }
 export { resultHandler }
+export { typeResolver }
 
 export default {
   buildPropList,
@@ -27,5 +29,6 @@ export default {
   makeDotPath,
   mo,
   moRef,
-  resultHandler
+  resultHandler,
+  typeResolver
 }

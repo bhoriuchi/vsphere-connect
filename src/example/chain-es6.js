@@ -20,7 +20,7 @@ v.retrieve({
   id: ['vm-16']
 })
 */
-v.type('VirtualMachine').pluck({ name: true, summary: { guest: true }}).get('vm-16')
+v.type('vm').get('vm-16').pluck({ name: true, summary: { guest: true }})
   .run()
   .then((res) => {
     console.log('Time:', (Date.now() - st) / 1000, 'seconds')
