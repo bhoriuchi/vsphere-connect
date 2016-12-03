@@ -16,9 +16,7 @@ export default function query (q) {
 
   // check for a new instantiation
   if (!len) {
-    if (type) {
-      return client.retrieve({ type })
-    }
+    if (type) return client.retrieve({ type })
     return Promise.reject(new Error('Invalid query chain'))
   }
 
@@ -29,7 +27,7 @@ export default function query (q) {
         if (!type) return Promise.reject(new Error('no type specified'))
         id = c.id
         resultType = VIM_OBJECT
-        if (isLast) return get(client, type, id, properties)
+        if (isLast) return get(client, type, id, limit, offset, properties)
         break
 
       case 'getAll':
@@ -56,7 +54,7 @@ export default function query (q) {
 
         switch (resultType) {
           case VIM_COLLECTION:
-            val = get(client, type, id, properties, false).then(handleNth)
+            val = get(client, type, id, properties, limit, offset, false).then(handleNth)
             resultType = OBJECT
             break
           case COLLECTION:
@@ -80,7 +78,7 @@ export default function query (q) {
         properties = buildPropList(c.args)
         if (!properties.length) return Promise.reject(new Error('no properties specified'))
         if (resultType === VIM_COLLECTION || resultType === VIM_OBJECT) {
-          val = get(client, type, id, properties, false)
+          val = get(client, type, id, properties, limit, offset, false)
           resultType = resultType === VIM_COLLECTION ? COLLECTION : OBJECT
         } else if (resultType === COLLECTION || resultType === OBJECT) {
           if (!(val instanceof Promise)) return Promise.reject(new Error('no selection found'))

@@ -20,7 +20,7 @@ v.retrieve({
   id: ['vm-16']
 })
 */
-v.type('vm').pluck('name').nth(0)
+v.type('vm').limit(1).pluck('name')
   .run()
   .then((res) => {
     console.log('Time:', (Date.now() - st) / 1000, 'seconds')

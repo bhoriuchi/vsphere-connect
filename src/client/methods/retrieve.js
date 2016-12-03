@@ -2,14 +2,16 @@ import _ from 'lodash'
 import PropertyFilterSpec from '../objects/PropertyFilterSpec'
 import { graphSpec, convertRetrievedProperties } from '../utils/index'
 
-function getResults (result, objects, callback) {
+function getResults (result, objects, offset, callback) {
   if (!result) {
+    console.log('no results')
     callback(null, objects)
     return Promise.resolve(objects)
   }
   let objs = _.union(objects, convertRetrievedProperties(result))
 
   if (result.token) {
+    console.log('token')
     return this.method('ContinueRetrievePropertiesEx', {
       _this: this.serviceContent.propertyCollector,
       token: result.token
@@ -22,8 +24,10 @@ function getResults (result, objects, callback) {
         return Promise.reject(err)
       })
   } else {
-    callback(null, objs)
-    return Promise.resolve(objs)
+    console.log('here')
+    let results = _.slice(objs, offset)
+    callback(null, results)
+    return Promise.resolve(results)
   }
 }
 
@@ -34,6 +38,11 @@ export default function retrieve (args = {}, options, callback) {
   }
   callback = _.isFunction(callback) ? callback : () => false
   options = options || {}
+  let maxObjects = options.maxObjects || options.limit
+  let offset = options.offset || 0
+  if (offset !== undefined && maxObjects !== undefined) maxObjects += offset
+
+  console.log(maxObjects)
 
   let retrieveMethod = this._VimPort.RetrievePropertiesEx ? 'RetrievePropertiesEx' : 'RetrieveProperties'
   let specMap = _.map(graphSpec(args), (s) => PropertyFilterSpec(s, this).spec)
@@ -45,7 +54,7 @@ export default function retrieve (args = {}, options, callback) {
         options
       })
         .then((result) => {
-          return getResults.call(this, result, [], callback)
+          return getResults.call(this, result, [], offset, callback)
         })
         .catch((err) => {
           callback(err)
