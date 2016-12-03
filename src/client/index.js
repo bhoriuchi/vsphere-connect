@@ -3,6 +3,7 @@ import EventEmitter from 'events'
 import soap from 'soap-connect'
 import v from './v'
 import methods from './methods/index'
+import Utils from './utils/index'
 import { cacheKey, typeResolver } from './utils/index'
 
 export class VSphereClient extends EventEmitter {
@@ -64,7 +65,8 @@ function client (host, options = {}) {
   return new VSphereClient(host, options)
 }
 
-// add cache functions to the main function
+// add utility functions
 client.Cache = soap.Cache
+client.Utils = Utils
 
 export default client
