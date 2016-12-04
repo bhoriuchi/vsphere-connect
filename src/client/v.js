@@ -11,7 +11,7 @@ export default class v {
 
   // allow direct access to the client
   client (callback = () => false) {
-    return client._connection
+    return this._client._connection
       .then(() => {
         callback(null, this._client)
         return this._client

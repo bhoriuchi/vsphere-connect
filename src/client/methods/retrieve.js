@@ -35,6 +35,7 @@ export default function retrieve (args = {}, options, callback) {
   }
   callback = _.isFunction(callback) ? callback : () => false
   options = options || {}
+
   let limit = options.limit
   let offset = options.offset || 0
   if (offset !== undefined && limit !== undefined) limit += offset

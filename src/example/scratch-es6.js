@@ -29,6 +29,36 @@ let output = graphSpec(spec3)
 
 console.log(JSON.stringify(output, null, '  '))
 */
-import vclient from '../index'
 
-vclient.Cache.clear()
+import VSphere from '../index'
+import cred from '../../credentials'
+let { host, username, password } = cred
+
+let v = VSphere(host, { username, password, ignoreSSL: true })
+let c = 52
+
+if (c === 1) {
+  v.client().then((client) => {
+    return client.create({
+      type: 'datacenter',
+      name: 'testdc1'
+    })
+      .then((res) => {
+        console.log(res)
+        return client.logout()
+      })
+      .catch(console.error)
+  })
+} else {
+  v.client().then((client) => {
+    return client.destroy({
+      type: 'datacenter',
+      id: `datacenter-${c}`
+    }, { async: false })
+      .then((res) => {
+        console.log(res)
+        return client.logout()
+      })
+      .catch(console.error)
+  })
+}

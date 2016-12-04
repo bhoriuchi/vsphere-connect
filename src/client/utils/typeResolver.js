@@ -6,10 +6,12 @@ import _ from 'lodash'
 import mo from './mo'
 
 const ALIAS = {
-  vm: 'VirtualMachine',
+  cluster: 'ClusterComputeResource',
+  dvswitch: 'DistributedVirtualSwitch',
   host: 'HostSystem',
   store: 'Datastore',
-  cluster: 'ClusterComputeResource'
+  storecluster: 'StoragePod',
+  vm: 'VirtualMachine'
 }
 
 export default function typeResolver (apiVersion) {
