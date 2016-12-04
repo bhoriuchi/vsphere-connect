@@ -2,30 +2,27 @@ import _ from 'lodash'
 import PropertyFilterSpec from '../objects/PropertyFilterSpec'
 import { graphSpec, convertRetrievedProperties } from '../utils/index'
 
-function getResults (result, objects, offset, callback) {
+function getResults (result, objects, limit, offset, callback) {
   if (!result) {
-    console.log('no results')
     callback(null, objects)
     return Promise.resolve(objects)
   }
   let objs = _.union(objects, convertRetrievedProperties(result))
 
-  if (result.token) {
-    console.log('token')
+  if (result.token && (limit === undefined || objs.length < limit)) {
     return this.method('ContinueRetrievePropertiesEx', {
       _this: this.serviceContent.propertyCollector,
       token: result.token
     })
       .then(function(results) {
-        return getResults.call(this, results, objs, callback)
+        return getResults.call(this, results, limit, offset, objs, callback)
       })
       .catch((err) => {
         callback(err)
         return Promise.reject(err)
       })
   } else {
-    console.log('here')
-    let results = _.slice(objs, offset)
+    let results = _.slice(objs, offset, limit)
     callback(null, results)
     return Promise.resolve(results)
   }
@@ -38,11 +35,9 @@ export default function retrieve (args = {}, options, callback) {
   }
   callback = _.isFunction(callback) ? callback : () => false
   options = options || {}
-  let maxObjects = options.maxObjects || options.limit
+  let limit = options.limit
   let offset = options.offset || 0
-  if (offset !== undefined && maxObjects !== undefined) maxObjects += offset
-
-  console.log(maxObjects)
+  if (offset !== undefined && limit !== undefined) limit += offset
 
   let retrieveMethod = this._VimPort.RetrievePropertiesEx ? 'RetrievePropertiesEx' : 'RetrieveProperties'
   let specMap = _.map(graphSpec(args), (s) => PropertyFilterSpec(s, this).spec)
@@ -51,10 +46,10 @@ export default function retrieve (args = {}, options, callback) {
       return this.method(retrieveMethod, {
         _this: this.serviceContent.propertyCollector,
         specSet,
-        options
+        options: {}
       })
         .then((result) => {
-          return getResults.call(this, result, [], offset, callback)
+          return getResults.call(this, result, [], limit, offset, callback)
         })
         .catch((err) => {
           callback(err)
