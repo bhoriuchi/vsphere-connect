@@ -8,7 +8,16 @@ let token = 'ac4e64f679aed6e4d63d937825ee4d3f7f330cc7'
 let st = Date.now()
 
 // let v = VSphere(host, { token, ignoreSSL: true })
-let v = VSphere(host, { username, password, ignoreSSL: true })
+let v = VSphere(host, {
+  username,
+  password,
+  ignoreSSL: true,
+  soapEvents: {
+    response (obj) {
+      // console.log(obj.body)
+    }
+  }
+})
 
 // console.log(v)
 
@@ -20,7 +29,7 @@ v.retrieve({
   id: ['vm-16']
 })
 */
-v.type('vm').limit(5).offset(4).pluck('name')
+v.type('cluster').pluck('name', 'parent')
   .run()
   .then((res) => {
     console.log('Time:', (Date.now() - st) / 1000, 'seconds')

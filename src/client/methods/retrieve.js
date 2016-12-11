@@ -15,14 +15,14 @@ function getResults (result, objects, limit, offset, callback) {
       token: result.token
     })
       .then(function(results) {
-        return getResults.call(this, results, limit, offset, objs, callback)
+        return getResults.call(this, results, objs, limit, offset, callback)
       })
       .catch((err) => {
         callback(err)
         return Promise.reject(err)
       })
   } else {
-    let results = _.slice(objs, offset, limit)
+    let results = _.slice(objs, offset || 0, limit || objs.length)
     callback(null, results)
     return Promise.resolve(results)
   }
@@ -38,7 +38,7 @@ export default function retrieve (args = {}, options, callback) {
 
   let limit = options.limit
   let offset = options.offset || 0
-  if (offset !== undefined && limit !== undefined) limit += offset
+  if (_.isNumber(offset) && _.isNumber(limit)) limit += offset
 
   let retrieveMethod = this._VimPort.RetrievePropertiesEx ? 'RetrievePropertiesEx' : 'RetrieveProperties'
   let specMap = _.map(graphSpec(args), (s) => PropertyFilterSpec(s, this).spec)
@@ -58,35 +58,3 @@ export default function retrieve (args = {}, options, callback) {
         })
     })
 }
-
-
-
-
-
-
-
-
-/*
-let pl2 = {
-  _this: client.serviceContent.propertyCollector,
-  specSet: [
-    {
-      objectSet: [
-        {
-          obj: {
-            $attributes: { type: 'SessionManager' },
-            $value: 'SessionManager'
-          }
-        }
-      ],
-      propSet: [
-        {
-          pathSet: ['currentSession', 'sessionList'],
-          type: 'SessionManager'
-        }
-      ]
-    }
-  ],
-  options: {}
-}
-  */

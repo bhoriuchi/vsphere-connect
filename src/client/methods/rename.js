@@ -17,7 +17,7 @@ export default function rename (args = {}, options, callback) {
     if (!moRef && !type && !id) return errorHandler(new Error('no object specified to destroy'), callback, reject)
     if (!_.isString(name)) return errorHandler(new Error('invalid name or name not specified'), callback, reject)
     return this.method('Rename_Task', { _this: obj, newName: name }, (err, result) => {
-      if (err ) return errorHandler(err, callback, reject)
+      if (err) return errorHandler(err, callback, reject)
       if (options.async === false) {
         return monitor.task(this, _.get(result, 'value'), options, (err, result) => {
           if (err) return errorHandler(err, callback, reject)

@@ -8,6 +8,7 @@ import mo from './mo'
 import moRef from './moRef'
 import pluck from './pluck'
 import resultHandler from './resultHandler'
+import semver from './semver'
 import typeResolver from './typeResolver'
 
 export { buildPropList }
@@ -20,6 +21,7 @@ export { mo }
 export { moRef }
 export { pluck }
 export { resultHandler }
+export { semver }
 export { typeResolver }
 
 export default {
@@ -33,5 +35,6 @@ export default {
   moRef,
   pluck,
   resultHandler,
+  semver,
   typeResolver
 }

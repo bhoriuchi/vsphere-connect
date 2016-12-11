@@ -16,7 +16,7 @@ export default function destroy (args = {}, options, callback) {
     let obj = moRef || { type: typeName, value: id }
     if (!moRef && !type && !id) return errorHandler(new Error('no object specified to destroy'), callback, reject)
     return this.method('Destroy_Task', { _this: obj }, (err, result) => {
-      if (err ) return errorHandler(err, callback, reject)
+      if (err) return errorHandler(err, callback, reject)
       if (options.async === false) {
         return monitor.task(this, _.get(result, 'value'), options, (err, result) => {
           if (err) return errorHandler(err, callback, reject)
