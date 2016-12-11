@@ -5,6 +5,7 @@ import Promise from 'bluebird'
 import v from './v'
 import methods from './methods/index'
 import Utils from './utils/index'
+import Errors from '../errors/index'
 import { cacheKey, typeResolver } from './utils/index'
 
 export class VSphereClient extends EventEmitter {
@@ -69,5 +70,6 @@ function client (host, options = {}) {
 // add utility functions
 client.Cache = soap.Cache
 client.Utils = Utils
+client.Errors = Errors
 
 export default client

@@ -1,12 +1,13 @@
 import _ from 'lodash'
 import Promise from 'bluebird'
+import { InvalidMethodError } from '../../errors/index'
 import { errorHandler, resultHandler } from '../utils/index'
 
 export default function method (name, args = {}, callback = () => null) {
   return new Promise((resolve, reject) => {
     try {
       let fn = _.get(this._VimPort, `["${name}"]`)
-      if (!_.isFunction(fn)) throw new Error(`${name} is not a valid method`)
+      if (!_.isFunction(fn)) throw new InvalidMethodError(name)
       fn(args, (err, result) => {
         if (err) return errorHandler (err, callback, reject)
         return resultHandler(_.get(result, 'returnval', result), callback, resolve)

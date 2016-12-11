@@ -2,6 +2,7 @@ import buildPropList from './buildPropList'
 import cacheKey from './cacheKey'
 import convertRetrievedProperties from './convertRetrievedProperties'
 import errorHandler from './errorHandler'
+import extractMoRef from './extractMoRef'
 import graphSpec from './graphSpec'
 import makeDotPath from './makeDotPath'
 import mo from './mo'
@@ -15,6 +16,7 @@ export { buildPropList }
 export { cacheKey }
 export { convertRetrievedProperties }
 export { errorHandler }
+export { extractMoRef }
 export { graphSpec }
 export { makeDotPath }
 export { mo }
@@ -29,6 +31,7 @@ export default {
   cacheKey,
   convertRetrievedProperties,
   errorHandler,
+  extractMoRef,
   graphSpec,
   makeDotPath,
   mo,
