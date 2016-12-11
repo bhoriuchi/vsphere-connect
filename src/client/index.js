@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import EventEmitter from 'events'
 import soap from 'soap-connect'
+import Promise from 'bluebird'
 import v from './v'
 import methods from './methods/index'
 import Utils from './utils/index'

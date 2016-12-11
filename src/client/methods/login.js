@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import Promise from 'bluebird'
 import soap from 'soap-connect'
 import { errorHandler, resultHandler } from '../utils/index'
 let CookieSecurity = soap.Security.CookieSecurity

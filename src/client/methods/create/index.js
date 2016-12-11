@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import Promise from 'bluebird'
 import createCluster from './cluster'
 import createDatacenter from './datacenter'
 import createDVSwitch from './dvswitch'

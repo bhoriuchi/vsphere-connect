@@ -1,3 +1,4 @@
+import Promise from 'bluebird'
 import { errorHandler, resultHandler } from '../../utils/index'
 
 export default function createCluster (args, options, callback) {

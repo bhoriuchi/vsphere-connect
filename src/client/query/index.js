@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import soap from 'soap-connect'
+import Promise from 'bluebird'
 import get from './get'
 import { buildPropList, pluck } from '../utils/index'
 import ENUMS from './enums'

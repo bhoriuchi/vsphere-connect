@@ -1,3 +1,7 @@
+/*
+ * Basic non-strict (allows 5, 5.0 as versions) semver tools
+ */
+
 export function parse (s) {
   let [ major, minor, patch ] = s.split('.')
   major = !isNaN(major) ? parseInt(major) : null

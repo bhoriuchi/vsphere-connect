@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import Promise from 'bluebird'
 
 export default function get (client, type, id, properties, limit, offset, single) {
   return client.retrieve({ type, id, properties }, { limit, offset })

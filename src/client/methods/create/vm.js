@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import Promise from 'bluebird'
 import { errorHandler, resultHandler, semver } from '../../utils/index'
 import monitor from '../../monitor/index'
 

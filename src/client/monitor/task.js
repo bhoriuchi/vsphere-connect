@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import Promise from 'bluebird'
 import { errorHandler, resultHandler } from '../utils/index'
 
 const ONE_MINUTE_IN_MS = 60000

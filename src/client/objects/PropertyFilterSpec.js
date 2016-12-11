@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import Promise from 'bluebird'
 import mo from '../utils/mo'
 import ObjectSpec from './ObjectSpec'
 import PropertySpec from './PropertySpec'

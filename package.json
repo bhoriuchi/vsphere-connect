@@ -17,8 +17,9 @@
     "url": "https://github.com/bhoriuchi/vsphere-connect/issues"
   },
   "dependencies": {
-    "soap-connect": "git+https://github.com/bhoriuchi/soap-connect#master",
-    "lodash": "^4.16.4"
+    "bluebird": "3.4.6",
+    "lodash": "^4.17.2",
+    "soap-connect": "git+https://github.com/bhoriuchi/soap-connect#master"
   },
   "devDependencies": {
     "chalk": "^1.1.3",

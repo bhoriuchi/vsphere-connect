@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import Promise from 'bluebird'
 import PropertyFilterSpec from '../objects/PropertyFilterSpec'
 import { graphSpec, convertRetrievedProperties } from '../utils/index'
 
