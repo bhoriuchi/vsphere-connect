@@ -14,8 +14,9 @@ export default function create (args = {}, options, callback) {
   }
   callback = _.isFunction(callback) ? callback : () => false
   options = options || {}
-  switch (this.typeResolver(args.type || _.get(args, 'moRef.type'))) {
-    case 'Cluster':
+  let type = args.type || _.get(args, 'moRef.type')
+  switch (this.typeResolver(type)) {
+    case 'ClusterComputeResource':
       return createCluster.call(this, args, options, callback)
     case 'Datacenter':
       return createDatacenter.call(this, args, options, callback)
@@ -28,7 +29,7 @@ export default function create (args = {}, options, callback) {
     case 'VirtualMachine':
       return createVM.call(this, args, options, callback)
     default:
-      let err = new Error('invalid or no type specified during create')
+      let err = new Error(`invalid type "${type}" specified during create`)
       callback(err)
       return Promise.reject(err)
   }

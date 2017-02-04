@@ -9,7 +9,8 @@ let { RESULT_TYPE: { VIM_OBJECT, VIM_COLLECTION, OBJECT, COLLECTION, STRING, ARR
 let CookieSecurity = soap.Security.CookieSecurity
 
 export default function query (q) {
-  let [ limit, offset, val, id ] = [ null, null, null, null ]
+  let [ limit, offset, id, folder ] = [ null, null, null, null ]
+  let val = Promise.resolve()
   let [ idx, properties ] = [ 0, [] ]
   let [ chain, len, client, type ] = [ q._chain, q._chain.length, q._client, q._type ]
   let resultType = type ? VIM_COLLECTION : null
@@ -24,6 +25,20 @@ export default function query (q) {
   for (let c of chain) {
     let isLast = idx === (len - 1)
     switch (c.method) {
+      case 'createDatacenter':
+        val = val.then(() => {
+          return client.create({
+            type: 'datacenter',
+            folder,
+            name: c.name
+          })
+        })
+        break
+
+      case 'folder':
+        folder = c.id
+        break
+
       case 'get':
         if (!type) return Promise.reject(new Error('no type specified'))
         id = c.id

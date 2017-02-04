@@ -16,11 +16,23 @@ export default class v {
       .then(() => {
         callback(null, this._client)
         return this._client
-      })
-      .catch((err) => {
-        callback(err)
-        return Promise.reject(err)
-      })
+      }, error => callback)
+  }
+
+  createDatacenter (name) {
+    if (!_.isString(name)) throw new Error('no name specified')
+    let method = 'createDatacenter'
+    this._chain.push({ method, prev: this._prev, name })
+    this._prev = method
+    return this
+  }
+
+  folder (id) {
+    if (!_.isString(id)) throw new Error('no id specified')
+    let method = 'folder'
+    this._chain.push({ method, prev: this._prev, id })
+    this._prev = method
+    return this
   }
 
   get (id) {

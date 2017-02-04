@@ -29,6 +29,7 @@ v.retrieve({
   id: ['vm-16']
 })
 */
+/*
 v.type('cluster').pluck('name', 'parent')
   .run()
   .then((res) => {
@@ -37,6 +38,7 @@ v.type('cluster').pluck('name', 'parent')
     return v.logout()
   })
   .catch(console.error)
+*/
 
 // factor out login and client setup time and get strictly query time
 /*
@@ -52,3 +54,12 @@ setTimeout(() => {
     .catch(console.error)
 }, 2000)
 */
+
+v.createDatacenter('mydc100')
+  .run()
+  .then((res) => {
+    console.log('Time:', (Date.now() - st) / 1000, 'seconds')
+    console.log(JSON.stringify(res, null, '  '))
+    return v.logout()
+  })
+  .catch(console.error)
