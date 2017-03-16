@@ -2,7 +2,7 @@
   "name": "vsphere-connect",
   "version": "2.0.0",
   "description": "vSphere Connect",
-  "main": "lib/index.js",
+  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bhoriuchi/vsphere-connect.git"
@@ -22,21 +22,24 @@
     "soap-connect": "git+https://github.com/bhoriuchi/soap-connect#master"
   },
   "devDependencies": {
-    "chalk": "^1.1.3",
+    "babel-core": "^6.24.0",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-es2015": "^6.24.0",
+    "babel-preset-es2015-rollup": "^1.2.0",
+    "babel-preset-stage-2": "^6.22.0",
+    "babel-register": "^6.24.0",
+    "babel-runtime": "^6.23.0",
     "chai": "^3.5.0",
-    "babel-core": "^6.0.0",
-    "babel-preset-es2015": "^6.14.0",
-    "babel-preset-stage-2": "^6.0.0",
-    "babel-plugin-transform-runtime": "^6.0.0",
-    "babel-runtime": "^6.9.0",
-    "babel-register": "^6.11.0",
+    "chalk": "^1.1.3",
     "mocha": "^3.0.0",
-    "rollup": "^0.34.0",
-    "rollup-plugin-babel": "^2.6.0",
-    "babel-preset-es2015-rollup": "^1.2.0"
+    "rollup": "^0.34.13",
+    "rollup-plugin-babel": "^2.7.1"
   },
   "scripts": {
-    "test": "echo \\\"Error: no test specified\\\" && exit 1"
+    "test": "echo \\\"Error: no test specified\\\" && exit 1",
+    "build:copybrc": "cp build/.build.babelrc src/.babelrc",
+    "build:rmbrc": "rm -f src/.babelrc",
+    "build": "npm run build:copybrc && rollup -c build/rollup.config.js && npm run build:rmbrc"
   },
   "directories": {
     "example": "example"
