@@ -1,43 +1,38 @@
 import _ from 'lodash'
 import Promise from 'bluebird'
-import { errorHandler, resultHandler, semver } from '../../utils/index'
+import { semver } from '../../utils/index'
 import monitor from '../../monitor/index'
 
-export default function createDVSwitch (args, options, callback) {
-  return new Promise((resolve, reject) => {
-    if (semver.lt(this.apiVersion, '4.0')) {
-      return errorHandler(new Error('create dvSwitch requires api 4.0 or higher'), callback, reject)
-    }
-    let { folder, datacenter, spec } = args
-    if (!spec) return errorHandler(new Error('create dvSwitch requires a spec'), callback, reject)
+export default function createDVSwitch (args, options) {
+  let { folder, datacenter, spec } = _.isObject(args) ? args : {}
+  options = _.isObject(options) ? options : {}
 
-    if (folder) {
-      folder = Promise.resolve({ type: 'Folder', value: folder })
-    } else if (datacenter) {
-      folder = this.retrieve({
-        type: 'Datacenter',
-        id: datacenter,
-        properties: ['networkFolder']
-      })
-        .then((dc) => _.get(dc, 'networkFolder'))
-        .catch((err) => {
-          return errorHandler(err, callback, reject)
-        })
-    } else {
-      return errorHandler(new Error('datacenter or folder required to create dvSwitch'), callback, reject)
-    }
+  if (semver.lt(this.apiVersion, '4.0')) return Promise.reject(new Error('create dvSwitch requires api 4.0 or higher'))
+  if (!spec) return Promise.reject(new Error('create dvSwitch requires a spec'))
 
-    return folder.then((folderRef) => {
-      return this.method('CreateDVS_Task', { _this: folderRef, spec }, (err, result) => {
-        if (err) return errorHandler(err, callback, reject)
-        if (options.async === false) {
-          return monitor.task(this, _.get(result, 'value'), options, (err, result) => {
-            if (err) return errorHandler(err, callback, reject)
-            return resultHandler(result, callback, resolve)
-          })
-        }
-        return resultHandler(result, callback, resolve)
-      })
+  if (folder) {
+    folder = Promise.resolve({ type: 'Folder', value: folder })
+  }
+
+  else if (datacenter) {
+    folder = this.retrieve({
+      type: 'Datacenter',
+      id: datacenter,
+      properties: ['networkFolder']
     })
+      .then(dc => _.get(dc, 'networkFolder'))
+  }
+
+  else {
+    return Promise.reject(new Error('datacenter or folder required to create dvSwitch'))
+  }
+
+  return folder.then(folderRef => {
+    return this.method('CreateDVS_Task', { _this: folderRef, spec })
+      .then(task => {
+        return (options.async !== false)
+          ? task
+          : monitor.task(this, _.get(task, 'value'), options)
+      })
   })
 }

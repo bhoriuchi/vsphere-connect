@@ -17,7 +17,7 @@ export class ObjectSpec {
         }
       ]
     } else {
-      return _.map(this.obj.id, (id) => {
+      return _.map(this.obj.id, id => {
         return { obj: moRef(this.obj.type, id) }
       })
     }

@@ -1,15 +1,13 @@
+import _ from 'lodash'
 import Promise from 'bluebird'
-import { errorHandler, resultHandler } from '../../utils/index'
 
-export default function createCluster (args, options, callback) {
-  return new Promise((resolve, reject) => {
-    let { folder, name, spec } = args
-    if (!name) return errorHandler(new Error('create datacenter requires name'), callback, reject)
-    folder = folder ? { type: 'Folder', value: folder } : this.serviceContent.rootFolder
-    spec = spec || {}
-    return this.method('CreateClusterEx', { _this: folder, name, spec }, (err, result) => {
-      if (err) return errorHandler(err, callback, reject)
-      return resultHandler(result, callback, resolve)
-    })
-  })
+export default function createCluster (args, options) {
+  let { folder, name, spec } = _.isObject(args) ? args : {}
+  let _this = folder ? { type: 'Folder', value: folder } : this.serviceContent.rootFolder
+  spec = _.isObject(spec) ? spec : {}
+  options = _.isObject(options) ? options : {}
+
+  return name
+    ? this.method('CreateClusterEx', { _this, name, spec })
+    : Promise.reject(new Error('create datacenter requires a name'))
 }

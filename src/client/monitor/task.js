@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import Promise from 'bluebird'
-import { errorHandler, resultHandler } from '../utils/index'
 
 const ONE_MINUTE_IN_MS = 60000
 const ONE_SECOND_IN_MS = 1000
@@ -11,15 +10,15 @@ const QUEUED = 'queued'
 const RUNNING = 'running'
 
 export class TaskMonitor {
-  constructor (client, taskId, options = {}, callback = () => null) {
+  constructor (client, taskId, options) {
+    let { timeout, interval } = _.isObject(options) ? options : {}
+
     return new Promise((resolve, reject) => {
-      let { timeout, interval } = options
       this.start = Date.now()
       this.client = client
       this.taskId = taskId
       this.interval = _.isNumber(interval) && interval > ONE_SECOND_IN_MS ? parseInt(interval) : ONE_SECOND_IN_MS
       this.timeout = _.isNumber(timeout) && timeout > this.interval ? parseInt(timeout) : ONE_MINUTE_IN_MS
-      this.callback = callback
       this.resolve = resolve
       this.reject = reject
       this.monitor(FIRST_INTERVAL) // short first interval for quick tasks like rename
@@ -28,7 +27,7 @@ export class TaskMonitor {
 
   monitor (interval) {
     setTimeout(() => {
-      return this.client.retrieve({
+      this.client.retrieve({
         type: 'Task',
         id: this.taskId,
         properties: [
@@ -40,35 +39,29 @@ export class TaskMonitor {
           'info.entity',
           'info.description'
         ]
-      }, (err, result) => {
-        let task = _.get(result, '[0]')
-        if (err) return errorHandler(err, this.callback, this.reject)
-        let state = _.get(task, 'info.state')
-        if (!state) return errorHandler(new Error(`task ${this.taskId} was not found`), this.callback, this.reject)
-        this.client.emit('task.state', { id: this.taskId, state })
-        if (state === ERROR) {
-          let taskError = new Error({
-            task: this.taskId,
-            info: task
-          })
-          return errorHandler(taskError, this.callback, this.reject)
-        } else if (state === SUCCESS) {
-          return resultHandler(task, this.callback, this.resolve)
-        } else if ((Date.now() - this.start) >= this.timeout) {
-          let timeoutError = new Error({
-            task: this.taskId,
-            message: 'the task monitor timed out, the task may still complete successfully',
-            info: task
-          })
-          return errorHandler(timeoutError, this.callback, this.reject)
-        } else {
-          return this.monitor(this.interval)
-        }
       })
+        .then(result => {
+          let task = _.get(result, '[0]')
+          let state = _.get(task, 'info.state')
+
+          if (!state) return this.reject(new Error(`task ${this.taskId} was not found`))
+          this.client.emit('task.state', { id: this.taskId, state })
+
+          switch (state) {
+            case ERROR:
+              return this.reject(new Error({ task: this.taskId, info: task }))
+            case SUCCESS:
+              return this.resolve(task)
+            default:
+              return (Date.now() - this.start) >= this.timeout
+                ? this.reject(new Error('the task monitor timed out, the task may still complete successfully'))
+                : this.monitor(this.interval)
+          }
+        }, this.reject)
     }, interval)
   }
 }
 
-export default function (client, taskId, options, callback) {
-  return new TaskMonitor(client, taskId, options, callback)
+export default function (client, taskId, options) {
+  return new TaskMonitor(client, taskId, options)
 }

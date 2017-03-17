@@ -37,7 +37,7 @@ export class PropertyFilterSpec {
       resolveView = this.client.method('CreateContainerView', { _this: viewManager, container, type, recursive })
     }
 
-    return resolveView.then((containerView) => {
+    return resolveView.then(containerView => {
       this.obj.containerView = containerView
       this.obj.listSpec = listSpec
 

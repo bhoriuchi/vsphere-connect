@@ -5,6 +5,7 @@ scratch
 node_modules
 src
 src-v0
+v1
 test
 dist
 .babelrc
@@ -14,3 +15,4 @@ npm-debug.log
 .npmignore
 .travis.yml
 .*
+credentials.js

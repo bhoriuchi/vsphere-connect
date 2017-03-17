@@ -7,30 +7,29 @@ import createFolder from './folder'
 import createStoreCluster from './storecluster'
 import createVM from './vm'
 
-export default function create (args = {}, options, callback) {
-  if (_.isFunction(options)) {
-    callback = options
-    options = {}
-  }
-  callback = _.isFunction(callback) ? callback : () => false
-  options = options || {}
-  let type = args.type || _.get(args, 'moRef.type')
+export default function create (args, options) {
+  let type = _.get(args, 'type') || _.get(args, 'moRef.type')
+
   switch (this.typeResolver(type)) {
     case 'ClusterComputeResource':
-      return createCluster.call(this, args, options, callback)
+      return createCluster.call(this, args, options)
+
     case 'Datacenter':
-      return createDatacenter.call(this, args, options, callback)
+      return createDatacenter.call(this, args, options)
+
     case 'DistributedVirtualSwitch':
-      return createDVSwitch.call(this, args, options, callback)
+      return createDVSwitch.call(this, args, options)
+
     case 'Folder':
-      return createFolder.call(this, args, options, callback)
+      return createFolder.call(this, args, options)
+
     case 'StoragePod':
-      return createStoreCluster.call(this, args, options, callback)
+      return createStoreCluster.call(this, args, options)
+
     case 'VirtualMachine':
-      return createVM.call(this, args, options, callback)
+      return createVM.call(this, args, options)
+
     default:
-      let err = new Error(`invalid type "${type}" specified during create`)
-      callback(err)
-      return Promise.reject(err)
+      return Promise.reject(new Error(`invalid type "${type}" specified during create`))
   }
 }

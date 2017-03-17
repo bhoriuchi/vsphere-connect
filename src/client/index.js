@@ -62,7 +62,14 @@ export class VSphereClient extends EventEmitter {
   }
 }
 
-// convenience method to create a new client
+/**
+ * Creates a new v instance
+ * @param {String} host - vsphere host
+ * @param {Object} options
+ * @param {String|Function} options.cacheKey
+ * @param {Boolean} [options.ignoreSSL=false]
+ * @returns {v}
+ */
 function client (host, options = {}) {
   return new VSphereClient(host, options)
 }

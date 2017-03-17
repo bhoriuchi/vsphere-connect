@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import Promise from 'bluebird'
 import query from './query/index'
 
 export default class v {

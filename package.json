@@ -17,9 +17,9 @@
     "url": "https://github.com/bhoriuchi/vsphere-connect/issues"
   },
   "dependencies": {
-    "bluebird": "3.4.6",
-    "lodash": "^4.17.2",
-    "soap-connect": "git+https://github.com/bhoriuchi/soap-connect#master"
+    "bluebird": "^3.5.0",
+    "lodash": "^4.17.4",
+    "soap-connect": "git+https://github.com/bhoriuchi/soap-connect#development"
   },
   "devDependencies": {
     "babel-core": "^6.24.0",
@@ -31,9 +31,12 @@
     "babel-runtime": "^6.23.0",
     "chai": "^3.5.0",
     "chalk": "^1.1.3",
+    "documentation": "^4.0.0-beta.18",
     "mocha": "^3.0.0",
-    "rollup": "^0.34.13",
-    "rollup-plugin-babel": "^2.7.1"
+    "rollup": "^0.41.6",
+    "rollup-plugin-babel": "^2.7.1",
+    "stream-array": "^1.1.2",
+    "vinyl-fs": "^2.4.4"
   },
   "scripts": {
     "test": "echo \\\"Error: no test specified\\\" && exit 1",
