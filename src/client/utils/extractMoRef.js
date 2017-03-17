@@ -11,11 +11,9 @@ export default function extractMoRef (args) {
   }
 
   let typeName = this.typeResolver(type)
-  if (!typeName) {
-    moRefError = new InvalidTypeError(type)
-  } else if (!id) {
-    moRefError = new ObjectReferenceError()
-  }
+
+  if (!typeName) moRefError = new InvalidTypeError(type)
+  else if (!id) moRefError = new ObjectReferenceError()
 
   return {
     moRefError,

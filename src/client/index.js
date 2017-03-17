@@ -1,3 +1,8 @@
+/**
+ * @module vsphere-connect
+ * @description Build complex vSphere API requests
+ * @author Branden Horiuchi <bhoriuchi@gmail.com>
+ */
 import _ from 'lodash'
 import EventEmitter from 'events'
 import soap from 'soap-connect'
@@ -9,11 +14,11 @@ import Errors from '../errors/index'
 import { cacheKey, typeResolver } from './utils/index'
 
 export class VSphereClient extends EventEmitter {
-  constructor (host, options = {}) {
+  constructor (host, options) {
     super()
     if (!host) throw new Error('No host specified')
     this._host = host
-    this._options = options
+    this._options = _.isObject(options) ? options : {}
     this._options.cacheKey = this._options.cacheKey || cacheKey
     this._endpoint = `https://${this._host}/sdk/vimService`
     this._wsdl = `${this._endpoint}.wsdl`
@@ -70,7 +75,7 @@ export class VSphereClient extends EventEmitter {
  * @param {Boolean} [options.ignoreSSL=false]
  * @returns {v}
  */
-function client (host, options = {}) {
+function client (host, options) {
   return new VSphereClient(host, options)
 }
 

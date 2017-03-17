@@ -3,7 +3,7 @@ import _ from 'lodash'
 export default function graphSpec (specSet) {
   let types = {}
 
-  _.forEach(_.isArray(specSet) ? specSet : [specSet], (spec) => {
+  _.forEach(_.isArray(specSet) ? specSet : [specSet], spec => {
     if (_.isString(spec)) spec = { type: spec }
     if (!spec.type) return
     if (!_.has(types, spec.type)) _.set(types, spec.type, { ids: [], props: [] })

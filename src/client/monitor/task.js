@@ -17,8 +17,12 @@ export class TaskMonitor {
       this.start = Date.now()
       this.client = client
       this.taskId = taskId
-      this.interval = _.isNumber(interval) && interval > ONE_SECOND_IN_MS ? parseInt(interval) : ONE_SECOND_IN_MS
-      this.timeout = _.isNumber(timeout) && timeout > this.interval ? parseInt(timeout) : ONE_MINUTE_IN_MS
+      this.interval = _.isNumber(interval) && interval > ONE_SECOND_IN_MS
+        ? Math.floor(interval)
+        : ONE_SECOND_IN_MS
+      this.timeout = _.isNumber(timeout) && timeout > this.interval
+        ? Math.floor(timeout)
+        : ONE_MINUTE_IN_MS
       this.resolve = resolve
       this.reject = reject
       this.monitor(FIRST_INTERVAL) // short first interval for quick tasks like rename

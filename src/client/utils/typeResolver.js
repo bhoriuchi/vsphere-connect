@@ -16,7 +16,8 @@ const ALIAS = {
 
 export default function typeResolver (apiVersion) {
   let typeMap = _.cloneDeep(ALIAS)
-  _.forEach(mo[apiVersion], (v, k) => {
+  let types = _.get(mo, apiVersion) || _.get(mo, _.last(_.keys(mo))) // default to latest apiVersion
+  _.forEach(types, (v, k) => {
     typeMap[_.toLower(k)] = k
   })
   return function (type) {

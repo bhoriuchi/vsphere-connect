@@ -8,7 +8,14 @@
     "url": "git+https://github.com/bhoriuchi/vsphere-connect.git"
   },
   "keywords": [
-    "vsphere"
+    "vsphere",
+    "client",
+    "vmware",
+    "vcenter",
+    "esx",
+    "esxi",
+    "api",
+    "vim"
   ],
   "author": "Branden Horiuchi <bhoriuchi@gmail.com>",
   "license": "MIT",

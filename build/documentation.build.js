@@ -4,7 +4,8 @@ var streamArray = require('stream-array')
 var vfs = require('vinyl-fs')
 
 documentation.build([
-  path.resolve(__dirname, '../src/client/index.js')
+  path.resolve(__dirname, '../src/client/index.js'),
+  path.resolve(__dirname, '../src/client/v.js')
 ], {}, function (err, res) {
   if (err) {
     console.error(err)

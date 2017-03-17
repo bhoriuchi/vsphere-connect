@@ -18,8 +18,9 @@ export default function query (q) {
 
   // check for a new instantiation
   if (!len) {
-    if (type) return client.retrieve({ type })
-    return Promise.reject(new Error('Invalid query chain'))
+    return type
+      ? client.retrieve({ type })
+      : Promise.reject(new Error('Invalid query chain'))
   }
 
   for (let c of chain) {
