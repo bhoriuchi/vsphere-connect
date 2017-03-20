@@ -4,88 +4,8 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var _ = _interopDefault(require('lodash'));
 var EventEmitter = _interopDefault(require('events'));
-var soap = _interopDefault(require('soap-connect'));
 var Promise$1 = _interopDefault(require('bluebird'));
-
-function get(client, type, id, properties, limit, offset, single) {
-  return client.retrieve({ type: type, id: id, properties: properties }, { limit: limit, offset: offset }).then(function (result) {
-    return single ? _.get(result, '[0]', null) : result;
-  }).catch(Promise$1.reject);
-}
-
-function makeDotPath(obj) {
-  var list = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-  var path = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
-
-  _.forEach(obj, function (val, key) {
-    var prop = path.slice(0);
-    prop.push(key);
-    if (val === true) list.push(prop.join('.'));else makeDotPath(val, list, prop);
-  });
-  return list;
-}
-
-function buildPropList(args) {
-  var props = [];
-  _.forEach(args, function (arg) {
-    if (_.isString(arg)) {
-      props = _.union(props, [arg]);
-    } else if (_.isArray(arg)) {
-      props = _.union(props, arg);
-    } else if (_.isObject(arg)) {
-      props = _.union(props, makeDotPath(arg));
-    }
-  });
-  return props;
-}
-
-/*
- * cacheKey function to allow re-use of cache on same api version and type
- */
-var SI_XML = '<?xml version="1.0"?>\n<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">\n  <soapenv:Body xmlns:vim25="urn:vim25">\n    <vim25:RetrieveServiceContent>\n      <vim25:_this type="ServiceInstance">ServiceInstance</vim25:_this>\n    </vim25:RetrieveServiceContent>\n  </soapenv:Body>\n</soapenv:Envelope>';
-
-function cacheKey(tools, wsdl, done) {
-  var request = tools.request,
-      xmldom = tools.xmldom;
-
-  var url = wsdl.replace(/.wsdl.*$/, '');
-  var headers = { 'Content-Type': 'text/xml', 'Content-Length': SI_XML.length };
-  request.post({ headers: headers, url: url, body: SI_XML }, function (err, res, body) {
-    try {
-      if (err) return done(err);
-      var doc = new xmldom.DOMParser().parseFromString(body);
-      var apiType = _.get(doc.getElementsByTagName('apiType'), '[0].textContent');
-      var apiVersion = _.get(doc.getElementsByTagName('apiVersion'), '[0].textContent');
-      if (apiType && apiVersion) return done(null, 'VMware-' + apiType + '-' + apiVersion);
-      return done(null, null);
-    } catch (err) {
-      return done(null, null);
-    }
-  });
-}
-
-function convertRetrievedProperties(results) {
-  var objs = _.get(results, 'objects') || _.get(results, 'returnval.objects');
-  return _.map(_.isArray(objs) ? objs : [], function (result) {
-    var o = {};
-    var obj = result.obj,
-        propSet = result.propSet;
-
-    o.moRef = obj;
-    _.forEach(propSet, function (prop) {
-      var name = prop.name,
-          val = prop.val;
-
-      _.set(o, name, val);
-    });
-    return o;
-  });
-}
-
-function errorHandler(err, callback, reject) {
-  callback(err);
-  return reject(err);
-}
+var soap = _interopDefault(require('soap-connect'));
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
   return typeof obj;
@@ -93,118 +13,15 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
   return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
 };
 
-var asyncGenerator = function () {
-  function AwaitValue(value) {
-    this.value = value;
-  }
 
-  function AsyncGenerator(gen) {
-    var front, back;
 
-    function send(key, arg) {
-      return new Promise(function (resolve, reject) {
-        var request = {
-          key: key,
-          arg: arg,
-          resolve: resolve,
-          reject: reject,
-          next: null
-        };
 
-        if (back) {
-          back = back.next = request;
-        } else {
-          front = back = request;
-          resume(key, arg);
-        }
-      });
-    }
 
-    function resume(key, arg) {
-      try {
-        var result = gen[key](arg);
-        var value = result.value;
 
-        if (value instanceof AwaitValue) {
-          Promise.resolve(value.value).then(function (arg) {
-            resume("next", arg);
-          }, function (arg) {
-            resume("throw", arg);
-          });
-        } else {
-          settle(result.done ? "return" : "normal", result.value);
-        }
-      } catch (err) {
-        settle("throw", err);
-      }
-    }
 
-    function settle(type, value) {
-      switch (type) {
-        case "return":
-          front.resolve({
-            value: value,
-            done: true
-          });
-          break;
 
-        case "throw":
-          front.reject(value);
-          break;
 
-        default:
-          front.resolve({
-            value: value,
-            done: false
-          });
-          break;
-      }
 
-      front = front.next;
-
-      if (front) {
-        resume(front.key, front.arg);
-      } else {
-        back = null;
-      }
-    }
-
-    this._invoke = send;
-
-    if (typeof gen.return !== "function") {
-      this.return = undefined;
-    }
-  }
-
-  if (typeof Symbol === "function" && Symbol.asyncIterator) {
-    AsyncGenerator.prototype[Symbol.asyncIterator] = function () {
-      return this;
-    };
-  }
-
-  AsyncGenerator.prototype.next = function (arg) {
-    return this._invoke("next", arg);
-  };
-
-  AsyncGenerator.prototype.throw = function (arg) {
-    return this._invoke("throw", arg);
-  };
-
-  AsyncGenerator.prototype.return = function (arg) {
-    return this._invoke("return", arg);
-  };
-
-  return {
-    wrap: function (fn) {
-      return function () {
-        return new AsyncGenerator(fn.apply(this, arguments));
-      };
-    },
-    await: function (value) {
-      return new AwaitValue(value);
-    }
-  };
-}();
 
 var classCallCheck = function (instance, Constructor) {
   if (!(instance instanceof Constructor)) {
@@ -230,6 +47,14 @@ var createClass = function () {
   };
 }();
 
+
+
+
+
+
+
+
+
 var inherits = function (subClass, superClass) {
   if (typeof superClass !== "function" && superClass !== null) {
     throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
@@ -246,6 +71,16 @@ var inherits = function (subClass, superClass) {
   if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
 };
 
+
+
+
+
+
+
+
+
+
+
 var possibleConstructorReturn = function (self, call) {
   if (!self) {
     throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
@@ -253,6 +88,10 @@ var possibleConstructorReturn = function (self, call) {
 
   return call && (typeof call === "object" || typeof call === "function") ? call : self;
 };
+
+
+
+
 
 var slicedToArray = function () {
   function sliceIterator(arr, i) {
@@ -368,6 +207,95 @@ var Errors = {
   VSphereConnectError: VSphereConnectError
 };
 
+function createCluster(args, options) {
+  var _ref = _.isObject(args) ? args : {},
+      folder = _ref.folder,
+      name = _ref.name,
+      spec = _ref.spec;
+
+  var _this = folder ? { type: 'Folder', value: folder } : this.serviceContent.rootFolder;
+  spec = _.isObject(spec) ? spec : {};
+  options = _.isObject(options) ? options : {};
+
+  return name ? this.method('CreateClusterEx', { _this: _this, name: name, spec: spec }) : Promise$1.reject(new Error('create datacenter requires a name'));
+}
+
+function createDatacenter(args, options) {
+  var _ref = _.isObject(args) ? args : {},
+      folder = _ref.folder,
+      name = _ref.name;
+
+  var _this = folder ? { type: 'Folder', value: folder } : this.serviceContent.rootFolder;
+  options = _.isObject(options) ? options : {};
+
+  return name ? this.method('CreateDatacenter', { _this: _this, name: name }) : Promise$1.reject(new Error('create datacenter requires name'));
+}
+
+function makeDotPath(obj) {
+  var list = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+  var path = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
+
+  _.forEach(obj, function (val, key) {
+    var prop = path.slice(0);
+    prop.push(key);
+    if (val === true) list.push(prop.join('.'));else makeDotPath(val, list, prop);
+  });
+  return list;
+}
+
+function buildPropList(args) {
+  var props = [];
+  _.forEach(args, function (arg) {
+    if (_.isString(arg)) props = _.union(props, [arg]);else if (_.isArray(arg)) props = _.union(props, arg);else if (_.isObject(arg)) props = _.union(props, makeDotPath(arg));
+  });
+  return props;
+}
+
+/*
+ * cacheKey function to allow re-use of cache on same api version and type
+ */
+var REQUEST_TIMEOUT = 2000;
+
+var SI_XML = '<?xml version="1.0"?>\n<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">\n  <soapenv:Body xmlns:vim25="urn:vim25">\n    <vim25:RetrieveServiceContent>\n      <vim25:_this type="ServiceInstance">ServiceInstance</vim25:_this>\n    </vim25:RetrieveServiceContent>\n  </soapenv:Body>\n</soapenv:Envelope>';
+
+function cacheKey(tools, wsdl, done) {
+  var request = tools.request,
+      xmldom = tools.xmldom;
+
+  var url = wsdl.replace(/.wsdl.*$/, '');
+  var headers = { 'Content-Type': 'text/xml', 'Content-Length': SI_XML.length };
+
+  request.post({ headers: headers, url: url, body: SI_XML, timeout: REQUEST_TIMEOUT }, function (err, res, body) {
+    try {
+      if (err) return done(err);
+      var doc = new xmldom.DOMParser().parseFromString(body);
+      var apiType = _.get(doc.getElementsByTagName('apiType'), '[0].textContent');
+      var apiVersion = _.get(doc.getElementsByTagName('apiVersion'), '[0].textContent');
+      if (apiType && apiVersion) return done(null, 'VMware-' + apiType + '-' + apiVersion);
+      return done(null, null);
+    } catch (err) {
+      return done(null, null);
+    }
+  });
+}
+
+function convertRetrievedProperties(results) {
+  var objs = _.get(results, 'objects') || _.get(results, 'returnval.objects');
+
+  return _.map(_.isArray(objs) ? objs : [], function (result) {
+    var obj = { moRef: result.obj };
+    _.forEach(result.propSet, function (prop) {
+      _.set(obj, prop.name, prop.val);
+    });
+    return obj;
+  });
+}
+
+function errorHandler(err, callback, reject) {
+  callback(err);
+  return reject(err);
+}
+
 function extractMoRef(args) {
   var type = args.type,
       id = args.id,
@@ -381,11 +309,8 @@ function extractMoRef(args) {
   }
 
   var typeName = this.typeResolver(type);
-  if (!typeName) {
-    moRefError = new InvalidTypeError(type);
-  } else if (!id) {
-    moRefError = new ObjectReferenceError();
-  }
+
+  if (!typeName) moRefError = new InvalidTypeError(type);else if (!id) moRefError = new ObjectReferenceError();
 
   return {
     moRefError: moRefError,
@@ -937,7 +862,8 @@ var ALIAS = {
 
 function typeResolver(apiVersion) {
   var typeMap = _.cloneDeep(ALIAS);
-  _.forEach(types[apiVersion], function (v, k) {
+  var types$$1 = _.get(types, apiVersion) || _.get(types, _.last(_.keys(types))); // default to latest apiVersion
+  _.forEach(types$$1, function (v, k) {
     typeMap[_.toLower(k)] = k;
   });
   return function (type) {
@@ -961,421 +887,27 @@ var Utils = {
   typeResolver: typeResolver
 };
 
-var RESULT_TYPE = {
-  VIM_OBJECT: 'VIM_OBJECT',
-  VIM_COLLECTION: 'VIM_COLLECTION',
-  OBJECT: 'OBJECT',
-  COLLECTION: 'COLLECTION',
-  STRING: 'STRING',
-  NUMBER: 'NUMBER',
-  ARRAY: 'ARRAY'
-};
-
-var ENUMS = {
-  RESULT_TYPE: RESULT_TYPE
-};
-
-var _ENUMS$RESULT_TYPE = ENUMS.RESULT_TYPE;
-var VIM_OBJECT = _ENUMS$RESULT_TYPE.VIM_OBJECT;
-var VIM_COLLECTION = _ENUMS$RESULT_TYPE.VIM_COLLECTION;
-var OBJECT = _ENUMS$RESULT_TYPE.OBJECT;
-var COLLECTION = _ENUMS$RESULT_TYPE.COLLECTION;
-var STRING = _ENUMS$RESULT_TYPE.STRING;
-var ARRAY = _ENUMS$RESULT_TYPE.ARRAY;
-var CookieSecurity = soap.Security.CookieSecurity;
-
-function query(q) {
-  var _this = this;
-
-  var limit = null,
-      offset = null,
-      id = null,
-      folder = null;
-
-  var val = Promise$1.resolve();
-  var idx = 0,
-      properties = [];
-  var _ref = [q._chain, q._chain.length, q._client, q._type],
-      chain = _ref[0],
-      len = _ref[1],
-      client = _ref[2],
-      type = _ref[3];
-
-  var resultType = type ? VIM_COLLECTION : null;
-  type = type ? client.typeResolver(type) : type;
-
-  // check for a new instantiation
-  if (!len) {
-    if (type) return client.retrieve({ type: type });
-    return Promise$1.reject(new Error('Invalid query chain'));
-  }
-
-  var _iteratorNormalCompletion = true;
-  var _didIteratorError = false;
-  var _iteratorError = undefined;
-
-  try {
-    var _loop = function _loop() {
-      var c = _step.value;
-
-      var isLast = idx === len - 1;
-      switch (c.method) {
-        case 'createDatacenter':
-          val = val.then(function () {
-            return client.create({
-              type: 'datacenter',
-              folder: folder,
-              name: c.name
-            });
-          });
-          break;
-
-        case 'folder':
-          folder = c.id;
-          break;
-
-        case 'get':
-          if (!type) return {
-              v: Promise$1.reject(new Error('no type specified'))
-            };
-          id = c.id;
-          resultType = VIM_OBJECT;
-          if (isLast) return {
-              v: get(client, type, id, limit, offset, properties)
-            };
-          break;
-
-        case 'getAll':
-          if (!type) return {
-              v: Promise$1.reject(new Error('no type specified'))
-            };
-          resultType = VIM_COLLECTION;
-          break;
-
-        case 'limit':
-          limit = c.limit;
-          break;
-
-        case 'logout':
-          return {
-            v: client.logout()
-          };
-
-        case 'nth':
-          var handleNth = function handleNth(result) {
-            if (!_.isArray(result)) throw new Error('cannot get nth on non-array');
-            if (result.length - 1 < c.nth) {
-              if (c.default === undefined) throw new Error('invalid index');
-              return c.default;
-            }
-            return result[c.nth];
-          };
-
-          switch (resultType) {
-            case VIM_COLLECTION:
-              val = get(client, type, id, properties, limit, offset, false).then(handleNth);
-              resultType = OBJECT;
-              break;
-            case COLLECTION:
-              val = val.then(handleNth);
-              resultType = OBJECT;
-              break;
-            case ARRAY:
-              val = val.then(handleNth);
-              resultType = OBJECT;
-              break;
-            default:
-              return {
-                v: Promise$1.reject(new Error('cannot get nth on non list types'))
-              };
-          }
-          break;
-
-        case 'offset':
-          offset = c.offset;
-          break;
-
-        case 'pluck':
-          properties = buildPropList(c.args);
-          if (!properties.length) return {
-              v: Promise$1.reject(new Error('no properties specified'))
-            };
-          if (resultType === VIM_COLLECTION || resultType === VIM_OBJECT) {
-            val = get(client, type, id, properties, limit, offset, false);
-            resultType = resultType === VIM_COLLECTION ? COLLECTION : OBJECT;
-          } else if (resultType === COLLECTION || resultType === OBJECT) {
-            if (!(val instanceof Promise$1)) return {
-                v: Promise$1.reject(new Error('no selection found'))
-              };
-            val = val.then(function (v) {
-              return pluck(v, properties);
-            });
-          }
-          break;
-
-        case 'retrieve':
-          val = client.retrieve(c.args, { maxObjects: limit });
-          resultType = VIM_COLLECTION;
-          break;
-
-        case 'session':
-          val = Promise$1.resolve(q._session);
-          resultType = STRING;
-          break;
-
-        case 'token':
-          if (c.token) client.setSecurity(CookieSecurity('vmware_soap_session="' + _this._token + '"'));
-          val = Promise$1.resolve(q._token);
-          resultType = STRING;
-          break;
-
-        default:
-          break;
-      }
-      idx++;
-    };
-
-    for (var _iterator = chain[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      var _ret = _loop();
-
-      if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
-    }
-  } catch (err) {
-    _didIteratorError = true;
-    _iteratorError = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion && _iterator.return) {
-        _iterator.return();
-      }
-    } finally {
-      if (_didIteratorError) {
-        throw _iteratorError;
-      }
-    }
-  }
-
-  return val;
-}
-
-var v = function () {
-  function v(client) {
-    var value = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-    var chain = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
-    var prev = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
-    var type = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
-    classCallCheck(this, v);
-
-    this._client = client;
-    this._chain = chain;
-    this._prev = prev;
-    this._type = type;
-  }
-
-  // allow direct access to the client
-
-
-  createClass(v, [{
-    key: 'client',
-    value: function client() {
-      var _this = this;
-
-      var callback = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function () {
-        return false;
-      };
-
-      return this._client._connection.then(function () {
-        callback(null, _this._client);
-        return _this._client;
-      }, function (error) {
-        return callback;
-      });
-    }
-  }, {
-    key: 'createDatacenter',
-    value: function createDatacenter(name) {
-      if (!_.isString(name)) throw new Error('no name specified');
-      var method = 'createDatacenter';
-      this._chain.push({ method: method, prev: this._prev, name: name });
-      this._prev = method;
-      return this;
-    }
-  }, {
-    key: 'folder',
-    value: function folder(id) {
-      if (!_.isString(id)) throw new Error('no id specified');
-      var method = 'folder';
-      this._chain.push({ method: method, prev: this._prev, id: id });
-      this._prev = method;
-      return this;
-    }
-  }, {
-    key: 'get',
-    value: function get(id) {
-      if (!_.isString(id)) throw new Error('no id specified');
-      var method = 'get';
-      this._chain.push({ method: method, prev: this._prev, id: id });
-      this._prev = method;
-      return this;
-    }
-  }, {
-    key: 'getAll',
-    value: function getAll() {
-      var method = 'getAll';
-      this._chain.push({ method: method, prev: this._prev });
-      this._prev = method;
-      return this;
-    }
-  }, {
-    key: 'limit',
-    value: function limit(val) {
-      if (!_.isNumber(val)) throw new Error('limit must be an integer');
-      var method = 'limit';
-      this._chain.push({ method: method, prev: this._prev, limit: parseInt(val) });
-      this._prev = method;
-      return this;
-    }
-  }, {
-    key: 'logout',
-    value: function logout() {
-      var method = 'logout';
-      this._chain.push({ method: method, prev: this._prev });
-      this._prev = method;
-      return this;
-    }
-  }, {
-    key: 'nth',
-    value: function nth(idx, def) {
-      if (!_.isNumber(idx)) throw new Error('nth selection must be an integer');
-      var method = 'nth';
-      this._chain.push({ method: method, prev: this._prev, nth: parseInt(idx), default: def });
-      this._prev = method;
-      return this;
-    }
-  }, {
-    key: 'offset',
-    value: function offset(val) {
-      if (!_.isNumber(val)) throw new Error('offset must be an integer');
-      var method = 'offset';
-      this._chain.push({ method: method, prev: this._prev, offset: parseInt(val) });
-      this._prev = method;
-      return this;
-    }
-  }, {
-    key: 'pluck',
-    value: function pluck() {
-      var method = 'pluck';
-      var args = [].concat(Array.prototype.slice.call(arguments));
-      if (!this._type) throw new Error('a type must be selected first');
-      if (!args.length) throw new Error('pluck requires one or more fields');
-      this._chain.push({ method: method, prev: this._prev, args: args });
-      this._prev = method;
-      return this;
-    }
-  }, {
-    key: 'retrieve',
-    value: function retrieve(args) {
-      var method = 'retrieve';
-      this._chain.push({ method: method, prev: this._prev, args: args });
-      this._prev = method;
-      return this;
-    }
-  }, {
-    key: 'run',
-    value: function run() {
-      var _this2 = this;
-
-      return this._client._connection.then(function () {
-        _this2._token = _this2._client._token;
-        _this2._session = _this2._client._session;
-        return query(_this2);
-      });
-    }
-  }, {
-    key: 'session',
-    value: function session() {
-      var method = 'session';
-      this._chain.push({ method: method, prev: this._prev });
-      this._prev = method;
-      return this;
-    }
-  }, {
-    key: 'token',
-    value: function token(tkn) {
-      var method = 'token';
-      this._chain.push({ method: method, prev: this._prev, token: tkn });
-      this._prev = method;
-      return this;
-    }
-  }, {
-    key: 'type',
-    value: function type(name) {
-      if (!name) throw new Error('type method requires a type name');
-      return new v(this._client, null, [], null, name);
-    }
-  }]);
-  return v;
-}();
-
-function createCluster(args, options, callback) {
-  var _this = this;
-
-  return new Promise$1(function (resolve, reject) {
-    var folder = args.folder,
-        name = args.name,
-        spec = args.spec;
-
-    if (!name) return errorHandler(new Error('create datacenter requires name'), callback, reject);
-    folder = folder ? { type: 'Folder', value: folder } : _this.serviceContent.rootFolder;
-    spec = spec || {};
-    return _this.method('CreateClusterEx', { _this: folder, name: name, spec: spec }, function (err, result) {
-      if (err) return errorHandler(err, callback, reject);
-      return resultHandler(result, callback, resolve);
-    });
-  });
-}
-
-function createDatacenter(args, options, callback) {
-  var _this = this;
-
-  return new Promise$1(function (resolve, reject) {
-    var folder = args.folder,
-        name = args.name;
-
-    if (!name) return errorHandler(new Error('create datacenter requires name'), callback, reject);
-    folder = folder ? { type: 'Folder', value: folder } : _this.serviceContent.rootFolder;
-    return _this.method('CreateDatacenter', { _this: folder, name: name }, function (err, result) {
-      if (err) return errorHandler(err, callback, reject);
-      return resultHandler(result, callback, resolve);
-    });
-  });
-}
-
 var ONE_MINUTE_IN_MS = 60000;
 var ONE_SECOND_IN_MS = 1000;
 var FIRST_INTERVAL = 500;
 var ERROR = 'error';
 var SUCCESS = 'success';
 var TaskMonitor = function () {
-  function TaskMonitor(client, taskId) {
+  function TaskMonitor(client, taskId, options) {
     var _this = this;
 
-    var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-    var callback = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : function () {
-      return null;
-    };
     classCallCheck(this, TaskMonitor);
 
-    return new Promise$1(function (resolve, reject) {
-      var timeout = options.timeout,
-          interval = options.interval;
+    var _ref = _.isObject(options) ? options : {},
+        timeout = _ref.timeout,
+        interval = _ref.interval;
 
+    return new Promise$1(function (resolve, reject) {
       _this.start = Date.now();
       _this.client = client;
       _this.taskId = taskId;
-      _this.interval = _.isNumber(interval) && interval > ONE_SECOND_IN_MS ? parseInt(interval) : ONE_SECOND_IN_MS;
-      _this.timeout = _.isNumber(timeout) && timeout > _this.interval ? parseInt(timeout) : ONE_MINUTE_IN_MS;
-      _this.callback = callback;
+      _this.interval = _.isNumber(interval) && interval > ONE_SECOND_IN_MS ? Math.floor(interval) : ONE_SECOND_IN_MS;
+      _this.timeout = _.isNumber(timeout) && timeout > _this.interval ? Math.floor(timeout) : ONE_MINUTE_IN_MS;
       _this.resolve = resolve;
       _this.reject = reject;
       _this.monitor(FIRST_INTERVAL); // short first interval for quick tasks like rename
@@ -1388,380 +920,280 @@ var TaskMonitor = function () {
       var _this2 = this;
 
       setTimeout(function () {
-        return _this2.client.retrieve({
+        _this2.client.retrieve({
           type: 'Task',
           id: _this2.taskId,
           properties: ['info.state', 'info.error', 'info.result', 'info.startTime', 'info.completeTime', 'info.entity', 'info.description']
-        }, function (err, result) {
+        }).then(function (result) {
           var task = _.get(result, '[0]');
-          if (err) return errorHandler(err, _this2.callback, _this2.reject);
           var state = _.get(task, 'info.state');
-          if (!state) return errorHandler(new Error('task ' + _this2.taskId + ' was not found'), _this2.callback, _this2.reject);
+
+          if (!state) return _this2.reject(new Error('task ' + _this2.taskId + ' was not found'));
           _this2.client.emit('task.state', { id: _this2.taskId, state: state });
-          if (state === ERROR) {
-            var taskError = new Error({
-              task: _this2.taskId,
-              info: task
-            });
-            return errorHandler(taskError, _this2.callback, _this2.reject);
-          } else if (state === SUCCESS) {
-            return resultHandler(task, _this2.callback, _this2.resolve);
-          } else if (Date.now() - _this2.start >= _this2.timeout) {
-            var timeoutError = new Error({
-              task: _this2.taskId,
-              message: 'the task monitor timed out, the task may still complete successfully',
-              info: task
-            });
-            return errorHandler(timeoutError, _this2.callback, _this2.reject);
-          } else {
-            return _this2.monitor(_this2.interval);
+
+          switch (state) {
+            case ERROR:
+              return _this2.reject(new Error({ task: _this2.taskId, info: task }));
+            case SUCCESS:
+              return _this2.resolve(task);
+            default:
+              return Date.now() - _this2.start >= _this2.timeout ? _this2.reject(new Error('the task monitor timed out, the task may still complete successfully')) : _this2.monitor(_this2.interval);
           }
-        });
+        }, _this2.reject);
       }, interval);
     }
   }]);
   return TaskMonitor;
 }();
 
-function task (client, taskId, options, callback) {
-  return new TaskMonitor(client, taskId, options, callback);
-}
+var task = function (client, taskId, options) {
+  return new TaskMonitor(client, taskId, options);
+};
 
 var monitor = {
   task: task
 };
 
-function createDVSwitch(args, options, callback) {
+function createDVSwitch(args, options) {
   var _this = this;
 
-  return new Promise$1(function (resolve, reject) {
-    if (semver.lt(_this.apiVersion, '4.0')) {
-      return errorHandler(new Error('create dvSwitch requires api 4.0 or higher'), callback, reject);
-    }
-    var folder = args.folder,
-        datacenter = args.datacenter,
-        spec = args.spec;
+  var _ref = _.isObject(args) ? args : {},
+      folder = _ref.folder,
+      datacenter = _ref.datacenter,
+      spec = _ref.spec;
 
-    if (!spec) return errorHandler(new Error('create dvSwitch requires a spec'), callback, reject);
+  options = _.isObject(options) ? options : {};
 
-    if (folder) {
-      folder = Promise$1.resolve({ type: 'Folder', value: folder });
-    } else if (datacenter) {
-      folder = _this.retrieve({
-        type: 'Datacenter',
-        id: datacenter,
-        properties: ['networkFolder']
-      }).then(function (dc) {
-        return _.get(dc, 'networkFolder');
-      }).catch(function (err) {
-        return errorHandler(err, callback, reject);
-      });
-    } else {
-      return errorHandler(new Error('datacenter or folder required to create dvSwitch'), callback, reject);
-    }
+  if (semver.lt(this.apiVersion, '4.0')) return Promise$1.reject(new Error('create dvSwitch requires api 4.0 or higher'));
+  if (!spec) return Promise$1.reject(new Error('create dvSwitch requires a spec'));
 
-    return folder.then(function (folderRef) {
-      return _this.method('CreateDVS_Task', { _this: folderRef, spec: spec }, function (err, result) {
-        if (err) return errorHandler(err, callback, reject);
-        if (options.async === false) {
-          return monitor.task(_this, _.get(result, 'value'), options, function (err, result) {
-            if (err) return errorHandler(err, callback, reject);
-            return resultHandler(result, callback, resolve);
-          });
-        }
-        return resultHandler(result, callback, resolve);
-      });
+  if (folder) {
+    folder = Promise$1.resolve({ type: 'Folder', value: folder });
+  } else if (datacenter) {
+    folder = this.retrieve({
+      type: 'Datacenter',
+      id: datacenter,
+      properties: ['networkFolder']
+    }).then(function (dc) {
+      return _.get(dc, 'networkFolder');
     });
-  });
-}
-
-function createFolder(args, options, callback) {
-  var _this = this;
-
-  return new Promise$1(function (resolve, reject) {
-    var folder = args.folder,
-        name = args.name;
-
-    if (!name) return errorHandler(new Error('create folder requires name'), callback, reject);
-    folder = folder ? { type: 'Folder', value: folder } : _this.serviceContent.rootFolder;
-    return _this.method('CreateFolder', { _this: folder, name: name }, function (err, result) {
-      if (err) return errorHandler(err, callback, reject);
-      return resultHandler(result, callback, resolve);
-    });
-  });
-}
-
-function createStoreCluster(args, options, callback) {
-  var _this = this;
-
-  return new Promise$1(function (resolve, reject) {
-    if (semver.lt(_this.apiVersion, '5.0')) {
-      return errorHandler(new Error('create datastore cluster requires api 5.0 or higher'), callback, reject);
-    }
-    var folder = args.folder,
-        name = args.name;
-
-    if (!name) return errorHandler(new Error('create folder requires name'), callback, reject);
-    folder = folder ? { type: 'Folder', value: folder } : _this.serviceContent.rootFolder;
-    return _this.method('CreateStoragePod', { _this: folder, name: name }, function (err, result) {
-      if (err) return errorHandler(err, callback, reject);
-      return resultHandler(result, callback, resolve);
-    });
-  });
-}
-
-function createVM(args, options, callback) {
-  var _this = this;
-
-  return new Promise$1(function (resolve, reject) {
-    var folder = args.folder,
-        datacenter = args.datacenter,
-        config = args.config,
-        pool = args.pool,
-        host = args.host;
-
-    if (!config) return errorHandler(new Error('create vm requires a config'), callback, reject);
-
-    if (folder) {
-      folder = Promise$1.resolve({ type: 'Folder', value: folder });
-    } else if (datacenter) {
-      folder = _this.retrieve({
-        type: 'Datacenter',
-        id: datacenter,
-        properties: ['vmFolder']
-      }).then(function (dc) {
-        return _.get(dc, 'vmFolder');
-      }).catch(function (err) {
-        return errorHandler(err, callback, reject);
-      });
-    } else {
-      return errorHandler(new Error('datacenter or folder required to create vm'), callback, reject);
-    }
-
-    return folder.then(function (folderRef) {
-      return _this.method('CreateVM_Task', { _this: folderRef, config: config, pool: pool, host: host }, function (err, result) {
-        if (err) return errorHandler(err, callback, reject);
-        if (options.async === false) {
-          return monitor.task(_this, _.get(result, 'value'), options, function (err, result) {
-            if (err) return errorHandler(err, callback, reject);
-            return resultHandler(result, callback, resolve);
-          });
-        }
-        return resultHandler(result, callback, resolve);
-      });
-    });
-  });
-}
-
-function create() {
-  var args = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  var options = arguments[1];
-  var callback = arguments[2];
-
-  if (_.isFunction(options)) {
-    callback = options;
-    options = {};
+  } else {
+    return Promise$1.reject(new Error('datacenter or folder required to create dvSwitch'));
   }
-  callback = _.isFunction(callback) ? callback : function () {
-    return false;
-  };
-  options = options || {};
-  var type = args.type || _.get(args, 'moRef.type');
+
+  return folder.then(function (folderRef) {
+    return _this.method('CreateDVS_Task', { _this: folderRef, spec: spec }).then(function (task$$1) {
+      return options.async !== false ? task$$1 : monitor.task(_this, _.get(task$$1, 'value'), options);
+    });
+  });
+}
+
+function createFolder(args, options) {
+  var _ref = _.isObject(args) ? args : {},
+      folder = _ref.folder,
+      name = _ref.name;
+
+  var _this = folder ? { type: 'Folder', value: folder } : this.serviceContent.rootFolder;
+  options = _.isObject(options) ? options : {};
+
+  if (!name) return Promise$1.reject(new Error('create folder requires name'));
+
+  return this.method('CreateFolder', { _this: _this, name: name });
+}
+
+function createStoreCluster(args, options) {
+  var _ref = _.isObject(args) ? args : {},
+      folder = _ref.folder,
+      name = _ref.name;
+
+  var _this = folder ? { type: 'Folder', value: folder } : this.serviceContent.rootFolder;
+  options = _.isObject(options) ? options : {};
+
+  if (!name) return Promise$1.reject(new Error('create folder requires name'));
+  if (semver.lt(this.apiVersion, '5.0')) return Promise$1.reject(new Error('storecluster requires api 5.0 or higher'));
+
+  return this.method('CreateStoragePod', { _this: _this, name: name });
+}
+
+function createVM(args, options) {
+  var _this = this;
+
+  var _ref = _.isObject(args) ? args : {},
+      folder = _ref.folder,
+      datacenter = _ref.datacenter,
+      config = _ref.config,
+      pool = _ref.pool,
+      host = _ref.host;
+
+  if (!config) return Promise$1.reject(new Error('create vm requires a config'));
+
+  if (folder) {
+    folder = Promise$1.resolve({ type: 'Folder', value: folder });
+  } else if (datacenter) {
+    folder = this.retrieve({
+      type: 'Datacenter',
+      id: datacenter,
+      properties: ['vmFolder']
+    }).then(function (dc) {
+      return _.get(dc, 'vmFolder');
+    });
+  } else {
+    return Promise$1.reject(new Error('datacenter or folder required to create vm'));
+  }
+
+  return folder.then(function (folderRef) {
+    return _this.method('CreateVM_Task', { _this: folderRef, config: config, pool: pool, host: host }).then(function (task$$1) {
+      return options.async !== false ? task$$1 : monitor.task(_this, _.get(task$$1, 'value'), options);
+    });
+  });
+}
+
+function create(args, options) {
+  var type = _.get(args, 'type') || _.get(args, 'moRef.type');
+
   switch (this.typeResolver(type)) {
     case 'ClusterComputeResource':
-      return createCluster.call(this, args, options, callback);
+      return createCluster.call(this, args, options);
+
     case 'Datacenter':
-      return createDatacenter.call(this, args, options, callback);
+      return createDatacenter.call(this, args, options);
+
     case 'DistributedVirtualSwitch':
-      return createDVSwitch.call(this, args, options, callback);
+      return createDVSwitch.call(this, args, options);
+
     case 'Folder':
-      return createFolder.call(this, args, options, callback);
+      return createFolder.call(this, args, options);
+
     case 'StoragePod':
-      return createStoreCluster.call(this, args, options, callback);
+      return createStoreCluster.call(this, args, options);
+
     case 'VirtualMachine':
-      return createVM.call(this, args, options, callback);
+      return createVM.call(this, args, options);
+
     default:
-      var err = new Error('invalid type "' + type + '" specified during create');
-      callback(err);
-      return Promise$1.reject(err);
+      return Promise$1.reject(new Error('invalid type "' + type + '" specified during create'));
   }
 }
 
 function destroy() {
-  var args = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
   var _this = this;
 
+  var args = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
   var options = arguments[1];
-  var callback = arguments[2];
 
-  if (_.isFunction(options)) {
-    callback = options;
-    options = {};
-  }
-  callback = _.isFunction(callback) ? callback : function () {
-    return null;
-  };
-  options = options || {};
+  options = _.isObject(options) ? options : {};
+  var type = args.type,
+      id = args.id,
+      moRef = args.moRef;
 
-  return new Promise$1(function (resolve, reject) {
-    var type = args.type,
-        id = args.id,
-        moRef = args.moRef;
+  var typeName = this.typeResolver(type);
+  var obj = moRef || { type: typeName, value: id };
 
-    var typeName = _this.typeResolver(type);
-    var obj = moRef || { type: typeName, value: id };
-    if (!moRef && !type && !id) return errorHandler(new Error('no object specified to destroy'), callback, reject);
-    return _this.method('Destroy_Task', { _this: obj }, function (err, result) {
-      if (err) return errorHandler(err, callback, reject);
-      if (options.async === false) {
-        return monitor.task(_this, _.get(result, 'value'), options, function (err, result) {
-          if (err) return errorHandler(err, callback, reject);
-          return resultHandler(result, callback, resolve);
-        });
-      }
-      return resultHandler(result, callback, resolve);
-    });
+  if (!moRef && !type && !id) return Promise$1.reject(new Error('no object specified to destroy'));
+
+  return this.method('Destroy_Task', { _this: obj }).then(function (task$$1) {
+    return options.async !== false ? task$$1 : monitor.task(_this, _.get(task$$1, 'value'), options);
   });
 }
 
-var CookieSecurity$1 = soap.Security.CookieSecurity;
+var CookieSecurity = soap.Security.CookieSecurity;
 
 function getToken(headers) {
   return _.get(_.get(headers, 'set-cookie[0]', '').match(/"(.*)"/), '[1]', null);
 }
 
-function login() {
+function login(args) {
   var _this = this;
 
-  var args = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  var callback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function () {
-    return false;
-  };
-  var username = args.username,
-      password = args.password,
-      token = args.token;
+  var _ref = _.isObject(args) ? args : {},
+      username = _ref.username,
+      password = _ref.password,
+      token = _ref.token;
 
   var isHostAgent = _.get(this, 'serviceContent.about.apiType') === 'HostAgent';
-  return new Promise$1(function (resolve, reject) {
-    try {
-      if (token) {
-        if (isHostAgent) throw new Error('token/cookie authentication is not supposted when connecting to a host, ' + 'please use username/password');
-        _this._token = token;
-        _this.setSecurity(CookieSecurity$1('vmware_soap_session="' + _this._token + '"'));
-        return _this.retrieve({
-          type: 'SessionManager',
-          id: 'SessionManager',
-          properties: ['currentSession']
-        }, function (err, sessions) {
-          if (err) return errorHandler(err, callback, reject);
-          _this._session = _.get(sessions, '[0].currentSession');
-          return resultHandler(_this._session, callback, resolve);
-        });
-      } else if (username && password) {
-        return _this.method('Login', {
-          _this: _this.serviceContent.sessionManager,
-          userName: username,
-          password: password
-        }, function (err, session) {
-          if (err) throw err;
-          _this._soapClient.setSecurity(CookieSecurity$1(_this._soapClient.lastResponse.headers));
-          _this._token = getToken(_this._soapClient.lastResponse.headers);
-          _this._session = session;
-          return resultHandler(_this._session, callback, resolve);
-        });
-      }
-      throw new Error('No credentials provided. A username/password or sessionId must be provided to login');
-    } catch (err) {
-      return errorHandler(err, callback, reject);
+
+  // token auth
+  if (token) {
+    if (isHostAgent) {
+      return Promise$1.reject(new Error('token authentication is no supported on host, use username/password'));
     }
-  });
+    this._token = token;
+    this.setSecurity(CookieSecurity('vmware_soap_session="' + this._token + '"'));
+
+    return this.retrieve({
+      type: 'SessionManager',
+      id: 'SessionManager',
+      properties: ['currentSession']
+    }).then(function (sessions) {
+      _this._session = _.get(sessions, '[0].currentSession');
+      return _this._session;
+    });
+  }
+
+  // basic auth
+  else if (username && password) {
+      return this.method('Login', {
+        _this: this.serviceContent.sessionManager,
+        userName: username,
+        password: password
+      }).then(function (session) {
+        _this._soapClient.setSecurity(CookieSecurity(_this._soapClient.lastResponse.headers));
+        _this._token = getToken(_this._soapClient.lastResponse.headers);
+        _this._session = session;
+        return _this._session;
+      });
+    }
+
+  return Promise$1.reject('no credentials provided');
 }
 
 function logout() {
-  var _this = this;
-
-  var callback = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function () {
-    return false;
-  };
-
-  return new Promise$1(function (resolve, reject) {
-    return _this.method('Logout', { _this: _this.serviceContent.sessionManager }, function (err) {
-      return err ? errorHandler(err, callback, reject) : resultHandler({ logout: true }, callback, resolve);
-    });
+  return this.method('Logout', { _this: this.serviceContent.sessionManager }).then(function () {
+    return { logout: true };
   });
 }
 
-function method(name) {
-  var _this = this;
+function method(name, args) {
+  args = _.isObject(args) ? args : {};
+  var _method = _.get(this._VimPort, '["' + name + '"]');
 
-  var args = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-  var callback = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : function () {
-    return null;
-  };
-
-  return new Promise$1(function (resolve, reject) {
-    try {
-      var fn = _.get(_this._VimPort, '["' + name + '"]');
-      if (!_.isFunction(fn)) throw new InvalidMethodError(name);
-      fn(args, function (err, result) {
-        if (err) return errorHandler(err, callback, reject);
-        return resultHandler(_.get(result, 'returnval', result), callback, resolve);
-      });
-    } catch (err) {
-      return errorHandler(err, callback, reject);
-    }
-  });
+  return _.isFunction(_method) ? _method(args).then(function (result) {
+    return _.get(result, 'returnval', result);
+  }) : Promise$1.reject(new InvalidMethodError(name));
 }
 
-function getParent(type, id, parentType, root, resolve, reject, callback) {
+function getParent(type, id, parentType, root, resolve, reject) {
   var _this = this;
 
-  var match = arguments.length > 7 && arguments[7] !== undefined ? arguments[7] : null;
+  var match = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : null;
 
-  this.retrieve({
-    type: type,
-    id: id,
-    properties: ['parent']
-  }, function (err, result) {
-    if (err) return errorHandler(err, callback, reject);
-    var moRef = _.get(result, 'parent');
-    var hasParent = !_.isEmpty(moRef);
-    var atRoot = _.isEqual(_this.serviceContent.rootFolder, moRef);
+  this.retrieve({ type: type, id: id, properties: ['parent'] }).then(function (result) {
+    var moRef$$1 = _.get(result, 'parent');
+    var hasParent = !_.isEmpty(moRef$$1);
+    var atRoot = _.isEqual(_this.serviceContent.rootFolder, moRef$$1);
 
     if (!root) {
-      if (!parentType || parentType === moRef.type) return resultHandler(moRef, callback, resolve);
-      if (parentType && hasParent && parentType !== moRef.type) {
-        return getParent.call(_this, moRef.type, moRef.id, parentType, root, resolve, reject, callback, match);
+      if (!parentType || parentType === moRef$$1.type) return resolve(moRef$$1);
+      if (parentType && hasParent && parentType !== moRef$$1.type) {
+        return getParent.call(_this, moRef$$1.type, moRef$$1.id, parentType, root, resolve, reject, match);
       }
-      return resultHandler(match, callback, resolve);
+      return resolve(match);
     }
 
-    if (atRoot || !hasParent) return resultHandler(match, callback, resolve);
-    return getParent.call(_this, moRef.type, moRef.id, parentType, root, resolve, reject, callback, match);
-  });
+    if (atRoot || !hasParent) return resolve(match);
+    return getParent.call(_this, moRef$$1.type, moRef$$1.id, parentType, root, resolve, reject, match);
+  }, reject);
 }
 
-function parent() {
-  var args = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
+function parent(args, options) {
   var _this2 = this;
 
-  var options = arguments[1];
-  var callback = arguments[2];
-
-  if (_.isFunction(options)) {
-    callback = options;
-    options = {};
-  }
-  callback = _.isFunction(callback) ? callback : function () {
-    return null;
-  };
-  options = options || {};
-
   return new Promise$1(function (resolve, reject) {
-    var root = args.root,
-        parent = args.parent;
+    options = _.isObject(options) ? options : {};
+
+    var _ref = _.isObject(args) ? args : {},
+        root = _ref.root,
+        parent = _ref.parent;
 
     var _extractMoRef = extractMoRef(args),
         typeName = _extractMoRef.typeName,
@@ -1770,72 +1202,47 @@ function parent() {
 
     var parentType = parent ? _this2.typeResolver(parent) : null;
 
-    if (moRefError) return errorHandler(moRefError, callback, reject);
-    if (parent && !parentType) return errorHandler(new InvalidTypeError(parent), callback, reject);
+    if (moRefError) return reject(moRefError);
+    if (parent && !parentType) return reject(new InvalidTypeError(parent));
 
-    return getParent.call(_this2, typeName, id, parentType, root, resolve, reject, callback);
+    return getParent.call(_this2, typeName, id, parentType, root, resolve, reject);
   });
 }
 
-function reload() {
-  var _this = this;
+function reload(args) {
+  var _ref = _.isFunction(args) ? args : {},
+      type = _ref.type,
+      id = _ref.id,
+      moRef = _ref.moRef;
 
-  var args = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  var callback = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : function () {
-    return false;
-  };
+  var typeName = this.typeResolver(type);
+  var obj = moRef || { type: typeName, value: id };
 
-  return new Promise$1(function (resolve, reject) {
-    var type = args.type,
-        id = args.id,
-        moRef = args.moRef;
+  if (!moRef && !type && !id) return Promise$1.reject(new Error('no object specified to reload'));
 
-    var typeName = _this.typeResolver(type);
-    var obj = moRef || { type: typeName, value: id };
-    if (!moRef && !type && !id) return errorHandler(new Error('no object specified to reload'), callback, reject);
-    return _this.method('Reload', { _this: obj }, function (err) {
-      return err ? errorHandler(err, callback, reject) : resultHandler({ reload: true }, callback, resolve);
-    });
+  return this.method('Reload', { _this: obj }).then(function () {
+    return { reload: true };
   });
 }
 
-function rename() {
-  var args = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
+function rename(args, options) {
   var _this = this;
 
-  var options = arguments[1];
-  var callback = arguments[2];
+  var _ref = _.isObject(args) ? args : {},
+      type = _ref.type,
+      id = _ref.id,
+      moRef = _ref.moRef,
+      name = _ref.name;
 
-  if (_.isFunction(options)) {
-    callback = options;
-    options = {};
-  }
-  callback = _.isFunction(callback) ? callback : function () {
-    return null;
-  };
-  options = options || {};
+  var typeName = this.typeResolver(type);
+  var obj = moRef || { type: typeName, value: id };
+  options = _.isObject(options) ? options : {};
 
-  return new Promise$1(function (resolve, reject) {
-    var type = args.type,
-        id = args.id,
-        moRef = args.moRef,
-        name = args.name;
+  if (!moRef && !type && !id) return Promise$1.reject(new Error('no object specified'));
+  if (!_.isString(name)) return Promise$1.reject(new Error('invalid name'));
 
-    var typeName = _this.typeResolver(type);
-    var obj = moRef || { type: typeName, value: id };
-    if (!moRef && !type && !id) return errorHandler(new Error('no object specified to destroy'), callback, reject);
-    if (!_.isString(name)) return errorHandler(new Error('invalid name or name not specified'), callback, reject);
-    return _this.method('Rename_Task', { _this: obj, newName: name }, function (err, result) {
-      if (err) return errorHandler(err, callback, reject);
-      if (options.async === false) {
-        return monitor.task(_this, _.get(result, 'value'), options, function (err, result) {
-          if (err) return errorHandler(err, callback, reject);
-          return resultHandler(result, callback, resolve);
-        });
-      }
-      return resultHandler(result, callback, resolve);
-    });
+  return this.method('Rename_Task', { _this: obj, newName: name }).then(function (task$$1) {
+    return options.async !== false ? task$$1 : monitor.task(_this, _.get(task$$1, 'value'), options);
   });
 }
 
@@ -1851,7 +1258,7 @@ var TraversalSpec = function () {
 
   createClass(TraversalSpec, [{
     key: "spec",
-    get: function get() {
+    get: function get$$1() {
       return {
         // name: `${this.type}${Date.now()}`,
         type: this.type,
@@ -1863,9 +1270,9 @@ var TraversalSpec = function () {
   return TraversalSpec;
 }();
 
-function TraversalSpec$1 (obj) {
+var TraversalSpec$1 = function (obj) {
   return new TraversalSpec(obj);
-}
+};
 
 var SelectionSpec = function () {
   function SelectionSpec(obj) {
@@ -1876,7 +1283,7 @@ var SelectionSpec = function () {
 
   createClass(SelectionSpec, [{
     key: 'spec',
-    get: function get() {
+    get: function get$$1() {
       if (_.has(this.obj, 'listSpec.type') && _.has(this.obj, 'listSpec.path')) {
         return TraversalSpec$1(this.obj.listSpec).spec;
       }
@@ -1888,9 +1295,9 @@ var SelectionSpec = function () {
   return SelectionSpec;
 }();
 
-function SelectionSpec$1 (obj) {
+var SelectionSpec$1 = function (obj) {
   return new SelectionSpec(obj);
-}
+};
 
 var ObjectSpec = function () {
   function ObjectSpec(obj) {
@@ -1901,7 +1308,7 @@ var ObjectSpec = function () {
 
   createClass(ObjectSpec, [{
     key: 'spec',
-    get: function get() {
+    get: function get$$1() {
       var _this = this;
 
       if (!this.obj.id.length) {
@@ -1920,9 +1327,9 @@ var ObjectSpec = function () {
   return ObjectSpec;
 }();
 
-function ObjectSpec$1 (obj) {
+var ObjectSpec$1 = function (obj) {
   return new ObjectSpec(obj);
-}
+};
 
 var PropertySpec = function () {
   function PropertySpec(obj) {
@@ -1933,7 +1340,7 @@ var PropertySpec = function () {
 
   createClass(PropertySpec, [{
     key: "spec",
-    get: function get() {
+    get: function get$$1() {
       var hasProps = this.obj.properties.length > 0;
       return {
         all: !hasProps,
@@ -1945,9 +1352,9 @@ var PropertySpec = function () {
   return PropertySpec;
 }();
 
-function PropertySpec$1 (obj) {
+var PropertySpec$1 = function (obj) {
   return new PropertySpec(obj);
-}
+};
 
 var PropertyFilterSpec = function () {
   function PropertyFilterSpec(obj, client) {
@@ -1959,7 +1366,7 @@ var PropertyFilterSpec = function () {
 
   createClass(PropertyFilterSpec, [{
     key: 'spec',
-    get: function get() {
+    get: function get$$1() {
       var _this = this;
 
       var type = null,
@@ -2005,50 +1412,32 @@ var PropertyFilterSpec = function () {
   return PropertyFilterSpec;
 }();
 
-function PropertyFilterSpec$1 (obj, client) {
+var PropertyFilterSpec$1 = function (obj, client) {
   return new PropertyFilterSpec(obj, client);
-}
+};
 
-function getResults(result, objects, limit, offset, callback) {
-  if (!result) {
-    callback(null, objects);
-    return Promise$1.resolve(objects);
-  }
+function getResults(result, objects, limit, offset) {
+  var _this2 = this;
+
+  if (!result) return Promise$1.resolve(objects);
   var objs = _.union(objects, convertRetrievedProperties(result));
+  var _this = this.serviceContent.propertyCollector;
 
   if (result.token && (limit === undefined || objs.length < limit)) {
-    return this.method('ContinueRetrievePropertiesEx', {
-      _this: this.serviceContent.propertyCollector,
-      token: result.token
-    }).then(function (results) {
-      return getResults.call(this, results, objs, limit, offset, callback);
-    }).catch(function (err) {
-      callback(err);
-      return Promise$1.reject(err);
+    return this.method('ContinueRetrievePropertiesEx', { _this: _this, token: result.token }).then(function (results) {
+      return getResults.call(_this2, results, objs, limit, offset);
     });
-  } else {
-    var results = _.slice(objs, offset || 0, limit || objs.length);
-    callback(null, results);
-    return Promise$1.resolve(results);
   }
+
+  var results = _.slice(objs, offset || 0, limit || objs.length);
+  return Promise$1.resolve(results);
 }
 
-function retrieve() {
-  var args = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+function retrieve(args, options) {
+  var _this3 = this;
 
-  var _this = this;
-
-  var options = arguments[1];
-  var callback = arguments[2];
-
-  if (_.isFunction(options)) {
-    callback = options;
-    options = {};
-  }
-  callback = _.isFunction(callback) ? callback : function () {
-    return false;
-  };
-  options = options || {};
+  args = _.isObject(args) ? args : {};
+  options = _.isObject(options) ? options : {};
 
   var limit = options.limit;
   var offset = options.offset || 0;
@@ -2056,18 +1445,13 @@ function retrieve() {
 
   var retrieveMethod = this._VimPort.RetrievePropertiesEx ? 'RetrievePropertiesEx' : 'RetrieveProperties';
   var specMap = _.map(graphSpec(args), function (s) {
-    return PropertyFilterSpec$1(s, _this).spec;
+    return PropertyFilterSpec$1(s, _this3).spec;
   });
+  var _this = this.serviceContent.propertyCollector;
+
   return Promise$1.all(specMap).then(function (specSet) {
-    return _this.method(retrieveMethod, {
-      _this: _this.serviceContent.propertyCollector,
-      specSet: specSet,
-      options: {}
-    }).then(function (result) {
-      return getResults.call(_this, result, [], limit, offset, callback);
-    }).catch(function (err) {
-      callback(err);
-      return Promise$1.reject(err);
+    return _this3.method(retrieveMethod, { _this: _this, specSet: specSet, options: {} }).then(function (result) {
+      return getResults.call(_this3, result, [], limit, offset);
     });
   });
 }
@@ -2084,59 +1468,531 @@ var methods = {
   retrieve: retrieve
 };
 
+function get$1(client, type, id, properties, limit, offset, single) {
+  return client.retrieve({ type: type, id: id, properties: properties }, { limit: limit, offset: offset }).then(function (result) {
+    return single ? _.get(result, '[0]', null) : result;
+  });
+}
+
+var RESULT_TYPE = {
+  VIM_OBJECT: 'VIM_OBJECT',
+  VIM_COLLECTION: 'VIM_COLLECTION',
+  OBJECT: 'OBJECT',
+  COLLECTION: 'COLLECTION',
+  STRING: 'STRING',
+  NUMBER: 'NUMBER',
+  ARRAY: 'ARRAY'
+};
+
+var ENUMS = {
+  RESULT_TYPE: RESULT_TYPE
+};
+
+var _ENUMS$RESULT_TYPE = ENUMS.RESULT_TYPE;
+var VIM_OBJECT = _ENUMS$RESULT_TYPE.VIM_OBJECT;
+var VIM_COLLECTION = _ENUMS$RESULT_TYPE.VIM_COLLECTION;
+var OBJECT = _ENUMS$RESULT_TYPE.OBJECT;
+var COLLECTION = _ENUMS$RESULT_TYPE.COLLECTION;
+var STRING = _ENUMS$RESULT_TYPE.STRING;
+var ARRAY = _ENUMS$RESULT_TYPE.ARRAY;
+
+
+var CookieSecurity$1 = soap.Security.CookieSecurity;
+
+function query(q) {
+  var _this = this;
+
+  var limit = null,
+      offset = null,
+      id = null,
+      folder = null;
+
+  var val = Promise$1.resolve();
+  var idx = 0,
+      properties = [];
+  var _ref = [q._chain, q._chain.length, q._client, q._type],
+      chain = _ref[0],
+      len = _ref[1],
+      client = _ref[2],
+      type = _ref[3];
+
+  var resultType = type ? VIM_COLLECTION : null;
+  type = type ? client.typeResolver(type) : type;
+
+  // check for a new instantiation
+  if (!len) {
+    return type ? client.retrieve({ type: type }) : Promise$1.reject(new Error('Invalid query chain'));
+  }
+
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    var _loop = function _loop() {
+      var c = _step.value;
+
+      var isLast = idx === len - 1;
+      switch (c.method) {
+        case 'createDatacenter':
+          val = val.then(function () {
+            return client.create({
+              type: 'datacenter',
+              folder: folder,
+              name: c.name
+            });
+          });
+          break;
+
+        case 'folder':
+          folder = c.id;
+          break;
+
+        case 'get':
+          if (!type) return {
+              v: Promise$1.reject(new Error('no type specified'))
+            };
+          id = c.id;
+          resultType = VIM_OBJECT;
+          if (isLast) return {
+              v: get$1(client, type, id, limit, offset, properties)
+            };
+          break;
+
+        case 'getAll':
+          if (!type) return {
+              v: Promise$1.reject(new Error('no type specified'))
+            };
+          resultType = VIM_COLLECTION;
+          break;
+
+        case 'limit':
+          limit = c.limit;
+          break;
+
+        case 'logout':
+          return {
+            v: client.logout()
+          };
+
+        case 'nth':
+          var handleNth = function handleNth(result) {
+            if (!_.isArray(result)) throw new Error('cannot get nth on non-array');
+            if (result.length - 1 < c.nth) {
+              if (c.default === undefined) throw new Error('invalid index');
+              return c.default;
+            }
+            return result[c.nth];
+          };
+
+          switch (resultType) {
+            case VIM_COLLECTION:
+              val = get$1(client, type, id, properties, limit, offset, false).then(handleNth);
+              resultType = OBJECT;
+              break;
+            case COLLECTION:
+              val = val.then(handleNth);
+              resultType = OBJECT;
+              break;
+            case ARRAY:
+              val = val.then(handleNth);
+              resultType = OBJECT;
+              break;
+            default:
+              return {
+                v: Promise$1.reject(new Error('cannot get nth on non list types'))
+              };
+          }
+          break;
+
+        case 'offset':
+          offset = c.offset;
+          break;
+
+        case 'pluck':
+          properties = buildPropList(c.args);
+          if (!properties.length) return {
+              v: Promise$1.reject(new Error('no properties specified'))
+            };
+          if (resultType === VIM_COLLECTION || resultType === VIM_OBJECT) {
+            val = get$1(client, type, id, properties, limit, offset, false);
+            resultType = resultType === VIM_COLLECTION ? COLLECTION : OBJECT;
+          } else if (resultType === COLLECTION || resultType === OBJECT) {
+            if (!(val instanceof Promise$1)) return {
+                v: Promise$1.reject(new Error('no selection found'))
+              };
+            val = val.then(function (v) {
+              return pluck(v, properties);
+            });
+          }
+          break;
+
+        case 'retrieve':
+          val = client.retrieve(c.args, { maxObjects: limit });
+          resultType = VIM_COLLECTION;
+          break;
+
+        case 'session':
+          val = Promise$1.resolve(q._session);
+          resultType = STRING;
+          break;
+
+        case 'token':
+          if (c.token) client.setSecurity(CookieSecurity$1('vmware_soap_session="' + _this._token + '"'));
+          val = Promise$1.resolve(q._token);
+          resultType = STRING;
+          break;
+
+        default:
+          break;
+      }
+      idx++;
+    };
+
+    for (var _iterator = chain[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var _ret = _loop();
+
+      if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  return val;
+}
+
+/**
+ * Top level vsphere-connect namespace, used to build a request chain
+ * @example
+ * import VSphere from 'vsphere-connect'
+ *
+ * let v = VSphere('vsphere.mydomain.com', {
+ *   username: 'root',
+ *   password: 'password',
+ *   ignoreSSL: true
+ * })
+ *
+ * v.type('cluster')
+ *   .pluck('name')
+ *   .run()
+ *   .then(clusters => {
+ *     console.log(clusters)
+ *     return v.logout().run()
+ *   })
+ */
+
+var v = function () {
+  function v(client) {
+    var value = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+    var chain = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
+    var prev = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+    var type = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
+    classCallCheck(this, v);
+
+    this._client = client;
+    this._chain = chain;
+    this._prev = prev;
+    this._type = type;
+  }
+
+  /**
+   * Resolves a vSphere Connect client instance
+   * @returns {Promise.<VSphereConnectClient>}
+   */
+
+
+  createClass(v, [{
+    key: 'client',
+    value: function client() {
+      var _this = this;
+
+      return this._client._connection.then(function () {
+        return _this._client;
+      });
+    }
+
+    /**
+     * Creates a new datacenter
+     * @param {String} name - datacenter name
+     * @returns {v}
+     */
+
+  }, {
+    key: 'createDatacenter',
+    value: function createDatacenter(name) {
+      if (!_.isString(name)) throw new Error('no name specified');
+      var method = 'createDatacenter';
+      this._chain.push({ method: method, prev: this._prev, name: name });
+      this._prev = method;
+      return this;
+    }
+
+    /**
+     * Selects a folder
+     * @param {String} id - folder id
+     * @returns {v}
+     */
+
+  }, {
+    key: 'folder',
+    value: function folder(id) {
+      if (!_.isString(id)) throw new Error('no id specified');
+      var method = 'folder';
+      this._chain.push({ method: method, prev: this._prev, id: id });
+      this._prev = method;
+      return this;
+    }
+
+    /**
+     * Get the current selected type by id. A call to the type method must precede a call to this method
+     * @param {String} id - type id
+     * @returns {v}
+     */
+
+  }, {
+    key: 'get',
+    value: function get$$1(id) {
+      if (!_.isString(id)) throw new Error('no id specified');
+      var method = 'get';
+      this._chain.push({ method: method, prev: this._prev, id: id });
+      this._prev = method;
+      return this;
+    }
+
+    /**
+     * Get all objects of the current selected type. A call to the type method must precede a call to this method
+     * @returns {v}
+     */
+
+  }, {
+    key: 'getAll',
+    value: function getAll() {
+      var method = 'getAll';
+      this._chain.push({ method: method, prev: this._prev });
+      this._prev = method;
+      return this;
+    }
+
+    /**
+     * Limit the number of results returned
+     * @param {Number} count - The maximum number of results to return
+     * @returns {v}
+     */
+
+  }, {
+    key: 'limit',
+    value: function limit(count) {
+      if (!_.isNumber(count)) throw new Error('limit must be an integer');
+      var method = 'limit';
+      this._chain.push({ method: method, prev: this._prev, limit: Math.floor(count) });
+      this._prev = method;
+      return this;
+    }
+
+    /**
+     * Log out of the current session
+     * @returns {v}
+     */
+
+  }, {
+    key: 'logout',
+    value: function logout() {
+      var method = 'logout';
+      this._chain.push({ method: method, prev: this._prev });
+      this._prev = method;
+      return this;
+    }
+
+    /**
+     * Select a specific result by index
+     * @param {Number} index - Result to select
+     * @returns {v}
+     */
+
+  }, {
+    key: 'nth',
+    value: function nth(index) {
+      if (!_.isNumber(index)) throw new Error('nth selection must be an integer');
+      var method = 'nth';
+      this._chain.push({ method: method, prev: this._prev, nth: Math.floor(index) });
+      this._prev = method;
+      return this;
+    }
+
+    /**
+     * Select results starting at a specific index
+     * @param {Number} index - Index to start selection from
+     * @returns {v}
+     */
+
+  }, {
+    key: 'offset',
+    value: function offset(index) {
+      if (!_.isNumber(index)) throw new Error('offset must be an integer');
+      var method = 'offset';
+      this._chain.push({ method: method, prev: this._prev, offset: Math.floor(index) });
+      this._prev = method;
+      return this;
+    }
+
+    /**
+     * Plucks out one or more attributes from the result set
+     * @param {...String} property
+     * @returns {v}
+     */
+
+  }, {
+    key: 'pluck',
+    value: function pluck() {
+      var method = 'pluck';
+      var args = [].concat(Array.prototype.slice.call(arguments));
+      if (!this._type) throw new Error('a type must be selected first');
+      if (!args.length) throw new Error('pluck requires one or more fields');
+      this._chain.push({ method: method, prev: this._prev, args: args });
+      this._prev = method;
+      return this;
+    }
+
+    /**
+     * Retrieves results based on the query document
+     * @param {QueryDocument} queryDocument
+     * @returns {v}
+     */
+
+  }, {
+    key: 'retrieve',
+    value: function retrieve(queryDocument) {
+      var method = 'retrieve';
+      this._chain.push({ method: method, prev: this._prev, args: queryDocument });
+      this._prev = method;
+      return this;
+    }
+
+    /**
+     * Runs the current request chain
+     * @returns {Promise.<*>}
+     */
+
+  }, {
+    key: 'run',
+    value: function run() {
+      var _this2 = this;
+
+      return this._client._connection.then(function () {
+        _this2._token = _this2._client._token;
+        _this2._session = _this2._client._session;
+        return query(_this2);
+      });
+    }
+
+    /**
+     * Gets the current session object
+     * @returns {v}
+     */
+
+  }, {
+    key: 'session',
+    value: function session() {
+      var method = 'session';
+      this._chain.push({ method: method, prev: this._prev });
+      this._prev = method;
+      return this;
+    }
+
+    /**
+     * Gets the current session token
+     * @returns {v}
+     */
+    /**
+     * Sets the current session token
+     * @param {String} token
+     * @returns {v}
+     */
+
+  }, {
+    key: 'token',
+    value: function token(_token) {
+      var method = 'token';
+      this._chain.push({ method: method, prev: this._prev, token: _token });
+      this._prev = method;
+      return this;
+    }
+
+    /**
+     * Sets the managed object type in the current request chain
+     * @param name
+     * @returns {v}
+     */
+
+  }, {
+    key: 'type',
+    value: function type(name) {
+      if (!name) throw new Error('type method requires a type name');
+      return new v(this._client, null, [], null, name);
+    }
+  }]);
+  return v;
+}();
+
+/**
+ * @module vsphere-connect
+ * @description Build complex vSphere API requests
+ * @author Branden Horiuchi <bhoriuchi@gmail.com>
+ */
 var VSphereClient = function (_EventEmitter) {
   inherits(VSphereClient, _EventEmitter);
 
-  function VSphereClient(host) {
+  function VSphereClient(host, options) {
     var _ret;
 
-    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
     classCallCheck(this, VSphereClient);
 
     var _this = possibleConstructorReturn(this, (VSphereClient.__proto__ || Object.getPrototypeOf(VSphereClient)).call(this));
 
     if (!host) throw new Error('No host specified');
     _this._host = host;
-    _this._options = options;
+    _this._options = _.isObject(options) ? options : {};
     _this._options.cacheKey = _this._options.cacheKey || cacheKey;
     _this._endpoint = 'https://' + _this._host + '/sdk/vimService';
     _this._wsdl = _this._endpoint + '.wsdl';
-    var soapEvents = _this._options.soapEvents = _this._options.soapEvents || {};
+    var soapEvents = _.isObject(_this._options.soapEvents) ? _this._options.soapEvents : {};
 
     if (_this._options.ignoreSSL) process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-    _this._connection = new Promise$1(function (resolve, reject) {
-      return soap.createClient(_this._wsdl, _this._options, function (err, client) {
-        if (err) return reject(err);
-        if (_.isFunction(soapEvents.request)) client.on('soap.request', soapEvents.request);
-        if (_.isFunction(soapEvents.response)) client.on('soap.response', soapEvents.response);
-        if (_.isFunction(soapEvents.error)) client.on('soap.error', soapEvents.error);
-        if (_.isFunction(soapEvents.fault)) client.on('soap.fault', soapEvents.fault);
+    _this._connection = soap.createClient(_this._wsdl, _this._options).then(function (client) {
+      if (_.isFunction(soapEvents.request)) client.on('soap.request', soapEvents.request);
+      if (_.isFunction(soapEvents.response)) client.on('soap.response', soapEvents.response);
+      if (_.isFunction(soapEvents.error)) client.on('soap.error', soapEvents.error);
+      if (_.isFunction(soapEvents.fault)) client.on('soap.fault', soapEvents.fault);
 
-        _this._soapClient = client;
-        _this._VimPort = _.get(client, 'services.VimService.VimPort');
+      _this._soapClient = client;
+      _this._VimPort = _.get(client, 'services.VimService.VimPort');
 
-        // retrieve service content
-        return _this._VimPort.RetrieveServiceContent({
-          _this: {
-            type: 'ServiceInstance',
-            value: 'ServiceInstance'
-          }
-        }, function (err, result) {
-          if (err) return reject(err);
-          _this.serviceContent = _.get(result, 'returnval');
-          _this.apiVersion = _.get(_this.serviceContent, 'about.apiVersion');
-          _this.typeResolver = typeResolver(_this.apiVersion);
-          _.forEach(methods, function (fn, name) {
-            _this[name] = fn.bind(_this);
-          });
-
-          if (options.login !== false) {
-            return _this.login(_this._options).then(resolve).catch(reject);
-          }
-          return resolve();
-        });
+      return _this._VimPort.RetrieveServiceContent({
+        _this: {
+          type: 'ServiceInstance',
+          value: 'ServiceInstance'
+        }
       });
+    }).then(function (result) {
+      _this.serviceContent = _.get(result, 'returnval');
+      _this.apiVersion = _.get(_this.serviceContent, 'about.apiVersion');
+      _this.typeResolver = typeResolver(_this.apiVersion);
+      _.forEach(methods, function (fn, name) {
+        _this[name] = fn.bind(_this);
+      });
+      if (options.login !== false) return _this.login(_this._options);
     });
 
     return _ret = new v(_this), possibleConstructorReturn(_this, _ret);
@@ -2151,16 +2007,21 @@ var VSphereClient = function (_EventEmitter) {
   return VSphereClient;
 }(EventEmitter);
 
-// convenience method to create a new client
-function client(host) {
-  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
+/**
+ * Creates a new v instance
+ * @param {String} host - vsphere host
+ * @param {Object} options
+ * @param {String|Function} options.cacheKey
+ * @param {Boolean} [options.ignoreSSL=false]
+ * @returns {v}
+ */
+function client$1(host, options) {
   return new VSphereClient(host, options);
 }
 
 // add utility functions
-client.Cache = soap.Cache;
-client.Utils = Utils;
-client.Errors = Errors;
+client$1.Cache = soap.Cache;
+client$1.Utils = Utils;
+client$1.Errors = Errors;
 
-module.exports = client;
+module.exports = client$1;

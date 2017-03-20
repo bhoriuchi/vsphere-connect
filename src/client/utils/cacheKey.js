@@ -2,6 +2,7 @@
  * cacheKey function to allow re-use of cache on same api version and type
  */
 import _ from 'lodash'
+const REQUEST_TIMEOUT = 2000
 
 const SI_XML = `<?xml version="1.0"?>
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">
@@ -16,7 +17,8 @@ export default function cacheKey (tools, wsdl, done) {
   let { request, xmldom } = tools
   let url = wsdl.replace(/.wsdl.*$/, '')
   let headers = { 'Content-Type': 'text/xml', 'Content-Length': SI_XML.length }
-  request.post({ headers, url, body: SI_XML }, (err, res, body) => {
+
+  request.post({ headers, url, body: SI_XML, timeout: REQUEST_TIMEOUT }, (err, res, body) => {
     try {
       if (err) return done(err)
       let doc = new xmldom.DOMParser().parseFromString(body)

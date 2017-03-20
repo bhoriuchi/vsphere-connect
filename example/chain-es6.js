@@ -1,11 +1,13 @@
 import chalk from 'chalk'
-import VSphere from '../index'
-import cred from '../../credentials'
+import VSphere from '../src/index'
+import cred from '../credentials'
 let { host, username, password } = cred
 import _ from 'lodash'
 
 let token = 'ac4e64f679aed6e4d63d937825ee4d3f7f330cc7'
 let st = Date.now()
+
+// setTimeout(process.exit, 2000)
 
 // let v = VSphere(host, { token, ignoreSSL: true })
 let v = VSphere(host, {
@@ -21,7 +23,7 @@ let v = VSphere(host, {
 
 // console.log(v)
 
-// v.token().run().then((res) => {
+v.token().run().then(console.log, console.error)
 /*
 v.retrieve({
   properties: ['name', 'summary'],
@@ -39,7 +41,6 @@ v.type('cluster').pluck('name', 'parent')
   })
   .catch(console.error)
 */
-
 // factor out login and client setup time and get strictly query time
 /*
 setTimeout(() => {
@@ -55,6 +56,7 @@ setTimeout(() => {
 }, 2000)
 */
 
+/*
 v.createDatacenter('mydc100')
   .run()
   .then((res) => {
@@ -63,3 +65,4 @@ v.createDatacenter('mydc100')
     return v.logout()
   })
   .catch(console.error)
+  */

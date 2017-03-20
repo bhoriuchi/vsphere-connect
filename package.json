@@ -46,9 +46,11 @@
     "vinyl-fs": "^2.4.4"
   },
   "scripts": {
-    "test": "echo \\\"Error: no test specified\\\" && exit 1",
+    "test": "npm run build && mocha test/index.js",
+    "copy:soap": "cp ../soap-connect/*.js node_modules/soap-connect/",
     "build:copybrc": "cp build/.build.babelrc src/.babelrc",
     "build:rmbrc": "rm -f src/.babelrc",
+    "build:docs": "node build/documentation.build.js",
     "build": "npm run build:copybrc && rollup -c build/rollup.config.js && npm run build:rmbrc"
   },
   "directories": {
