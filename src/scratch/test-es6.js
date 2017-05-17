@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import VSphere from '../index'
 import cred from '../../credentials'
 let { host, username, password } = cred
@@ -11,14 +12,22 @@ let v = VSphere(host, {
 let vmr = v.type('vm').pluck({
   name: true,
   summary: {
-    overallStatus: true
+    overallStatus: true,
+    config: {
+      name: true,
+      template: true
+    }
   }
 }).map(result => {
-  return result.name
+  return _.omit(result, ['name'])
+}).pluck({
+  summary: {
+    overallStatus: true
+  }
 })
 
 vmr.then(vms => {
-  console.log({vms})
+  console.log(JSON.stringify(vms, null, '  '))
   // return vmr.pluck('name')
 })
   /*

@@ -63,6 +63,7 @@ export default class v {
         case ops.RETRIEVE:
           req.operation = ops.MAP
           return Promise.map(this._client.retrieve(req.args, req.options), iteratee)
+
         default:
           return Promise.map(value, iteratee)
       }
@@ -102,8 +103,16 @@ export default class v {
     return processTerm.call(this, (value, req) => {
       let currentProps = _.get(req, 'args.properties', propList)
       let useProps = _.intersection(propList, currentProps)
-      _.set(req, 'args.properties', useProps.length ? useProps : propList)
-      return value
+      useProps = useProps.length ? useProps : propList
+
+      switch (req.operation) {
+        case ops.RETRIEVE:
+          _.set(req, 'args.properties', useProps)
+          return value
+
+        default:
+          return pluck(value, useProps)
+      }
     })
   }
 
