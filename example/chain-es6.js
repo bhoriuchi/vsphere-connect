@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import VSphere from '../src/index'
+import VSphere from '../srcOld/index'
 import cred from '../credentials'
 let { host, username, password } = cred
 import _ from 'lodash'
