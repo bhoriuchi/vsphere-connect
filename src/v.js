@@ -1,4 +1,5 @@
 import _ from 'lodash'
+import Promise from 'bluebird'
 import { OPERATIONS as ops } from './common/contants'
 import buildPropList from './common/buildPropList'
 import pluck from './common/pluck'
@@ -48,6 +49,24 @@ export default class v {
    */
   logout () {
     return this._request.term.then(this._client.logout())
+  }
+
+  /**
+   *
+   * @param iteratee
+   * @return {*}
+   */
+  map (iteratee) {
+    iteratee = _.isFunction(iteratee) ? iteratee : _.identity
+    return processTerm.call(this, (value, req) => {
+      switch (req.operation) {
+        case ops.RETRIEVE:
+          req.operation = ops.MAP
+          return Promise.map(this._client.retrieve(req.args, req.options), iteratee)
+        default:
+          return Promise.map(value, iteratee)
+      }
+    })
   }
 
   /**

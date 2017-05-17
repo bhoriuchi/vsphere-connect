@@ -13,8 +13,8 @@ let vmr = v.type('vm').pluck({
   summary: {
     overallStatus: true
   }
-}).orderBy({
-  name: 1
+}).map(result => {
+  return result.name
 })
 
 vmr.then(vms => {

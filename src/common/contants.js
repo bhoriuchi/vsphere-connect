@@ -2,5 +2,6 @@ export const OPERATIONS = {
   RETRIEVE: 'RETRIEVE',
   LOGOUT: 'LOGOUT',
   TYPE: 'TYPE',
-  PLUCK: 'PLUCK'
+  PLUCK: 'PLUCK',
+  MAP: 'MAP'
 }
