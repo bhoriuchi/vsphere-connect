@@ -9,22 +9,43 @@ let v = VSphere(host, {
   ignoreSSL: true
 })
 
+/*
 let vmr = v.type('vm').pluck({
   name: true,
-  summary: {
-    overallStatus: true,
-    config: {
-      name: true,
-      template: true
-    }
-  }
-}).map(result => {
-  return _.omit(result, ['name'])
-}).pluck({
-  summary: {
-    overallStatus: true
-  }
+  id: true
 })
+  .getAll('vm-15', 'vm-16')
+  .do(results => {
+    console.log('results are in', { results })
+    return { stuff: true }
+  })
+*/
+/*
+let vmr = v.do(
+  v.type('vm').pluck('name').get('vm-15'),
+  v.type('vm').pluck('name').get('vm-16'),
+  (vm1, vm2) => {
+    return { vm1, vm2 }
+  }
+)
+*/
+let vmr = v.type('vm')
+  .get('vm-15')
+  .value('moRef.value')
+  .do(val => {
+    return v.branch(
+      v.expr(val).eq('vm-15'),
+      () => {
+        console.log('exec1')
+        return v.expr('its 15')
+      },
+      () => {
+        console.log('exec2')
+        return 'its something else'
+      }
+    )
+  })
+
 
 vmr.then(vms => {
   console.log(JSON.stringify(vms, null, '  '))

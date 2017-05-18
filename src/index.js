@@ -38,7 +38,7 @@ class VsphereConnectClient extends EventEmitter {
         this.serviceContent = _.get(result, 'returnval')
         this.apiVersion = _.get(this.serviceContent, 'about.apiVersion')
         this.typeResolver = typeResolver(this.apiVersion)
-        // _.forEach(methods, (fn, name) => { this[name] = fn.bind(this) })
+
         return options.login !== false
           ? this.login(options)
           : {}
@@ -51,20 +51,32 @@ class VsphereConnectClient extends EventEmitter {
     this._soapClient.setSecurity(securityObject)
   }
 
-  login (args) {
-    return methods.login.call(this, args)
+  destroy () {
+    return methods.destroy.apply(this, [...arguments])
+  }
+
+  login () {
+    return methods.login.apply(this, [...arguments])
   }
 
   logout () {
-    return methods.logout.call(this)
+    return methods.logout.apply(this, [...arguments])
   }
 
-  method (name, args) {
-    return methods.method.call(this, name, args)
+  method () {
+    return methods.method.apply(this, [...arguments])
   }
 
-  retrieve (args, options) {
-    return methods.retrieve.call(this, args, options)
+  reload () {
+    return methods.reload.apply(this, [...arguments])
+  }
+
+  rename () {
+    return methods.rename.apply(this, [...arguments])
+  }
+
+  retrieve () {
+    return methods.retrieve.apply(this, [...arguments])
   }
 }
 
