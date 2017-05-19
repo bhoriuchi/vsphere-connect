@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import Promise from 'bluebird'
+import ChangeFeed from './changefeed/index'
 import { OPERATIONS as ops } from './common/contants'
 import buildPropList from './common/buildPropList'
 import pluck from './common/pluck'
@@ -106,6 +107,17 @@ export default class v {
 
       if (args.length < 3 || args.length % 2 !== 1) throw new Error('branch has an invalid number of arguments')
       return new Promise((resolve, reject) => processBranch(args, resolve, reject))
+    })
+  }
+
+  /**
+   * creates a new changefeed
+   * @param options
+   * @return {*}
+   */
+  changes (options) {
+    return this._request.term.then(() => {
+      return new ChangeFeed(this._client, this._request, options).create()
     })
   }
 

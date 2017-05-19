@@ -30,7 +30,7 @@ let output = graphSpec(spec3)
 console.log(JSON.stringify(output, null, '  '))
 */
 
-import VSphere from '../index'
+import VSphere from '../../index'
 import cred from '../../credentials'
 let { host, username, password } = cred
 

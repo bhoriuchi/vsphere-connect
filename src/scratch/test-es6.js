@@ -29,6 +29,7 @@ let vmr = v.do(
   }
 )
 */
+/*
 let vmr = v.type('vm')
   .get('vm-15')
   .value('moRef.value')
@@ -45,12 +46,20 @@ let vmr = v.type('vm')
       }
     )
   })
+*/
 
-
-vmr.then(vms => {
-  console.log(JSON.stringify(vms, null, '  '))
-  // return vmr.pluck('name')
+let vmr = v.type('datacenter').changes({ interval: 1000 }).then(cursor => {
+  cursor.each((err, change) => {
+    if (err) return console.error({ err })
+    console.log(JSON.stringify(change, null, '  '))
+  })
 })
+
+/*
+vmr.then(res => {
+  console.log(JSON.stringify(res, null, '  '))
+  // return vmr.pluck('name')
+}) */
   /*
   .then(res => {
     console.log({res})
@@ -60,7 +69,9 @@ vmr.then(vms => {
     console.log({res2})
   })
   */
+  /*
   .then(() => {
     return v.logout()
   })
   .catch(console.error)
+  */
