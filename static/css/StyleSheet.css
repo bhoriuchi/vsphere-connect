@@ -1,0 +1,12 @@
+.page-container {
+  margin-top: 50px;
+}
+
+.txt-bold {
+  font-weight: bold;
+}
+
+.alert-soft {
+  background-color: rgba(108, 185, 216, 0.31);
+  color: #666;
+}
