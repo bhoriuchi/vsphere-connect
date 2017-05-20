@@ -7,7 +7,7 @@
           li
             a VConnect
           li
-            a v
+            router-link(to="#v") v
           li
             a changes
       #command-body.col-md-9
@@ -35,7 +35,8 @@
           a.read-more(href="#") Read more about this command →
         hr.command-split
 
-        h4.txt-bold v
+        a(name="v")
+          h4.txt-bold v
         p
           .command-params
             | v → v
@@ -45,6 +46,19 @@
           | Establish a top-level namespace.
         pre(v-syntax-highlight="").
           let v = VConnect(options)
+        hr
+        hr
+        hr
+        hr
+        hr
+        hr
+        hr
+        hr
+        hr
+        hr
+        hr
+        hr
+        hr
         hr
 </template>
 
