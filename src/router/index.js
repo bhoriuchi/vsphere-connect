@@ -11,7 +11,7 @@ Vue.use(Router)
 
 export default new Router({
   mode: 'history',
-  base: '/vsphere-connect',
+  base: '/vsphere-connect/',
   routes: [
     {
       path: '/',
@@ -41,6 +41,12 @@ export default new Router({
       path: '/faq',
       name: 'faq',
       component: FaqDoc
+    },
+    {
+      path: '*',
+      redirect: to => {
+        return '/'
+      }
     }
   ],
   scrollBehavior (to, from, savedPosition) {

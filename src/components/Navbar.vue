@@ -3,14 +3,15 @@
     nav.navbar
       .container
         .navbar-header
-          button.navbar-toggle.collapsed.mobile-hamburger(type="button", data-toggle="collapse",
-          data-target="#navbar", aria-expanded="true", aria-controls="navbar")
+          button.navbar-toggle.mobile-hamburger(type="button", data-toggle="collapse",
+          data-target="#navbar", aria-expanded="true", aria-controls="navbar",
+          :class="{ collapsed: navCollapsed }", @click="navCollapsed = !navCollapsed")
             span.sr-only Toggle Navigation
             span.icon-bar
             span.icon-bar
             span.icon-bar
           router-link.navbar-brand(to="main") vSphere Connect
-        #navbar.navbar-collapse.collapse
+        #navbar.navbar-collapse.collapse(:class="{ in: !navCollapsed }")
           ul.nav.navbar-nav.navbar-right
             li
               router-link(to="/faq") faq
@@ -22,7 +23,11 @@
 
 <script type="text/babel">
   export default {
-
+    data () {
+      return {
+        navCollapsed: true
+      }
+    }
   }
 </script>
 
@@ -72,7 +77,7 @@
     color: #000;
     background-color: #2196f3;
     left: 0;
-    bottom: 15px; /* adjust this to move up and down. you may have to adjust the line height of the paragraph if you move it down a lot. */
+    bottom: 0; /* adjust this to move up and down. you may have to adjust the line height of the paragraph if you move it down a lot. */
   }
 
   .mobile-hamburger {
