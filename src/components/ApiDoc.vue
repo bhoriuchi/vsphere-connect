@@ -20,18 +20,20 @@
         h4.txt-bold VConnect
         p
           .command-params
-            | VConnect(options) → v
+            | VConnect(viserver, options) → v
         p Create a new VConnect connection and return a top-level namespace.
         p
           strong Example: &nbsp;
           | Establish a client session.
         pre(v-syntax-highlight="").
           import VConnect from 'vsphere-connect'
-          let v = VConnect({
+          let v = VConnect('vcenter.mydomain.com', {
             username: 'administrator@vsphere.local'
             password: 'vmware100'
           })
-        hr
+        p
+          a.read-more(href="#") Read more about this command →
+        hr.command-split
 
         h4.txt-bold v
         p
@@ -90,6 +92,15 @@
     padding-left: 10px;
     font-size: 1.2em;
     color: #444;
+  }
+
+  a.read-more {
+    border-bottom: 1px solid #dedede;
+    font-size: 1.1em;
+  }
+
+  hr.command-split {
+    margin-top: 30px;
   }
 
 </style>

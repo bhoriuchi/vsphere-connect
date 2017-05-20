@@ -3,7 +3,8 @@
     nav.navbar
       .container
         .navbar-header
-          button.navbar-toggle.collapsed(type="button")
+          button.navbar-toggle.collapsed.mobile-hamburger(type="button", data-toggle="collapse",
+          data-target="#navbar", aria-expanded="true", aria-controls="navbar")
             span.sr-only Toggle Navigation
             span.icon-bar
             span.icon-bar
@@ -72,6 +73,14 @@
     background-color: #2196f3;
     left: 0;
     bottom: 15px; /* adjust this to move up and down. you may have to adjust the line height of the paragraph if you move it down a lot. */
+  }
+
+  .mobile-hamburger {
+    background-color: #fdfdfd;
+  }
+
+  .mobile-hamburger .icon-bar {
+    background-color: #666;
   }
 
 </style>
