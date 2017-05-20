@@ -1,9 +1,13 @@
 <template lang="pug">
   div
-    h4 vConnect command: {{$route.params.command}}
-
-    h5 Command syntax
-    pre {{apiData}}
+    h4 {{$route.params.command}}
+    hr
+    h4 Command syntax
+    p
+      .command-params
+        | {{apiData.usage}}
+    h4 Description
+    p.regular-text {{apiData.description}}
 </template>
 
 <script type="text/babel">
@@ -30,3 +34,9 @@
 
   }
 </script>
+
+<style>
+  p.regular-text {
+    font-size: 1.2em;
+  }
+</style>

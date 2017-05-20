@@ -6,7 +6,7 @@
           span.menu-header.sm {{section.section}}
           ul.command-list
             li(v-for="(cmd, cmdName) in section.commands")
-              router-link(:to="'#about-' + cmdName") {{cmdName}}
+              router-link(:to="makeLink(cmdName)") {{cmdName}}
       #command-body.col-md-9(v-if="!$route.params.commands")
         router-view
 </template>
@@ -14,6 +14,13 @@
 <script type="text/babel">
   import apiData from '@/data/api/index'
   export default {
+    methods: {
+      makeLink (name) {
+        return this.$route.params.command
+          ? `/api/${name}`
+          : `#about-${name}`
+      }
+    },
     data () {
       return {
         apiData
