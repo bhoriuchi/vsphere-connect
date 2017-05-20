@@ -2,7 +2,10 @@
   import Prism from 'prismjs'
   export default {
     bind (el) {
-      el.innerHTML = Prism.highlight(el.innerHTML, Prism.languages.javascript)
+      let content = el.innerHTML
+        .replace(/&lt;/gm, '<')
+        .replace(/&gt;/gm, '>')
+      el.innerHTML = Prism.highlight(content, Prism.languages.javascript)
     }
   }
 </script>

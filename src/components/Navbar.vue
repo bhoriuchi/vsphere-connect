@@ -9,15 +9,15 @@
             span.icon-bar
             span.icon-bar
             span.icon-bar
-          a.navbar-brand(href="#") vSphere Connect
+          router-link.navbar-brand(to="main") vSphere Connect
         #navbar.navbar-collapse.collapse
           ul.nav.navbar-nav.navbar-right
             li
-              router-link(to="FAQ") faq
+              router-link(to="/faq") faq
             li
-              router-link(to="Docs") docs
+              router-link(to="/docs") docs
             li
-              router-link(to="API") api
+              router-link(to="/api") api
 </template>
 
 <script type="text/babel">

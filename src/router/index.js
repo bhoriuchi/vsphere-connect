@@ -4,30 +4,54 @@ import Main from '@/components/Main'
 import ApiDoc from '@/components/ApiDoc'
 import DocDoc from '@/components/DocDoc'
 import FaqDoc from '@/components/FaqDoc'
+import FullApiDoc from '@/components/FullApiDoc'
+import SummaryApiDoc from '@/components/SummaryApiDoc'
 
 Vue.use(Router)
 
 export default new Router({
+  mode: 'history',
   routes: [
     {
       path: '/',
-      name: 'Main',
+      name: 'main',
       component: Main
     },
     {
       path: '/api',
-      name: 'API',
-      component: ApiDoc
+      component: ApiDoc,
+      children: [
+        {
+          path: '',
+          component: SummaryApiDoc
+        },
+        {
+          path: '/api/:command',
+          component: FullApiDoc
+        }
+      ]
     },
     {
       path: '/docs',
-      name: 'Docs',
+      name: 'docs',
       component: DocDoc
     },
     {
       path: '/faq',
-      name: 'FAQ',
+      name: 'faq',
       component: FaqDoc
     }
-  ]
+  ],
+  scrollBehavior (to, from, savedPosition) {
+    if (to.hash) {
+      return {
+        selector: to.hash
+      }
+    } else {
+      return {
+        x: 0,
+        y: 0
+      }
+    }
+  }
 })
