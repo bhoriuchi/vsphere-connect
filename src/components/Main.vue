@@ -15,6 +15,11 @@
 </script>
 
 <style>
+  #main {
+    top: -1px;
+    position: relative;
+  }
+
   #jumbo {
     color: #fdfdfd;
     background-color: #234884;

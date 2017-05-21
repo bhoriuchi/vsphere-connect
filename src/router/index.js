@@ -44,9 +44,7 @@ export default new Router({
     },
     {
       path: '*',
-      redirect: to => {
-        return '/'
-      }
+      redirect: '/'
     }
   ],
   scrollBehavior (to, from, savedPosition) {

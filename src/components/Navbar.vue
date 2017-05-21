@@ -5,13 +5,13 @@
         .navbar-header
           button.navbar-toggle.mobile-hamburger(type="button", data-toggle="collapse",
           data-target="#navbar", aria-expanded="true", aria-controls="navbar",
-          :class="{ collapsed: navCollapsed }", @click="navCollapsed = !navCollapsed")
+          @click="navCollapsed = !navCollapsed")
             span.sr-only Toggle Navigation
             span.icon-bar
             span.icon-bar
             span.icon-bar
           router-link.navbar-brand(to="main") vSphere Connect
-        #navbar.navbar-collapse.collapse(:class="{ in: !navCollapsed }")
+        #navbar.navbar-collapse.collapse
           ul.nav.navbar-nav.navbar-right
             li
               router-link(to="/faq") faq
@@ -22,10 +22,26 @@
 </template>
 
 <script type="text/babel">
+  import Hub from '../hub'
   export default {
+    created () {
+      Hub.$on('mobilenav.collapse', () => {
+        this.navCollapsed = true
+      })
+    },
     data () {
       return {
         navCollapsed: true
+      }
+    },
+    watch: {
+      navCollapsed (val) {
+        val
+          ? document.body.classList.remove('body-slide-left')
+          : document.body.classList.add('body-slide-left')
+      },
+      $route () {
+        this.navCollapsed = true
       }
     }
   }
@@ -80,12 +96,8 @@
     bottom: 0; /* adjust this to move up and down. you may have to adjust the line height of the paragraph if you move it down a lot. */
   }
 
-  .mobile-hamburger {
+  button.navbar-toggle .icon-bar {
     background-color: #fdfdfd;
-  }
-
-  .mobile-hamburger .icon-bar {
-    background-color: #666;
   }
 
 </style>

@@ -2,14 +2,17 @@
   #app
     navbar
     router-view
+    mobile-nav
 </template>
 
 <script>
   import Navbar from '@/components/Navbar'
+  import MobileNav from '@/components/MobileNav'
   export default {
     name: 'app',
     components: {
-      Navbar
+      Navbar,
+      MobileNav
     }
   }
 </script>
@@ -26,5 +29,13 @@
 
   body {
     background-color: #fdfdfd;
+    position: relative;
+    overflow: auto;
+    width: 100%;
+    height: 100%;
+    -webkit-transition: all 0.3s ease;
+    -moz-transition: all 0.3s ease;
+    transition: all 0.3s ease;
+    right: 0px;
   }
 </style>

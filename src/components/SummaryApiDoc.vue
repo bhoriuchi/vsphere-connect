@@ -12,13 +12,12 @@
         h4.txt-bold(:id="'about-' + cmdName") {{cmdName}}
         p
           .command-params
-            | {{cmd.usage}}
-        p {{cmd.description}}.
+            p.usage(v-for="usage in cmd.usage") {{usage}}
+        p(v-html="cmd.description").
         p
           strong Example: &nbsp;
           | {{cmd.example.description}}.
-        pre(v-syntax-highlight="").
-          {{cmd.example.code}}
+        pre(v-syntax-highlight="cmd.example.code")
         p
           router-link.read-more(:to="'api/' + cmdName") Read more about this command →
         hr.command-split

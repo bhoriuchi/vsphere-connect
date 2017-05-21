@@ -10,3 +10,23 @@
   background-color: rgba(108, 185, 216, 0.31);
   color: #666;
 }
+
+.body-slide-left {
+  right: 80%;
+}
+
+p.usage {
+  margin-bottom: 0px;
+}
+
+@media (min-width: 768px) {
+
+}
+
+@media (min-width: 992px) {
+
+}
+
+@media (min-width: 1200px) {
+
+}

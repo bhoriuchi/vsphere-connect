@@ -1,16 +1,34 @@
 <template lang="pug">
   div
-    h4 {{$route.params.command}}
+    h4 Command: {{$route.params.command}}
     hr
-    h4 Command syntax
+    h4.section Command syntax
     p
       .command-params
-        | {{apiData.usage}}
-    h4 Description
-    p.regular-text {{apiData.description}}
+        p.usage(v-for="usage in apiData.usage") {{usage}}
+    h4.section Description
+    p.regular-text(v-html="apiData.description")
+    div(v-if="apiData.params")
+      h4.section Parameters
+      ul
+        li(v-for="(param, paramName) in apiData.params")
+          code {{param.optional === true ? '[' + paramName + ']' : paramName}}
+          | { {{param.type}} } - {{param.description}}
+          ul(v-if="param.fields")
+            li(v-for="(field, fieldName) in param.fields")
+              code {{field.optional === true ? '[' + fieldName + ']' : fieldName}}
+              | { {{field.type}} } - {{field.description}}
+    hr
+    p.regular-text(v-if="apiData.example")
+      strong Example:
+      | &nbsp;{{apiData.example.description}}
+      p
+        pre(v-syntax-highlight="apiData.example.code")
+
 </template>
 
 <script type="text/babel">
+  import SyntaxHighlight from '@/directives/SyntaxHighlight'
   import ApiData from '@/data/api/index'
   import * as _ from '../assets/js/utils'
 
@@ -23,20 +41,23 @@
   })
 
   export default {
-    created () {
-      this.apiData = commands[this.$route.params.command]
+    directives: {
+      SyntaxHighlight
     },
-    data () {
-      return {
-        apiData: {}
+    computed: {
+      apiData () {
+        return commands[this.$route.params.command]
       }
     }
-
   }
 </script>
 
 <style>
   p.regular-text {
     font-size: 1.2em;
+  }
+
+  h4.section {
+    margin-top: 40px;
   }
 </style>
