@@ -1,5 +1,5 @@
 <template lang="pug">
-  #mobile-nav.container-fluid
+  #mobile-nav.container-fluid(v-if="show")
     ul
       li
         a(@click="collapseNav()")
@@ -22,9 +22,20 @@
 <script type="text/babel">
   import Hub from '../hub'
   export default {
+    created () {
+      Hub.$on('mobilenav.show', () => {
+        this.show = true
+      })
+    },
     methods: {
       collapseNav () {
         Hub.$emit('mobilenav.collapse')
+        this.show = false
+      }
+    },
+    data () {
+      return {
+        show: false
       }
     }
   }

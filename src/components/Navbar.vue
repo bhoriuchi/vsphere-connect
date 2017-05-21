@@ -39,6 +39,7 @@
         val
           ? document.body.classList.remove('body-slide-left')
           : document.body.classList.add('body-slide-left')
+        if (!val) Hub.$emit('mobilenav.show')
       },
       $route () {
         this.navCollapsed = true
