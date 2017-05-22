@@ -23,10 +23,12 @@ function assignRequest (target, source, obj = {}, term) {
  * @param obj
  * @return {v}
  */
-function processTerm (handler, obj = {}) {
+function processTerm (handler, obj = {}, isDefault) {
   let req = {
     term: this._request.term.then(value => {
       assignRequest(req, this._request, obj)
+      if (this._request.error && !isDefault) return null
+      if (isDefault) req.error = null
       return handler(value, req)
     })
   }
@@ -75,11 +77,20 @@ function performRetrieve (req) {
 
 export default class v {
   constructor (client, request) {
-    this._client = client
-    this._request = _.isObject(request)
+    let term = function (field) {
+      return _.isString(field)
+        ? term.value(field)
+        : processTerm.call(this, result => result)
+    }
+    Object.setPrototypeOf(term, v.prototype)
+
+    term._client = client
+    term._request = _.isObject(request)
       ? request
       : {}
-    this._request.term = this._request.term || client._connection
+    term._request.term = term._request.term || client._connection
+    term._request.error = term._request.error || null
+    return term
   }
 
   /**
@@ -105,7 +116,10 @@ export default class v {
         ? _.union([value], args)
         : args
 
-      if (args.length < 3 || args.length % 2 !== 1) throw new Error('branch has an invalid number of arguments')
+      if (args.length < 3 || args.length % 2 !== 1) {
+        req.error = new Error('branch has an invalid number of arguments')
+        return
+      }
       return new Promise((resolve, reject) => processBranch(args, resolve, reject))
     })
   }
@@ -116,9 +130,7 @@ export default class v {
    * @return {*}
    */
   changes (options) {
-    return this._request.term.then(() => {
-      return new ChangeFeed(this._client, this._request, options).create()
-    })
+    return new ChangeFeed(this._client, this._request, options).create()
   }
 
   /**
@@ -127,6 +139,47 @@ export default class v {
    */
   createClient () {
     return this._client._connection.then(() => this._client)
+  }
+
+  /**
+   * default to a value if one does not exist
+   * @param val
+   * @return {*}
+   */
+  default (val) {
+    return processTerm.call(this, (result, req) => {
+      if (result === undefined || req.error) {
+        if (req.error) req.error = null
+        return val
+      }
+      return result
+    }, {}, true)
+  }
+
+  /**
+   * destroys a selection of objects
+   * @param options
+   * @return {*}
+   */
+  destroy (options) {
+    return processTerm.call(this, (result, req) => {
+      let args = _.get(req, 'args', {})
+      let opts = _.get(req, 'options', {})
+
+      let arrayResults = !_.isNumber(opts.nth) &&
+        opts.limit !== 1 &&
+        (!args.id || (_.isArray(args.id) && args.id.length))
+
+      return performRetrieve.call(this, req)
+        .then(results => {
+          return Promise.map(results, res => {
+            return this._client.destroy(res.moRef, options)
+          })
+        })
+        .then(results => {
+          return arrayResults ? results : _.first(results)
+        })
+    })
   }
 
   /**
@@ -275,6 +328,18 @@ export default class v {
     return processTerm.call(this, (value, req) => {
       _.set(req, 'options.limit', Math.ceil(limit))
       return value
+    })
+  }
+
+  /**
+   * logs the user in or changes the token
+   * @param username
+   * @param password
+   * @return {*}
+   */
+  login (username, password) {
+    return processTerm.call(this, (value, req) => {
+      return this._client.login(username, password)
     })
   }
 
@@ -438,9 +503,19 @@ export default class v {
       }
       return data.then(result => {
         req.operation = null
-        return _.isString(p)
-          ? _.get(result, p, null)
-          : result
+
+        if (_.isString(p)) {
+          if (_.isArray(result)) {
+            return _.without(_.map(result, res => _.get(res, p)), undefined)
+          } else {
+            let val = _.get(result, p)
+            if (val === undefined) {
+              req.error = new Error(`no attribute "${p}" in object`)
+            }
+            return val
+          }
+        }
+        return result
       })
     })
   }
@@ -492,7 +567,10 @@ export default class v {
     return processTerm.call(this, (value, req) => {
       let type = this._client.typeResolver(name)
       let operation = ops.RETRIEVE
-      if (!type) throw Error(`invalid type ${name}`)
+      if (!type) {
+        req.error = new Error(`invalid type ${name}`)
+        return
+      }
       assignRequest(req, this._request, { operation, type })
       _.set(req, 'args.type', type)
       _.set(req, 'args.properties', ['moRef', 'name'])
@@ -515,6 +593,8 @@ export default class v {
       : _.noop
 
     return this._request.term.then(value => {
+      if (this._request.error) throw this._request.error
+
       switch (this._request.operation) {
         case ops.RETRIEVE:
           return this._client.retrieve(this._request.args, this._request.options)

@@ -7,8 +7,17 @@ import methods from './methods/index'
 import v from './v'
 
 class VsphereConnectClient extends EventEmitter {
+  /**
+   *
+   * @param host {String} - viServer
+   * @param [options] {Object} - connection options
+   * @param [options.ignoreSSL=false] {Boolean} - ignores invalid ssl
+   * @param [options.cacheKey] {Function} - cache key function whose return value will be used as the cache key name
+   * @return {v}
+   */
   constructor (host, options) {
     super()
+    this.loggedIn = false
 
     if (!_.isString(host) || _.isEmpty(host)) throw new Error('missing required parameter "host"')
 
@@ -38,10 +47,7 @@ class VsphereConnectClient extends EventEmitter {
         this.serviceContent = _.get(result, 'returnval')
         this.apiVersion = _.get(this.serviceContent, 'about.apiVersion')
         this.typeResolver = typeResolver(this.apiVersion)
-
-        return options.login !== false
-          ? this.login(options)
-          : {}
+        return { connected: true }
       })
 
     return new v(this)

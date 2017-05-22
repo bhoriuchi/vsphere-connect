@@ -3,11 +3,30 @@ import VSphere from '../index'
 import cred from '../../credentials'
 let { host, username, password } = cred
 
-let v = VSphere(host, {
-  username,
-  password,
-  ignoreSSL: true
+let v = VSphere(host, { ignoreSSL: true }).login(username, password)
+
+/*
+v.type('vm').nth(0)('name1').then(vms => {
+  console.log(JSON.stringify(vms, null, '  '))
 })
+  .catch(console.error)
+  .finally(() => {
+    return v.logout()
+  })
+*/
+
+v.type('datacenter').changes().subscribe(
+  change => {
+    console.log({change})
+  },
+  error => {
+    console.error({error})
+  },
+  () => {
+    console.log('complete')
+  }
+)
+
 
 /*
 let vmr = v.type('vm').pluck({
@@ -48,12 +67,14 @@ let vmr = v.type('vm')
   })
 */
 
+/*
 let vmr = v.type('datacenter').changes({ interval: 1000 }).then(cursor => {
   cursor.each((err, change) => {
     if (err) return console.error({ err })
     console.log(JSON.stringify(change, null, '  '))
   })
 })
+*/
 
 /*
 vmr.then(res => {

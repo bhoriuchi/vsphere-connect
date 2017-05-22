@@ -4,252 +4,10 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var _ = _interopDefault(require('lodash'));
 var EventEmitter = _interopDefault(require('events'));
-var Promise$1 = _interopDefault(require('bluebird'));
 var soap = _interopDefault(require('soap-connect'));
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) {
-  return typeof obj;
-} : function (obj) {
-  return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
-};
-
-
-
-
-
-
-
-
-
-
-
-var classCallCheck = function (instance, Constructor) {
-  if (!(instance instanceof Constructor)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-};
-
-var createClass = function () {
-  function defineProperties(target, props) {
-    for (var i = 0; i < props.length; i++) {
-      var descriptor = props[i];
-      descriptor.enumerable = descriptor.enumerable || false;
-      descriptor.configurable = true;
-      if ("value" in descriptor) descriptor.writable = true;
-      Object.defineProperty(target, descriptor.key, descriptor);
-    }
-  }
-
-  return function (Constructor, protoProps, staticProps) {
-    if (protoProps) defineProperties(Constructor.prototype, protoProps);
-    if (staticProps) defineProperties(Constructor, staticProps);
-    return Constructor;
-  };
-}();
-
-
-
-
-
-
-
-
-
-var inherits = function (subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-  }
-
-  subClass.prototype = Object.create(superClass && superClass.prototype, {
-    constructor: {
-      value: subClass,
-      enumerable: false,
-      writable: true,
-      configurable: true
-    }
-  });
-  if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-};
-
-
-
-
-
-
-
-
-
-
-
-var possibleConstructorReturn = function (self, call) {
-  if (!self) {
-    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-  }
-
-  return call && (typeof call === "object" || typeof call === "function") ? call : self;
-};
-
-
-
-
-
-var slicedToArray = function () {
-  function sliceIterator(arr, i) {
-    var _arr = [];
-    var _n = true;
-    var _d = false;
-    var _e = undefined;
-
-    try {
-      for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
-        _arr.push(_s.value);
-
-        if (i && _arr.length === i) break;
-      }
-    } catch (err) {
-      _d = true;
-      _e = err;
-    } finally {
-      try {
-        if (!_n && _i["return"]) _i["return"]();
-      } finally {
-        if (_d) throw _e;
-      }
-    }
-
-    return _arr;
-  }
-
-  return function (arr, i) {
-    if (Array.isArray(arr)) {
-      return arr;
-    } else if (Symbol.iterator in Object(arr)) {
-      return sliceIterator(arr, i);
-    } else {
-      throw new TypeError("Invalid attempt to destructure non-iterable instance");
-    }
-  };
-}();
-
-var VSphereConnectError = function (_Error) {
-  inherits(VSphereConnectError, _Error);
-
-  function VSphereConnectError(name, code, message) {
-    classCallCheck(this, VSphereConnectError);
-
-    var _this = possibleConstructorReturn(this, (VSphereConnectError.__proto__ || Object.getPrototypeOf(VSphereConnectError)).call(this, message));
-
-    _this.name = name;
-    _this.code = code;
-    return _this;
-  }
-
-  return VSphereConnectError;
-}(Error);
-
-var ERR_INVALID_METHOD = 'ERR_INVALID_METHOD';
-
-var InvalidMethodError = function (_VSphereConnectError) {
-  inherits(InvalidMethodError, _VSphereConnectError);
-
-  function InvalidMethodError(method) {
-    classCallCheck(this, InvalidMethodError);
-    return possibleConstructorReturn(this, (InvalidMethodError.__proto__ || Object.getPrototypeOf(InvalidMethodError)).call(this, 'InvalidMethodError', ERR_INVALID_METHOD, message + ' is not a valid method'));
-  }
-
-  return InvalidMethodError;
-}(VSphereConnectError);
-
-var ERR_INVALID_TYPE = 'ERR_INVALID_TYPE';
-
-var InvalidTypeError = function (_VSphereConnectError) {
-  inherits(InvalidTypeError, _VSphereConnectError);
-
-  function InvalidTypeError(type) {
-    classCallCheck(this, InvalidTypeError);
-    return possibleConstructorReturn(this, (InvalidTypeError.__proto__ || Object.getPrototypeOf(InvalidTypeError)).call(this, 'InvalidTypeError', ERR_INVALID_TYPE, type + ' cannot be resolved to a valid vim type'));
-  }
-
-  return InvalidTypeError;
-}(VSphereConnectError);
-
-var ERR_MISSING_PROPS = 'ERR_MISSING_PROPS';
-
-var MissingPropertiesError = function (_VSphereConnectError) {
-  inherits(MissingPropertiesError, _VSphereConnectError);
-
-  function MissingPropertiesError(props) {
-    classCallCheck(this, MissingPropertiesError);
-    return possibleConstructorReturn(this, (MissingPropertiesError.__proto__ || Object.getPrototypeOf(MissingPropertiesError)).call(this, 'MissingPropertiesError', ERR_MISSING_PROPS, 'missing required properties ' + props.join(', ')));
-  }
-
-  return MissingPropertiesError;
-}(VSphereConnectError);
-
-var ERR_OBJECT_REF = 'ERR_OBJ_REF';
-
-var ObjectReferenceError = function (_VSphereConnectError) {
-  inherits(ObjectReferenceError, _VSphereConnectError);
-
-  function ObjectReferenceError() {
-    classCallCheck(this, ObjectReferenceError);
-    return possibleConstructorReturn(this, (ObjectReferenceError.__proto__ || Object.getPrototypeOf(ObjectReferenceError)).call(this, 'ObjectReferenceError', ERR_OBJECT_REF, 'Object reference cannot be determined. Please supply' + 'either a valid moRef object ({ type, value }) or type and id'));
-  }
-
-  return ObjectReferenceError;
-}(VSphereConnectError);
-
-var Errors = {
-  InvalidMethodError: InvalidMethodError,
-  InvalidTypeError: InvalidTypeError,
-  MissingPropertiesError: MissingPropertiesError,
-  ObjectReferenceError: ObjectReferenceError,
-  VSphereConnectError: VSphereConnectError
-};
-
-function createCluster(args, options) {
-  var _ref = _.isObject(args) ? args : {},
-      folder = _ref.folder,
-      name = _ref.name,
-      spec = _ref.spec;
-
-  var _this = folder ? { type: 'Folder', value: folder } : this.serviceContent.rootFolder;
-  spec = _.isObject(spec) ? spec : {};
-  options = _.isObject(options) ? options : {};
-
-  return name ? this.method('CreateClusterEx', { _this: _this, name: name, spec: spec }) : Promise$1.reject(new Error('create datacenter requires a name'));
-}
-
-function createDatacenter(args, options) {
-  var _ref = _.isObject(args) ? args : {},
-      folder = _ref.folder,
-      name = _ref.name;
-
-  var _this = folder ? { type: 'Folder', value: folder } : this.serviceContent.rootFolder;
-  options = _.isObject(options) ? options : {};
-
-  return name ? this.method('CreateDatacenter', { _this: _this, name: name }) : Promise$1.reject(new Error('create datacenter requires name'));
-}
-
-function makeDotPath(obj) {
-  var list = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-  var path = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
-
-  _.forEach(obj, function (val, key) {
-    var prop = path.slice(0);
-    prop.push(key);
-    if (val === true) list.push(prop.join('.'));else makeDotPath(val, list, prop);
-  });
-  return list;
-}
-
-function buildPropList(args) {
-  var props = [];
-  _.forEach(args, function (arg) {
-    if (_.isString(arg)) props = _.union(props, [arg]);else if (_.isArray(arg)) props = _.union(props, arg);else if (_.isObject(arg)) props = _.union(props, makeDotPath(arg));
-  });
-  return props;
-}
+var Promise$1 = _interopDefault(require('bluebird'));
+var Rx = _interopDefault(require('rxjs'));
+var Debug = _interopDefault(require('debug'));
 
 /*
  * cacheKey function to allow re-use of cache on same api version and type
@@ -276,76 +34,6 @@ function cacheKey(tools, wsdl, done) {
     } catch (err) {
       return done(null, null);
     }
-  });
-}
-
-function convertRetrievedProperties(results) {
-  var objs = _.get(results, 'objects') || _.get(results, 'returnval.objects');
-
-  return _.map(_.isArray(objs) ? objs : [], function (result) {
-    var obj = { moRef: result.obj };
-    _.forEach(result.propSet, function (prop) {
-      _.set(obj, prop.name, prop.val);
-    });
-    return obj;
-  });
-}
-
-function errorHandler(err, callback, reject) {
-  callback(err);
-  return reject(err);
-}
-
-function extractMoRef(args) {
-  var type = args.type,
-      id = args.id,
-      moRef = args.moRef;
-
-  var moRefError = null;
-
-  if (_.isObject(moRef)) {
-    type = moRef.type;
-    id = moRef.value;
-  }
-
-  var typeName = this.typeResolver(type);
-
-  if (!typeName) moRefError = new InvalidTypeError(type);else if (!id) moRefError = new ObjectReferenceError();
-
-  return {
-    moRefError: moRefError,
-    typeName: typeName,
-    id: id,
-    moRef: {
-      type: typeName,
-      value: id
-    }
-  };
-}
-
-function graphSpec(specSet) {
-  var types = {};
-
-  _.forEach(_.isArray(specSet) ? specSet : [specSet], function (spec) {
-    if (_.isString(spec)) spec = { type: spec };
-    if (!spec.type) return;
-    if (!_.has(types, spec.type)) _.set(types, spec.type, { ids: [], props: [] });
-    if (spec.id) {
-      var ids = _.isArray(spec.id) ? spec.id : [spec.id];
-      types[spec.type].ids = _.union(types[spec.type].ids, ids);
-    }
-    if (spec.properties) {
-      var props = _.isArray(spec.properties) ? spec.properties : [spec.properties];
-      types[spec.type].props = _.union(types[spec.type].props, props);
-    }
-  });
-
-  return _.map(types, function (obj, type) {
-    return {
-      type: type,
-      id: obj.ids,
-      properties: obj.props
-    };
   });
 }
 
@@ -761,92 +449,6 @@ types['6.5'] = _.merge({}, types['6.0'], {
   VStorageObjectManagerBase: {}
 });
 
-function moRef(typeValue, value) {
-  if (_.isObject(typeValue) && !value) {
-    var type = typeValue.type,
-        _value = typeValue.value,
-        id = typeValue.id;
-
-    if (!type && !_value && !id) return new Error('cannot resolve moRef, missing type info');
-  }
-  return { type: typeValue, value: value };
-}
-
-function pluckProperties(obj, props) {
-  var o = {};
-  _.forEach(props, function (prop) {
-    _.set(o, prop, _.get(obj, prop));
-  });
-  return o;
-}
-
-function pluck(obj, props) {
-  if (_.isArray(obj)) return _.map(function (o) {
-    return pluckProperties(o, props);
-  });
-  return pluckProperties(obj, props);
-}
-
-function resultHandler(result, callback, resolve) {
-  callback(null, result);
-  return resolve(result);
-}
-
-/*
- * Basic non-strict (allows 5, 5.0 as versions) semver tools
- */
-
-function parse(s) {
-  var _s$split = s.split('.'),
-      _s$split2 = slicedToArray(_s$split, 3),
-      major = _s$split2[0],
-      minor = _s$split2[1],
-      patch = _s$split2[2];
-
-  major = !isNaN(major) ? parseInt(major) : null;
-  minor = !minor ? 0 : !isNaN(minor) ? parseInt(minor) : null;
-  patch = !patch ? 0 : !isNaN(patch) ? parseInt(patch) : null;
-  if (!major) return null;
-  return {
-    version: major + '.' + minor + '.' + patch,
-    major: major,
-    minor: minor,
-    patch: patch
-  };
-}
-
-function gt(a, b) {
-  var verA = parse(a);
-  var verB = parse(b);
-  if (verA.major < verB.major) return false;
-  if (verA.major === verB.major) {
-    if (verA.minor < verB.minor) return false;
-    if (verA.minor === verB.minor) {
-      if (verA.patch < verB.patch) return false;
-    }
-  }
-  return true;
-}
-
-function lt(a, b) {
-  var verA = parse(a);
-  var verB = parse(b);
-  if (verA.major > verB.major) return false;
-  if (verA.major === verB.major) {
-    if (verA.minor > verB.minor) return false;
-    if (verA.minor === verB.minor) {
-      if (verA.patch > verB.patch) return false;
-    }
-  }
-  return true;
-}
-
-var semver = {
-  parse: parse,
-  gt: gt,
-  lt: lt
-};
-
 /*
  * Resolves the vim type name without case sensetivity and adds friendly shortcuts
  * like vm for VirtualMachine host for HostSystem, etc.
@@ -871,20 +473,70 @@ function typeResolver(apiVersion) {
   };
 }
 
-var Utils = {
-  buildPropList: buildPropList,
-  cacheKey: cacheKey,
-  convertRetrievedProperties: convertRetrievedProperties,
-  errorHandler: errorHandler,
-  extractMoRef: extractMoRef,
-  graphSpec: graphSpec,
-  makeDotPath: makeDotPath,
-  mo: types,
-  moRef: moRef,
-  pluck: pluck,
-  resultHandler: resultHandler,
-  semver: semver,
-  typeResolver: typeResolver
+var classCallCheck = function (instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+};
+
+var createClass = function () {
+  function defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];
+      descriptor.enumerable = descriptor.enumerable || false;
+      descriptor.configurable = true;
+      if ("value" in descriptor) descriptor.writable = true;
+      Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }
+
+  return function (Constructor, protoProps, staticProps) {
+    if (protoProps) defineProperties(Constructor.prototype, protoProps);
+    if (staticProps) defineProperties(Constructor, staticProps);
+    return Constructor;
+  };
+}();
+
+
+
+
+
+
+
+
+
+var inherits = function (subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+  }
+
+  subClass.prototype = Object.create(superClass && superClass.prototype, {
+    constructor: {
+      value: subClass,
+      enumerable: false,
+      writable: true,
+      configurable: true
+    }
+  });
+  if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+};
+
+
+
+
+
+
+
+
+
+
+
+var possibleConstructorReturn = function (self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }
+
+  return call && (typeof call === "object" || typeof call === "function") ? call : self;
 };
 
 var ONE_MINUTE_IN_MS = 60000;
@@ -954,146 +606,26 @@ var monitor = {
   task: task
 };
 
-function createDVSwitch(args, options) {
+function moRef(type, value) {
+  var t = _.isString(type) ? type : _.get(type, 'type');
+  var v = _.isString(type) ? value : _.get(type, 'value', _.get(type, 'id'));
+
+  if (!t || !v) throw new Error('cannot resolve moRef, missing type info');
+  return { type: t, value: v };
+}
+
+function destroy(moRef$$1, options) {
   var _this = this;
 
-  var _ref = _.isObject(args) ? args : {},
-      folder = _ref.folder,
-      datacenter = _ref.datacenter,
-      spec = _ref.spec;
-
-  options = _.isObject(options) ? options : {};
-
-  if (semver.lt(this.apiVersion, '4.0')) return Promise$1.reject(new Error('create dvSwitch requires api 4.0 or higher'));
-  if (!spec) return Promise$1.reject(new Error('create dvSwitch requires a spec'));
-
-  if (folder) {
-    folder = Promise$1.resolve({ type: 'Folder', value: folder });
-  } else if (datacenter) {
-    folder = this.retrieve({
-      type: 'Datacenter',
-      id: datacenter,
-      properties: ['networkFolder']
-    }).then(function (dc) {
-      return _.get(dc, 'networkFolder');
+  try {
+    return this.method('Destroy_Task', {
+      _this: moRef(moRef$$1)
+    }).then(function (task$$1) {
+      return _.get(options, 'async') === false ? monitor.task(_this, _.get(task$$1, 'value'), options) : task$$1;
     });
-  } else {
-    return Promise$1.reject(new Error('datacenter or folder required to create dvSwitch'));
+  } catch (error) {
+    return Promise$1.reject(error);
   }
-
-  return folder.then(function (folderRef) {
-    return _this.method('CreateDVS_Task', { _this: folderRef, spec: spec }).then(function (task$$1) {
-      return options.async !== false ? task$$1 : monitor.task(_this, _.get(task$$1, 'value'), options);
-    });
-  });
-}
-
-function createFolder(args, options) {
-  var _ref = _.isObject(args) ? args : {},
-      folder = _ref.folder,
-      name = _ref.name;
-
-  var _this = folder ? { type: 'Folder', value: folder } : this.serviceContent.rootFolder;
-  options = _.isObject(options) ? options : {};
-
-  if (!name) return Promise$1.reject(new Error('create folder requires name'));
-
-  return this.method('CreateFolder', { _this: _this, name: name });
-}
-
-function createStoreCluster(args, options) {
-  var _ref = _.isObject(args) ? args : {},
-      folder = _ref.folder,
-      name = _ref.name;
-
-  var _this = folder ? { type: 'Folder', value: folder } : this.serviceContent.rootFolder;
-  options = _.isObject(options) ? options : {};
-
-  if (!name) return Promise$1.reject(new Error('create folder requires name'));
-  if (semver.lt(this.apiVersion, '5.0')) return Promise$1.reject(new Error('storecluster requires api 5.0 or higher'));
-
-  return this.method('CreateStoragePod', { _this: _this, name: name });
-}
-
-function createVM(args, options) {
-  var _this = this;
-
-  var _ref = _.isObject(args) ? args : {},
-      folder = _ref.folder,
-      datacenter = _ref.datacenter,
-      config = _ref.config,
-      pool = _ref.pool,
-      host = _ref.host;
-
-  if (!config) return Promise$1.reject(new Error('create vm requires a config'));
-
-  if (folder) {
-    folder = Promise$1.resolve({ type: 'Folder', value: folder });
-  } else if (datacenter) {
-    folder = this.retrieve({
-      type: 'Datacenter',
-      id: datacenter,
-      properties: ['vmFolder']
-    }).then(function (dc) {
-      return _.get(dc, 'vmFolder');
-    });
-  } else {
-    return Promise$1.reject(new Error('datacenter or folder required to create vm'));
-  }
-
-  return folder.then(function (folderRef) {
-    return _this.method('CreateVM_Task', { _this: folderRef, config: config, pool: pool, host: host }).then(function (task$$1) {
-      return options.async !== false ? task$$1 : monitor.task(_this, _.get(task$$1, 'value'), options);
-    });
-  });
-}
-
-function create(args, options) {
-  var type = _.get(args, 'type') || _.get(args, 'moRef.type');
-
-  switch (this.typeResolver(type)) {
-    case 'ClusterComputeResource':
-      return createCluster.call(this, args, options);
-
-    case 'Datacenter':
-      return createDatacenter.call(this, args, options);
-
-    case 'DistributedVirtualSwitch':
-      return createDVSwitch.call(this, args, options);
-
-    case 'Folder':
-      return createFolder.call(this, args, options);
-
-    case 'StoragePod':
-      return createStoreCluster.call(this, args, options);
-
-    case 'VirtualMachine':
-      return createVM.call(this, args, options);
-
-    default:
-      return Promise$1.reject(new Error('invalid type "' + type + '" specified during create'));
-  }
-}
-
-function destroy() {
-  var _this = this;
-
-  var args = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-  var options = arguments[1];
-
-  options = _.isObject(options) ? options : {};
-  var type = args.type,
-      id = args.id,
-      moRef = args.moRef;
-
-  var typeName = this.typeResolver(type);
-  var obj = moRef || { type: typeName, value: id };
-
-  if (!moRef && !type && !id) return Promise$1.reject(new Error('no object specified to destroy'));
-
-  return this.method('Destroy_Task', { _this: obj }).then(function (task$$1) {
-    return options.async !== false ? task$$1 : monitor.task(_this, _.get(task$$1, 'value'), options);
-  });
 }
 
 var CookieSecurity = soap.Security.CookieSecurity;
@@ -1102,15 +634,17 @@ function getToken(headers) {
   return _.get(_.get(headers, 'set-cookie[0]', '').match(/"(.*)"/), '[1]', null);
 }
 
-function login(args) {
+/**
+ *
+ * @param username {String} - username or token
+ * @param password {String} - password (optional if token specified)
+ * @return {Promise.<TResult>|*|Promise.<*>}
+ */
+function login(username, password) {
   var _this = this;
 
-  var _ref = _.isObject(args) ? args : {},
-      username = _ref.username,
-      password = _ref.password,
-      token = _ref.token;
-
   var isHostAgent = _.get(this, 'serviceContent.about.apiType') === 'HostAgent';
+  var token = _.isString(username) && !password ? username : null;
 
   // token auth
   if (token) {
@@ -1125,6 +659,7 @@ function login(args) {
       id: 'SessionManager',
       properties: ['currentSession']
     }).then(function (sessions) {
+      _this.loggedIn = true;
       _this._session = _.get(sessions, '[0].currentSession');
       return _this._session;
     });
@@ -1137,113 +672,132 @@ function login(args) {
         userName: username,
         password: password
       }).then(function (session) {
+        _this.loggedIn = true;
         _this._soapClient.setSecurity(CookieSecurity(_this._soapClient.lastResponse.headers));
         _this._token = getToken(_this._soapClient.lastResponse.headers);
         _this._session = session;
         return _this._session;
-      });
+      }, console.error);
     }
 
   return Promise$1.reject('no credentials provided');
 }
 
 function logout() {
-  return this.method('Logout', { _this: this.serviceContent.sessionManager }).then(function () {
+  var _this = this;
+
+  return this.method('Logout', {
+    _this: this.serviceContent.sessionManager
+  }).then(function () {
+    _this.loggedIn = false;
     return { logout: true };
   });
 }
 
+var VSphereConnectError = function (_Error) {
+  inherits(VSphereConnectError, _Error);
+
+  function VSphereConnectError(name, code, message) {
+    classCallCheck(this, VSphereConnectError);
+
+    var _this = possibleConstructorReturn(this, (VSphereConnectError.__proto__ || Object.getPrototypeOf(VSphereConnectError)).call(this, message));
+
+    _this.name = name;
+    _this.code = code;
+    return _this;
+  }
+
+  return VSphereConnectError;
+}(Error);
+
+var ERR_INVALID_METHOD = 'ERR_INVALID_METHOD';
+
+var InvalidMethodError = function (_VSphereConnectError) {
+  inherits(InvalidMethodError, _VSphereConnectError);
+
+  function InvalidMethodError(method) {
+    classCallCheck(this, InvalidMethodError);
+    return possibleConstructorReturn(this, (InvalidMethodError.__proto__ || Object.getPrototypeOf(InvalidMethodError)).call(this, 'InvalidMethodError', ERR_INVALID_METHOD, method + ' is not a valid method'));
+  }
+
+  return InvalidMethodError;
+}(VSphereConnectError);
+
+var ERR_INVALID_TYPE = 'ERR_INVALID_TYPE';
+
+var InvalidTypeError = function (_VSphereConnectError) {
+  inherits(InvalidTypeError, _VSphereConnectError);
+
+  function InvalidTypeError(type) {
+    classCallCheck(this, InvalidTypeError);
+    return possibleConstructorReturn(this, (InvalidTypeError.__proto__ || Object.getPrototypeOf(InvalidTypeError)).call(this, 'InvalidTypeError', ERR_INVALID_TYPE, type + ' cannot be resolved to a valid vim type'));
+  }
+
+  return InvalidTypeError;
+}(VSphereConnectError);
+
+var ERR_MISSING_PROPS = 'ERR_MISSING_PROPS';
+
+var MissingPropertiesError = function (_VSphereConnectError) {
+  inherits(MissingPropertiesError, _VSphereConnectError);
+
+  function MissingPropertiesError(props) {
+    classCallCheck(this, MissingPropertiesError);
+    return possibleConstructorReturn(this, (MissingPropertiesError.__proto__ || Object.getPrototypeOf(MissingPropertiesError)).call(this, 'MissingPropertiesError', ERR_MISSING_PROPS, 'missing required properties ' + props.join(', ')));
+  }
+
+  return MissingPropertiesError;
+}(VSphereConnectError);
+
+var ERR_OBJECT_REF = 'ERR_OBJ_REF';
+
+var ObjectReferenceError = function (_VSphereConnectError) {
+  inherits(ObjectReferenceError, _VSphereConnectError);
+
+  function ObjectReferenceError() {
+    classCallCheck(this, ObjectReferenceError);
+    return possibleConstructorReturn(this, (ObjectReferenceError.__proto__ || Object.getPrototypeOf(ObjectReferenceError)).call(this, 'ObjectReferenceError', ERR_OBJECT_REF, 'Object reference cannot be determined. Please supply' + 'either a valid moRef object ({ type, value }) or type and id'));
+  }
+
+  return ObjectReferenceError;
+}(VSphereConnectError);
+
 function method(name, args) {
   args = _.isObject(args) ? args : {};
-  var _method = _.get(this._VimPort, '["' + name + '"]');
+  var method = _.get(this._VimPort, '["' + name + '"]');
 
-  return _.isFunction(_method) ? _method(args).then(function (result) {
+  return _.isFunction(method) ? method(args).then(function (result) {
     return _.get(result, 'returnval', result);
   }) : Promise$1.reject(new InvalidMethodError(name));
 }
 
-function getParent(type, id, parentType, root, resolve, reject) {
+function reload(moRef$$1) {
+  try {
+    return this.method('Reload', {
+      _this: moRef(moRef$$1)
+    }).then(function () {
+      return { reload: true };
+    });
+  } catch (error) {
+    return Promise$1.reject(error);
+  }
+}
+
+function rename(moRef$$1, name, options) {
   var _this = this;
 
-  var match = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : null;
+  if (!_.isString(name)) return Promise$1.reject(new Error('missing name parameter in rename operation'));
 
-  this.retrieve({ type: type, id: id, properties: ['parent'] }).then(function (result) {
-    var moRef$$1 = _.get(result, 'parent');
-    var hasParent = !_.isEmpty(moRef$$1);
-    var atRoot = _.isEqual(_this.serviceContent.rootFolder, moRef$$1);
-
-    if (!root) {
-      if (!parentType || parentType === moRef$$1.type) return resolve(moRef$$1);
-      if (parentType && hasParent && parentType !== moRef$$1.type) {
-        return getParent.call(_this, moRef$$1.type, moRef$$1.id, parentType, root, resolve, reject, match);
-      }
-      return resolve(match);
-    }
-
-    if (atRoot || !hasParent) return resolve(match);
-    return getParent.call(_this, moRef$$1.type, moRef$$1.id, parentType, root, resolve, reject, match);
-  }, reject);
-}
-
-function parent(args, options) {
-  var _this2 = this;
-
-  return new Promise$1(function (resolve, reject) {
-    options = _.isObject(options) ? options : {};
-
-    var _ref = _.isObject(args) ? args : {},
-        root = _ref.root,
-        parent = _ref.parent;
-
-    var _extractMoRef = extractMoRef(args),
-        typeName = _extractMoRef.typeName,
-        id = _extractMoRef.id,
-        moRefError = _extractMoRef.moRefError;
-
-    var parentType = parent ? _this2.typeResolver(parent) : null;
-
-    if (moRefError) return reject(moRefError);
-    if (parent && !parentType) return reject(new InvalidTypeError(parent));
-
-    return getParent.call(_this2, typeName, id, parentType, root, resolve, reject);
-  });
-}
-
-function reload(args) {
-  var _ref = _.isFunction(args) ? args : {},
-      type = _ref.type,
-      id = _ref.id,
-      moRef = _ref.moRef;
-
-  var typeName = this.typeResolver(type);
-  var obj = moRef || { type: typeName, value: id };
-
-  if (!moRef && !type && !id) return Promise$1.reject(new Error('no object specified to reload'));
-
-  return this.method('Reload', { _this: obj }).then(function () {
-    return { reload: true };
-  });
-}
-
-function rename(args, options) {
-  var _this = this;
-
-  var _ref = _.isObject(args) ? args : {},
-      type = _ref.type,
-      id = _ref.id,
-      moRef = _ref.moRef,
-      name = _ref.name;
-
-  var typeName = this.typeResolver(type);
-  var obj = moRef || { type: typeName, value: id };
-  options = _.isObject(options) ? options : {};
-
-  if (!moRef && !type && !id) return Promise$1.reject(new Error('no object specified'));
-  if (!_.isString(name)) return Promise$1.reject(new Error('invalid name'));
-
-  return this.method('Rename_Task', { _this: obj, newName: name }).then(function (task$$1) {
-    return options.async !== false ? task$$1 : monitor.task(_this, _.get(task$$1, 'value'), options);
-  });
+  try {
+    return this.method('Rename_Task', {
+      _this: moRef(moRef$$1),
+      newName: name
+    }).then(function (task$$1) {
+      return _.get(options, 'async') === false ? monitor.task(_this, _.get(task$$1, 'value'), options) : task$$1;
+    });
+  } catch (error) {
+    return Promise$1.reject(error);
+  }
 }
 
 var TraversalSpec = function () {
@@ -1416,21 +970,66 @@ var PropertyFilterSpec$1 = function (obj, client) {
   return new PropertyFilterSpec(obj, client);
 };
 
-function getResults(result, objects, limit, offset) {
+function graphSpec(specSet) {
+  var types = {};
+
+  _.forEach(_.isArray(specSet) ? specSet : [specSet], function (spec) {
+    if (_.isString(spec)) spec = { type: spec };
+    if (!spec.type) return;
+    if (!_.has(types, spec.type)) _.set(types, spec.type, { ids: [], props: [] });
+    if (spec.id) {
+      var ids = _.isArray(spec.id) ? spec.id : [spec.id];
+      types[spec.type].ids = _.union(types[spec.type].ids, ids);
+    }
+    if (spec.properties) {
+      var props = _.isArray(spec.properties) ? spec.properties : [spec.properties];
+      types[spec.type].props = _.union(types[spec.type].props, props);
+    }
+  });
+
+  return _.map(types, function (obj, type) {
+    return {
+      type: type,
+      id: obj.ids,
+      properties: obj.props
+    };
+  });
+}
+
+function convertRetrievedProperties(results, moRef) {
+  var objs = _.get(results, 'objects') || _.get(results, 'returnval.objects');
+
+  return _.map(_.isArray(objs) ? objs : [], function (result) {
+    var obj = moRef ? { moRef: result.obj } : {};
+    _.forEach(result.propSet, function (prop) {
+      _.set(obj, prop.name, prop.val);
+    });
+    return obj;
+  });
+}
+
+function getResults(result, objects, limit, skip, nth, orderBy, moRef, fn) {
   var _this2 = this;
 
   if (!result) return Promise$1.resolve(objects);
-  var objs = _.union(objects, convertRetrievedProperties(result));
+  var objs = _.union(objects, convertRetrievedProperties(result, moRef));
   var _this = this.serviceContent.propertyCollector;
 
-  if (result.token && (limit === undefined || objs.length < limit)) {
+  if (result.token) {
     return this.method('ContinueRetrievePropertiesEx', { _this: _this, token: result.token }).then(function (results) {
-      return getResults.call(_this2, results, objs, limit, offset);
+      return getResults.call(_this2, results, objs, limit, skip, nth, orderBy, moRef, fn);
     });
   }
 
-  var results = _.slice(objs, offset || 0, limit || objs.length);
-  return Promise$1.resolve(results);
+  objs = orderBy ? _.orderBy(objs, orderBy[0], orderBy[1]) : objs;
+
+  if (nth !== null) {
+    if (nth < 0 || nth >= objs.length - 1) return Promise$1.reject(new Error('nth selection out of range'));
+    return Promise$1.resolve(objs[nth]);
+  }
+
+  var results = _.slice(objs, skip || 0, limit || objs.length);
+  return Promise$1.resolve(fn(results));
 }
 
 function retrieve(args, options) {
@@ -1440,8 +1039,23 @@ function retrieve(args, options) {
   options = _.isObject(options) ? options : {};
 
   var limit = options.limit;
-  var offset = options.offset || 0;
-  if (_.isNumber(offset) && _.isNumber(limit)) limit += offset;
+  var skip = options.skip || 0;
+  var nth = _.isNumber(options.nth) ? Math.ceil(options.nth) : null;
+  var properties = _.get(args, 'properties', []);
+  var moRef = true; // _.includes(properties, 'moRef') || _.includes(properties, 'id')
+  var orderBy = null;
+  var fn = _.isFunction(options.resultHandler) ? options.resultHandler : function (result) {
+    return result;
+  };
+  args.properties = _.without(properties, 'moRef', 'id', 'moRef.value', 'moRef.type');
+
+  if (_.isObject(options.orderBy)) {
+    orderBy = [_.keys(options.orderBy), _.map(options.orderBy, function (dir) {
+      return dir === 'desc' || dir === -1 ? 'desc' : 'asc';
+    })];
+  }
+
+  if (_.isNumber(skip) && _.isNumber(limit)) limit += skip;
 
   var retrieveMethod = this._VimPort.RetrievePropertiesEx ? 'RetrievePropertiesEx' : 'RetrieveProperties';
   var specMap = _.map(graphSpec(args), function (s) {
@@ -1451,531 +1065,1042 @@ function retrieve(args, options) {
 
   return Promise$1.all(specMap).then(function (specSet) {
     return _this3.method(retrieveMethod, { _this: _this, specSet: specSet, options: {} }).then(function (result) {
-      return getResults.call(_this3, result, [], limit, offset);
+      return getResults.call(_this3, result, [], limit, skip, nth, orderBy, moRef, fn);
     });
   });
 }
 
 var methods = {
-  create: create,
   destroy: destroy,
   login: login,
   logout: logout,
   method: method,
-  parent: parent,
   reload: reload,
   rename: rename,
   retrieve: retrieve
 };
 
-function get$1(client, type, id, properties, limit, offset, single) {
-  return client.retrieve({ type: type, id: id, properties: properties }, { limit: limit, offset: offset }).then(function (result) {
-    return single ? _.get(result, '[0]', null) : result;
-  });
+var debug = Debug('vconnect.changefeed');
+
+var DEFAULT_INTERVAL_MS = 10000;
+var CREATED = 'enter';
+var UPDATED = 'modify';
+var DESTROYED = 'leave';
+var CHANGE = 'change';
+
+function getId(obj) {
+  var moRef = obj.moRef || obj.obj;
+  return _.get(moRef, 'type', 'unknown') + '-' + _.get(moRef, 'value', 'unknown');
 }
 
-var RESULT_TYPE = {
-  VIM_OBJECT: 'VIM_OBJECT',
-  VIM_COLLECTION: 'VIM_COLLECTION',
-  OBJECT: 'OBJECT',
-  COLLECTION: 'COLLECTION',
-  STRING: 'STRING',
-  NUMBER: 'NUMBER',
-  ARRAY: 'ARRAY'
-};
-
-var ENUMS = {
-  RESULT_TYPE: RESULT_TYPE
-};
-
-var _ENUMS$RESULT_TYPE = ENUMS.RESULT_TYPE;
-var VIM_OBJECT = _ENUMS$RESULT_TYPE.VIM_OBJECT;
-var VIM_COLLECTION = _ENUMS$RESULT_TYPE.VIM_COLLECTION;
-var OBJECT = _ENUMS$RESULT_TYPE.OBJECT;
-var COLLECTION = _ENUMS$RESULT_TYPE.COLLECTION;
-var STRING = _ENUMS$RESULT_TYPE.STRING;
-var ARRAY = _ENUMS$RESULT_TYPE.ARRAY;
-
-
-var CookieSecurity$1 = soap.Security.CookieSecurity;
-
-function query(q) {
-  var _this = this;
-
-  var limit = null,
-      offset = null,
-      id = null,
-      folder = null;
-
-  var val = Promise$1.resolve();
-  var idx = 0,
-      properties = [];
-  var _ref = [q._chain, q._chain.length, q._client, q._type],
-      chain = _ref[0],
-      len = _ref[1],
-      client = _ref[2],
-      type = _ref[3];
-
-  var resultType = type ? VIM_COLLECTION : null;
-  type = type ? client.typeResolver(type) : type;
-
-  // check for a new instantiation
-  if (!len) {
-    return type ? client.retrieve({ type: type }) : Promise$1.reject(new Error('Invalid query chain'));
-  }
-
-  var _iteratorNormalCompletion = true;
-  var _didIteratorError = false;
-  var _iteratorError = undefined;
-
-  try {
-    var _loop = function _loop() {
-      var c = _step.value;
-
-      var isLast = idx === len - 1;
-      switch (c.method) {
-        case 'createDatacenter':
-          val = val.then(function () {
-            return client.create({
-              type: 'datacenter',
-              folder: folder,
-              name: c.name
-            });
-          });
-          break;
-
-        case 'folder':
-          folder = c.id;
-          break;
-
-        case 'get':
-          if (!type) return {
-              v: Promise$1.reject(new Error('no type specified'))
-            };
-          id = c.id;
-          resultType = VIM_OBJECT;
-          if (isLast) return {
-              v: get$1(client, type, id, limit, offset, properties)
-            };
-          break;
-
-        case 'getAll':
-          if (!type) return {
-              v: Promise$1.reject(new Error('no type specified'))
-            };
-          resultType = VIM_COLLECTION;
-          break;
-
-        case 'limit':
-          limit = c.limit;
-          break;
-
-        case 'logout':
-          return {
-            v: client.logout()
-          };
-
-        case 'nth':
-          var handleNth = function handleNth(result) {
-            if (!_.isArray(result)) throw new Error('cannot get nth on non-array');
-            if (result.length - 1 < c.nth) {
-              if (c.default === undefined) throw new Error('invalid index');
-              return c.default;
-            }
-            return result[c.nth];
-          };
-
-          switch (resultType) {
-            case VIM_COLLECTION:
-              val = get$1(client, type, id, properties, limit, offset, false).then(handleNth);
-              resultType = OBJECT;
-              break;
-            case COLLECTION:
-              val = val.then(handleNth);
-              resultType = OBJECT;
-              break;
-            case ARRAY:
-              val = val.then(handleNth);
-              resultType = OBJECT;
-              break;
-            default:
-              return {
-                v: Promise$1.reject(new Error('cannot get nth on non list types'))
-              };
-          }
-          break;
-
-        case 'offset':
-          offset = c.offset;
-          break;
-
-        case 'pluck':
-          properties = buildPropList(c.args);
-          if (!properties.length) return {
-              v: Promise$1.reject(new Error('no properties specified'))
-            };
-          if (resultType === VIM_COLLECTION || resultType === VIM_OBJECT) {
-            val = get$1(client, type, id, properties, limit, offset, false);
-            resultType = resultType === VIM_COLLECTION ? COLLECTION : OBJECT;
-          } else if (resultType === COLLECTION || resultType === OBJECT) {
-            if (!(val instanceof Promise$1)) return {
-                v: Promise$1.reject(new Error('no selection found'))
-              };
-            val = val.then(function (v) {
-              return pluck(v, properties);
-            });
-          }
-          break;
-
-        case 'retrieve':
-          val = client.retrieve(c.args, { maxObjects: limit });
-          resultType = VIM_COLLECTION;
-          break;
-
-        case 'session':
-          val = Promise$1.resolve(q._session);
-          resultType = STRING;
-          break;
-
-        case 'token':
-          if (c.token) client.setSecurity(CookieSecurity$1('vmware_soap_session="' + _this._token + '"'));
-          val = Promise$1.resolve(q._token);
-          resultType = STRING;
-          break;
-
-        default:
-          break;
-      }
-      idx++;
-    };
-
-    for (var _iterator = chain[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      var _ret = _loop();
-
-      if ((typeof _ret === 'undefined' ? 'undefined' : _typeof(_ret)) === "object") return _ret.v;
-    }
-  } catch (err) {
-    _didIteratorError = true;
-    _iteratorError = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion && _iterator.return) {
-        _iterator.return();
-      }
-    } finally {
-      if (_didIteratorError) {
-        throw _iteratorError;
-      }
-    }
-  }
+function formatChange(obj) {
+  var val = {
+    moRef: obj.obj
+  };
+  _.forEach(obj.changeSet, function (change) {
+    _.set(val, change.name, change.val);
+  });
 
   return val;
 }
 
-/**
- * Top level vsphere-connect namespace, used to build a request chain
- * @example
- * import VSphere from 'vsphere-connect'
- *
- * let v = VSphere('vsphere.mydomain.com', {
- *   username: 'root',
- *   password: 'password',
- *   ignoreSSL: true
- * })
- *
- * v.type('cluster')
- *   .pluck('name')
- *   .run()
- *   .then(clusters => {
- *     console.log(clusters)
- *     return v.logout().run()
- *   })
- */
 
-var v = function () {
-  function v(client) {
-    var value = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-    var chain = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
-    var prev = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
-    var type = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : null;
-    classCallCheck(this, v);
+
+var ChangeFeed = function () {
+  function ChangeFeed(client, request, options) {
+    var _this2 = this;
+
+    classCallCheck(this, ChangeFeed);
+
+    debug('creating a new changefeed');
+    debug('args %O', request.args);
+    debug('options %O', request.options);
 
     this._client = client;
-    this._chain = chain;
-    this._prev = prev;
-    this._type = type;
+    this._request = request;
+    this._options = options;
+    this._interval = null;
+    this._emitter = new EventEmitter();
+    this._observable = Rx.Observable.fromEvent(this._emitter, CHANGE).finally(function () {
+      _this2.close();
+    });
+
+    debug('using method %s', this._waitMethod);
+
+    var intervalMS = _.get(options, 'interval');
+    this._intervalMS = _.isNumber(intervalMS) ? Math.ceil(intervalMS) : DEFAULT_INTERVAL_MS;
+
+    debug('using interval %d', this._intervalMS);
+
+    this.collector = {};
+    this.version = '';
+    this.currentVal = {};
+    this.updating = false;
+  }
+
+  createClass(ChangeFeed, [{
+    key: 'close',
+    value: function close() {
+      this._emitter.removeAllListeners();
+      clearTimeout(this._interval);
+    }
+  }, {
+    key: 'create',
+    value: function create() {
+      var _this3 = this;
+
+      this._request.term.then(function () {
+        var reqArgs = _.cloneDeep(_this3._request.args) || {};
+        reqArgs.properties = reqArgs.properties || [];
+        reqArgs.properties = _.without(reqArgs.properties, 'moRef', 'id');
+        var specMap = _.map(graphSpec(reqArgs), function (s) {
+          return PropertyFilterSpec$1(s, _this3._client).spec;
+        });
+        var _this = _this3._client.serviceContent.propertyCollector;
+        _this3._VimPort = _this3._client._VimPort;
+        _this3._waitMethod = _this3._VimPort.WaitForUpdatesEx ? 'WaitForUpdatesEx' : 'WaitForUpdates';
+
+        return Promise$1.all(specMap).then(function (specSet) {
+          debug('specMap %j', specSet);
+          return _this3._client.method('CreatePropertyCollector', { _this: _this }).then(function (_this) {
+            _this3.collector = _this;
+            return Promise$1.each(specSet, function (spec) {
+              return _this3._client.method('CreateFilter', { _this: _this, spec: spec, partialUpdates: false });
+            });
+          });
+        }).then(function () {
+          return _this3.update().then(function () {
+            _this3._interval = setInterval(function () {
+              _this3.update();
+            }, _this3._intervalMS);
+          });
+        });
+      });
+
+      return this._observable;
+    }
+  }, {
+    key: 'diff',
+    value: function diff(set$$1, firstRun) {
+      var _this4 = this;
+
+      var objectSet = _.get(set$$1, 'filterSet[0].objectSet');
+
+      if (firstRun) {
+        _.forEach(objectSet, function (obj) {
+          _this4.currentVal[getId(obj)] = formatChange(obj);
+        });
+      } else {
+        var creates = {};
+        var destroys = [];
+        var updates = {};
+
+        var changes = _.map(objectSet, function (obj) {
+          var id = getId(obj);
+          var change = {
+            old_val: null,
+            new_val: null
+          };
+
+          if (obj.kind === CREATED) {
+            change.new_val = formatChange(obj);
+            _.set(creates, id, change.new_val);
+          } else {
+            var newVal = _.cloneDeep(_.get(_this4.currentVal, id, {}));
+            change.old_val = _.cloneDeep(newVal);
+
+            if (obj.kind === DESTROYED) {
+              destroys.push(id);
+            } else if (obj.kind === UPDATED) {
+              _.forEach(obj.changeSet, function (_ref) {
+                var name = _ref.name,
+                    op = _ref.op,
+                    val = _ref.val;
+
+                switch (op) {
+                  case 'add':
+                    _.set(newVal, name, val);
+                    break;
+                  case 'remove':
+                    _.unset(newVal, name, val);
+                    break;
+                  case 'assign':
+                    _.set(newVal, name, val);
+                    break;
+                  case 'indirectRemove':
+                    _.unset(newVal, name, val);
+                    break;
+                  default:
+                    break;
+                }
+              });
+              _.set(updates, id, newVal);
+              change.new_val = newVal;
+            } else {
+              debug('unhandled kind %s', obj.kind);
+            }
+          }
+
+          return change;
+        });
+
+        // add creates
+        _.forEach(creates, function (change, id) {
+          _.set(_this4.currentVal, id, change);
+        });
+
+        // set updates
+        _.forEach(updates, function (change, id) {
+          _.set(_this4.currentVal, id, change);
+        });
+
+        // remove destroyed
+        _.forEach(destroys, function (id) {
+          _.unset(_this4.currentVal, id);
+        });
+
+        return changes;
+      }
+    }
+  }, {
+    key: 'update',
+    value: function update() {
+      var _this5 = this;
+
+      if (this.updating) return; // prevent concurrent calls to update
+      this.updating = true;
+      debug('update running');
+      return this._client.method(this._waitMethod, {
+        _this: this.collector,
+        version: this.version,
+        options: {
+          maxWaitSeconds: 0
+        }
+      }).then(function (set$$1) {
+        _this5.updating = false;
+        if (!set$$1) return;
+        _this5.version = set$$1.version;
+
+        if (_this5.version === '1') {
+          if (_.isEmpty(_this5.currentVal)) _this5.diff(set$$1, true);
+        } else {
+          if (_this5.version === '3') throw new Error('i planned this');
+          _.forEach(_this5.diff(set$$1), function (change) {
+            _this5._emitter.emit(CHANGE, change);
+          });
+        }
+      }, function (error) {
+        _this5._emitter.emit(CHANGE, error);
+        _this5.updating = false;
+      });
+    }
+  }]);
+  return ChangeFeed;
+}();
+
+var OPERATIONS = {
+  RETRIEVE: 'RETRIEVE',
+  LOGOUT: 'LOGOUT',
+  TYPE: 'TYPE',
+  PLUCK: 'PLUCK',
+  MAP: 'MAP',
+  REDUCE: 'REDUCE',
+  FILTER: 'FILTER',
+  EACH: 'EACH',
+  GET: 'GET',
+  GETALL: 'GETALL',
+  EQ: 'EQ',
+  NE: 'NE',
+  GT: 'GT',
+  LT: 'LT',
+  LTE: 'LTE',
+  GTE: 'GTE',
+  NOT: 'NOT',
+  EXPR: 'EXPR',
+  DO: 'DO'
+};
+
+function makeDotPath(obj) {
+  var list = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+  var path = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
+
+  _.forEach(obj, function (val, key) {
+    var prop = path.slice(0);
+    prop.push(key);
+    if (val === true) list.push(prop.join('.'));else makeDotPath(val, list, prop);
+  });
+  return list;
+}
+
+function buildPropList(args) {
+  var props = [];
+  _.forEach(args, function (arg) {
+    if (_.isString(arg)) props = _.union(props, [arg]);else if (_.isArray(arg)) props = _.union(props, arg);else if (_.isObject(arg)) props = _.union(props, makeDotPath(arg));
+  });
+  return props;
+}
+
+function pluckProperties(obj, props) {
+  return _.reduce(props, function (o, prop) {
+    return _.set(o, prop, _.get(obj, prop));
+  }, {});
+}
+
+function pluck(obj, props) {
+  return _.isArray(obj) ? _.map(obj, function (o) {
+    return pluckProperties(o, props);
+  }) : pluckProperties(obj, props);
+}
+
+/**
+ * returns a new request context built from the existing
+ * @param target
+ * @param source
+ * @param obj
+ * @param term
+ */
+function assignRequest(target, source) {
+  var obj = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  var term = arguments[3];
+
+  _.merge(target, _.omit(source, ['term']), obj);
+  if (term == true) target.term = source.term;
+}
+
+/**
+ * processes the current term promise and updates the context
+ * @param handler
+ * @param obj
+ * @return {v}
+ */
+function processTerm(handler) {
+  var _this = this;
+
+  var obj = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  var isDefault = arguments[2];
+
+  var req = {
+    term: this._request.term.then(function (value) {
+      assignRequest(req, _this._request, obj);
+      if (_this._request.error && !isDefault) return null;
+      if (isDefault) req.error = null;
+      return handler(value, req);
+    })
+  };
+  return new v(this._client, req);
+}
+
+/**
+ * recursively processes the branch statements
+ * @param args
+ * @param resolve
+ * @param reject
+ * @return {*|Promise.<*>|Promise.<TResult>}
+ */
+function processBranch(args, resolve, reject) {
+  var condition = args.shift();
+  var val = args.shift();
+  var las = _.last(args);
+
+  return Promise$1.resolve(condition).then(function (c) {
+    if (c === true) {
+      return Promise$1.resolve(_.isFunction(val) ? val() : val).then(resolve, reject);
+    } else if (args.length === 1) {
+      return Promise$1.resolve(_.isFunction(las) ? las() : las).then(resolve, reject);
+    } else {
+      return processBranch(args, resolve, reject);
+    }
+  }, reject);
+}
+
+/**
+ * retrieves records and clears out the request context
+ * @param req
+ * @return {*|Promise.<*>}
+ */
+function performRetrieve(req) {
+  return this._client.retrieve(req.args, req.options).then(function (result) {
+    req.args = {};
+    req.options = {};
+    return result;
+  });
+}
+
+var v = function () {
+  function v(client, request) {
+    classCallCheck(this, v);
+
+    var term = function term(field) {
+      return _.isString(field) ? term.value(field) : processTerm.call(this, function (result) {
+        return result;
+      });
+    };
+    Object.setPrototypeOf(term, v.prototype);
+
+    term._client = client;
+    term._request = _.isObject(request) ? request : {};
+    term._request.term = term._request.term || client._connection;
+    term._request.error = term._request.error || null;
+    return term;
   }
 
   /**
-   * Resolves a vSphere Connect client instance
-   * @returns {Promise.<VSphereConnectClient>}
+   * updates the request to return all fields
+   * @return {*}
    */
 
 
   createClass(v, [{
-    key: 'client',
-    value: function client() {
-      var _this = this;
-
-      return this._client._connection.then(function () {
-        return _this._client;
+    key: 'allData',
+    value: function allData() {
+      return processTerm.call(this, function (value, req) {
+        _.set(req, 'args.properties', []);
+        return value;
       });
     }
 
     /**
-     * Creates a new datacenter
-     * @param {String} name - datacenter name
-     * @returns {v}
+     * performs a branch operation
+     * @return {*}
      */
 
   }, {
-    key: 'createDatacenter',
-    value: function createDatacenter(name) {
-      if (!_.isString(name)) throw new Error('no name specified');
-      var method = 'createDatacenter';
-      this._chain.push({ method: method, prev: this._prev, name: name });
-      this._prev = method;
-      return this;
+    key: 'branch',
+    value: function branch() {
+      var args = [].concat(Array.prototype.slice.call(arguments));
+      return processTerm.call(this, function (value, req) {
+        req.operation = null;
+        args = args.length === 2 ? _.union([value], args) : args;
+
+        if (args.length < 3 || args.length % 2 !== 1) {
+          req.error = new Error('branch has an invalid number of arguments');
+          return;
+        }
+        return new Promise$1(function (resolve, reject) {
+          return processBranch(args, resolve, reject);
+        });
+      });
     }
 
     /**
-     * Selects a folder
-     * @param {String} id - folder id
-     * @returns {v}
+     * creates a new changefeed
+     * @param options
+     * @return {*}
      */
 
   }, {
-    key: 'folder',
-    value: function folder(id) {
-      if (!_.isString(id)) throw new Error('no id specified');
-      var method = 'folder';
-      this._chain.push({ method: method, prev: this._prev, id: id });
-      this._prev = method;
-      return this;
+    key: 'changes',
+    value: function changes(options) {
+      return new ChangeFeed(this._client, this._request, options).create();
     }
 
     /**
-     * Get the current selected type by id. A call to the type method must precede a call to this method
-     * @param {String} id - type id
-     * @returns {v}
+     * Completes the connection process and returns the backend client
+     * @return {*|Promise.<VsphereConnectClient>}
+     */
+
+  }, {
+    key: 'createClient',
+    value: function createClient() {
+      var _this2 = this;
+
+      return this._client._connection.then(function () {
+        return _this2._client;
+      });
+    }
+
+    /**
+     * default to a value if one does not exist
+     * @param val
+     * @return {*}
+     */
+
+  }, {
+    key: 'default',
+    value: function _default(val) {
+      return processTerm.call(this, function (result, req) {
+        if (result === undefined || req.error) {
+          if (req.error) req.error = null;
+          return val;
+        }
+        return result;
+      }, {}, true);
+    }
+
+    /**
+     * destroys a selection of objects
+     * @param options
+     * @return {*}
+     */
+
+  }, {
+    key: 'destroy',
+    value: function destroy(options) {
+      var _this3 = this;
+
+      return processTerm.call(this, function (result, req) {
+        var args = _.get(req, 'args', {});
+        var opts = _.get(req, 'options', {});
+
+        var arrayResults = !_.isNumber(opts.nth) && opts.limit !== 1 && (!args.id || _.isArray(args.id) && args.id.length);
+
+        return performRetrieve.call(_this3, req).then(function (results) {
+          return Promise$1.map(results, function (res) {
+            return _this3._client.destroy(res.moRef, options);
+          });
+        }).then(function (results) {
+          return arrayResults ? results : _.first(results);
+        });
+      });
+    }
+
+    /**
+     * performs a nested operation
+     * @return {*}
+     */
+
+  }, {
+    key: 'do',
+    value: function _do() {
+      var args = [].concat(Array.prototype.slice.call(arguments));
+      var fn = _.last(args);
+      if (!_.isFunction(fn)) throw new Error('invalid value for do');
+      return processTerm.call(this, function (value, req) {
+        var params = args.length > 1 ? args.slice(0, args.length - 1) : [value];
+        return Promise$1.map(params, function (param) {
+          return param;
+        }).then(function (params) {
+          req.operation = OPERATIONS.DO;
+          return fn.apply(null, params);
+        });
+      });
+    }
+
+    /**
+     * loops through a collection and performs the iteratee function
+     * @param iteratee
+     * @return {*}
+     */
+
+  }, {
+    key: 'each',
+    value: function each(iteratee) {
+      var _this4 = this;
+
+      iteratee = _.isFunction(iteratee) ? iteratee : _.identity;
+      return processTerm.call(this, function (value, req) {
+        var data = value;
+        switch (req.operation) {
+          case OPERATIONS.RETRIEVE:
+            data = performRetrieve.call(_this4, req);
+            break;
+          default:
+            break;
+        }
+        return Promise$1.each(data, iteratee).then(function (result) {
+          req.operation = OPERATIONS.EACH;
+          return result;
+        });
+      });
+    }
+
+    /**
+     * compares passed value to current value
+     * @param val
+     * @return {*}
+     */
+
+  }, {
+    key: 'eq',
+    value: function eq(val) {
+      var _this5 = this;
+
+      return processTerm.call(this, function (value, req) {
+        var data = value;
+        switch (req.operation) {
+          case OPERATIONS.RETRIEVE:
+            data = performRetrieve.call(_this5, req);
+            break;
+          default:
+            break;
+        }
+        return Promise$1.all([val, data]).then(function (result) {
+          req.operation = OPERATIONS.EQ;
+          return _.isEqual(result[0], result[1]);
+        });
+      });
+    }
+
+    /**
+     * creates a new expression
+     * @param val
+     * @return {*}
+     */
+
+  }, {
+    key: 'expr',
+    value: function expr(val) {
+      return processTerm.call(this, function (value, req) {
+        req.operation = OPERATIONS.EXPR;
+        return val;
+      });
+    }
+
+    /**
+     * Filters a collection
+     * @param iteratee
+     * @param options
+     * @return {*}
+     */
+
+  }, {
+    key: 'filter',
+    value: function filter(iteratee, options) {
+      var _this6 = this;
+
+      iteratee = _.isFunction(iteratee) ? iteratee : _.identity;
+      return processTerm.call(this, function (value, req) {
+        var data = value;
+        switch (req.operation) {
+          case OPERATIONS.RETRIEVE:
+            data = performRetrieve.call(_this6, req);
+            break;
+          default:
+            break;
+        }
+        return Promise$1.filter(data, iteratee, options).then(function (result) {
+          req.operation = OPERATIONS.FILTER;
+          return result;
+        });
+      });
+    }
+
+    /**
+     * gets one or more objects by id
+     * @param id
+     * @return {*}
      */
 
   }, {
     key: 'get',
-    value: function get$$1(id) {
-      if (!_.isString(id)) throw new Error('no id specified');
-      var method = 'get';
-      this._chain.push({ method: method, prev: this._prev, id: id });
-      this._prev = method;
-      return this;
+    value: function get$$1() {
+      var _this7 = this;
+
+      var ids = [].concat(Array.prototype.slice.call(arguments));
+      return processTerm.call(this, function (value, req) {
+        _.set(req, 'args.id', ids);
+        return performRetrieve.call(_this7, req).then(function (result) {
+          req.operation = OPERATIONS.GET;
+          return ids.length > 1 ? result : _.get(result, '[0]', null);
+        });
+      });
     }
 
     /**
-     * Get all objects of the current selected type. A call to the type method must precede a call to this method
-     * @returns {v}
+     * returns the id value from the current selection
+     * @return {*}
      */
 
   }, {
-    key: 'getAll',
-    value: function getAll() {
-      var method = 'getAll';
-      this._chain.push({ method: method, prev: this._prev });
-      this._prev = method;
-      return this;
+    key: 'id',
+    value: function id() {
+      return processTerm.call(this, function (value, req) {
+        req.operation = null;
+        return _.isArray(value) ? _.map(value, function (v) {
+          return _.get(v, 'moRef.value', null);
+        }) : _.get(value, 'moRef.value', null);
+      });
     }
 
     /**
-     * Limit the number of results returned
-     * @param {Number} count - The maximum number of results to return
-     * @returns {v}
+     * Limits the number of records returned
+     * @param limit
+     * @return {*}
      */
 
   }, {
     key: 'limit',
-    value: function limit(count) {
-      if (!_.isNumber(count)) throw new Error('limit must be an integer');
-      var method = 'limit';
-      this._chain.push({ method: method, prev: this._prev, limit: Math.floor(count) });
-      this._prev = method;
-      return this;
+    value: function limit(_limit) {
+      if (!_.isNumber(_limit)) throw new Error('invalid value for limit');
+      return processTerm.call(this, function (value, req) {
+        _.set(req, 'options.limit', Math.ceil(_limit));
+        return value;
+      });
     }
 
     /**
-     * Log out of the current session
-     * @returns {v}
+     * logs the user in or changes the token
+     * @param username
+     * @param password
+     * @return {*}
+     */
+
+  }, {
+    key: 'login',
+    value: function login(username, password) {
+      var _this8 = this;
+
+      return processTerm.call(this, function (value, req) {
+        return _this8._client.login(username, password);
+      });
+    }
+
+    /**
+     * Logs out of the current vSphere session
+     * @return {*|Promise.<Object>}
      */
 
   }, {
     key: 'logout',
     value: function logout() {
-      var method = 'logout';
-      this._chain.push({ method: method, prev: this._prev });
-      this._prev = method;
-      return this;
+      return this._request.term.then(this._client.logout());
     }
 
     /**
-     * Select a specific result by index
-     * @param {Number} index - Result to select
-     * @returns {v}
+     * performs a map operation
+     * @param iteratee
+     * @return {*}
+     */
+
+  }, {
+    key: 'map',
+    value: function map(iteratee, options) {
+      var _this9 = this;
+
+      iteratee = _.isFunction(iteratee) ? iteratee : _.identity;
+      return processTerm.call(this, function (value, req) {
+        var data = value;
+        switch (req.operation) {
+          case OPERATIONS.RETRIEVE:
+            data = performRetrieve.call(_this9, req);
+            break;
+          default:
+            break;
+        }
+        return Promise$1.map(data, iteratee, options).then(function (result) {
+          req.operation = OPERATIONS.MAP;
+          return result;
+        });
+      });
+    }
+
+    /**
+     * interact directly with the vsphere api
+     * @param name
+     * @param args
+     * @return {*}
+     */
+
+  }, {
+    key: 'method',
+    value: function method(name, args) {
+      var _this10 = this;
+
+      return processTerm.call(this, function (value, req) {
+        return _this10._client.method(name, args).then(function (result) {
+          req.operation = null;
+          return result;
+        });
+      });
+    }
+
+    /**
+     * compares passed value to current value
+     * @param val
+     * @return {*}
+     */
+
+  }, {
+    key: 'ne',
+    value: function ne(val) {
+      var _this11 = this;
+
+      return processTerm.call(this, function (value, req) {
+        var data = value;
+        switch (req.operation) {
+          case OPERATIONS.RETRIEVE:
+            data = performRetrieve.call(_this11, req);
+            break;
+          default:
+            break;
+        }
+        return Promise$1.map([val, data]).then(function (result) {
+          req.operation = OPERATIONS.NE;
+          return !_.isEqual(result[0], result[1]);
+        });
+      });
+    }
+
+    /**
+     * does a not operation on the current value
+     * @return {*}
+     */
+
+  }, {
+    key: 'not',
+    value: function not() {
+      return processTerm.call(this, function (value, req) {
+        req.operation = OPERATIONS.NOT;
+        return !_.includes([true, 1, "true", "TRUE"], value);
+      });
+    }
+
+    /**
+     * Gets a specific record from a list of records
+     * @param index
      */
 
   }, {
     key: 'nth',
     value: function nth(index) {
-      if (!_.isNumber(index)) throw new Error('nth selection must be an integer');
-      var method = 'nth';
-      this._chain.push({ method: method, prev: this._prev, nth: Math.floor(index) });
-      this._prev = method;
-      return this;
-    }
-
-    /**
-     * Select results starting at a specific index
-     * @param {Number} index - Index to start selection from
-     * @returns {v}
-     */
-
-  }, {
-    key: 'offset',
-    value: function offset(index) {
-      if (!_.isNumber(index)) throw new Error('offset must be an integer');
-      var method = 'offset';
-      this._chain.push({ method: method, prev: this._prev, offset: Math.floor(index) });
-      this._prev = method;
-      return this;
-    }
-
-    /**
-     * Plucks out one or more attributes from the result set
-     * @param {...String} property
-     * @returns {v}
-     */
-
-  }, {
-    key: 'pluck',
-    value: function pluck() {
-      var method = 'pluck';
-      var args = [].concat(Array.prototype.slice.call(arguments));
-      if (!this._type) throw new Error('a type must be selected first');
-      if (!args.length) throw new Error('pluck requires one or more fields');
-      this._chain.push({ method: method, prev: this._prev, args: args });
-      this._prev = method;
-      return this;
-    }
-
-    /**
-     * Retrieves results based on the query document
-     * @param {QueryDocument} queryDocument
-     * @returns {v}
-     */
-
-  }, {
-    key: 'retrieve',
-    value: function retrieve(queryDocument) {
-      var method = 'retrieve';
-      this._chain.push({ method: method, prev: this._prev, args: queryDocument });
-      this._prev = method;
-      return this;
-    }
-
-    /**
-     * Runs the current request chain
-     * @returns {Promise.<*>}
-     */
-
-  }, {
-    key: 'run',
-    value: function run() {
-      var _this2 = this;
-
-      return this._client._connection.then(function () {
-        _this2._token = _this2._client._token;
-        _this2._session = _this2._client._session;
-        return query(_this2);
+      if (!_.isNumber(index)) throw new Error('invalid value for nth');
+      return processTerm.call(this, function (value, req) {
+        _.set(req, 'options.nth', Math.ceil(index));
+        return value;
       });
     }
 
     /**
-     * Gets the current session object
-     * @returns {v}
+     * Orders the results
+     * @param doc
+     * @return {*}
      */
 
   }, {
-    key: 'session',
-    value: function session() {
-      var method = 'session';
-      this._chain.push({ method: method, prev: this._prev });
-      this._prev = method;
-      return this;
+    key: 'orderBy',
+    value: function orderBy(doc) {
+      return processTerm.call(this, function (value, req) {
+        _.set(req, 'options.orderBy', doc);
+        return value;
+      });
     }
 
     /**
-     * Gets the current session token
-     * @returns {v}
-     */
-    /**
-     * Sets the current session token
-     * @param {String} token
-     * @returns {v}
+     * Filters down the fields that will be returned
+     * @return {v}
      */
 
   }, {
-    key: 'token',
-    value: function token(_token) {
-      var method = 'token';
-      this._chain.push({ method: method, prev: this._prev, token: _token });
-      this._prev = method;
-      return this;
+    key: 'pluck',
+    value: function pluck$$1() {
+      var propList = buildPropList([].concat(Array.prototype.slice.call(arguments)));
+      return processTerm.call(this, function (value, req) {
+        var currentProps = _.get(req, 'args.properties', propList);
+        var useProps = _.intersection(propList, currentProps);
+        useProps = useProps.length ? useProps : propList;
+
+        switch (req.operation) {
+          case OPERATIONS.RETRIEVE:
+            _.set(req, 'args.properties', useProps);
+            return value;
+          default:
+            return pluck(value, useProps);
+        }
+      });
     }
 
     /**
-     * Sets the managed object type in the current request chain
+     * call the clients retrieve method directly
+     * @param args
+     * @param options
+     * @return {*}
+     */
+
+  }, {
+    key: 'retrieve',
+    value: function retrieve(args, options) {
+      var _this12 = this;
+
+      return processTerm.call(this, function (value, req) {
+        return _this12._client.retrieve(args, options).then(function (result) {
+          req.operation = null;
+          return result;
+        });
+      });
+    }
+
+    /**
+     * selects a value from the current result
+     * @param p
+     * @return {*}
+     */
+
+  }, {
+    key: 'value',
+    value: function value(p) {
+      var _this13 = this;
+
+      return processTerm.call(this, function (value, req) {
+        var data = Promise$1.resolve(value);
+        switch (req.operation) {
+          case OPERATIONS.RETRIEVE:
+            data = performRetrieve.call(_this13, req);
+            break;
+          default:
+            break;
+        }
+        return data.then(function (result) {
+          req.operation = null;
+
+          if (_.isString(p)) {
+            if (_.isArray(result)) {
+              return _.without(_.map(result, function (res) {
+                return _.get(res, p);
+              }), undefined);
+            } else {
+              var val = _.get(result, p);
+              if (val === undefined) {
+                req.error = new Error('no attribute "' + p + '" in object');
+              }
+              return val;
+            }
+          }
+          return result;
+        });
+      });
+    }
+
+    /**
+     * performs a reduce operation
+     * @param iteratee
+     * @param initialValue
+     * @return {*}
+     */
+
+  }, {
+    key: 'reduce',
+    value: function reduce(iteratee, initialValue) {
+      var _this14 = this;
+
+      iteratee = _.isFunction(iteratee) ? iteratee : _.identity;
+      return processTerm.call(this, function (value, req) {
+        var data = value;
+        switch (req.operation) {
+          case OPERATIONS.RETRIEVE:
+            data = performRetrieve.call(_this14, req);
+            break;
+          default:
+            break;
+        }
+        return Promise$1.reduce(data, iteratee, initialValue).then(function (result) {
+          req.operation = OPERATIONS.REDUCE;
+          return result;
+        });
+      });
+    }
+
+    /**
+     * Limits the number of records returned
+     * @param count
+     * @return {*}
+     */
+
+  }, {
+    key: 'skip',
+    value: function (_skip) {
+      function skip(_x3) {
+        return _skip.apply(this, arguments);
+      }
+
+      skip.toString = function () {
+        return _skip.toString();
+      };
+
+      return skip;
+    }(function (count) {
+      if (!_.isNumber(count)) throw new Error('invalid value for skip');
+      return processTerm.call(this, function (value, req) {
+        _.set(req, 'options.skip', Math.ceil(skip));
+        return value;
+      });
+    })
+
+    /**
+     * Sets the current type
      * @param name
-     * @returns {v}
+     * @return {v}
      */
 
   }, {
     key: 'type',
     value: function type(name) {
-      if (!name) throw new Error('type method requires a type name');
-      return new v(this._client, null, [], null, name);
+      var _this15 = this;
+
+      return processTerm.call(this, function (value, req) {
+        var type = _this15._client.typeResolver(name);
+        var operation = OPERATIONS.RETRIEVE;
+        if (!type) {
+          req.error = new Error('invalid type ' + name);
+          return;
+        }
+        assignRequest(req, _this15._request, { operation: operation, type: type });
+        _.set(req, 'args.type', type);
+        _.set(req, 'args.properties', ['moRef', 'name']);
+        return value;
+      });
+    }
+
+    /**
+     * Performs the chain of operations
+     * @param onFulfilled
+     * @param onRejected
+     * @return {*|Promise.<*>}
+     */
+
+  }, {
+    key: 'then',
+    value: function then(onFulfilled, onRejected) {
+      var _this16 = this;
+
+      onFulfilled = _.isFunction(onFulfilled) ? onFulfilled : _.noop;
+      onRejected = _.isFunction(onRejected) ? onRejected : _.noop;
+
+      return this._request.term.then(function (value) {
+        if (_this16._request.error) throw _this16._request.error;
+
+        switch (_this16._request.operation) {
+          case OPERATIONS.RETRIEVE:
+            return _this16._client.retrieve(_this16._request.args, _this16._request.options).then(onFulfilled, onRejected);
+
+          default:
+            return onFulfilled(value);
+        }
+        throw new Error('UnsupportedOperation: ' + _this16._request.operation);
+      }, onRejected);
     }
   }]);
   return v;
 }();
 
-/**
- * @module vsphere-connect
- * @description Build complex vSphere API requests
- * @author Branden Horiuchi <bhoriuchi@gmail.com>
- */
-var VSphereClient = function (_EventEmitter) {
-  inherits(VSphereClient, _EventEmitter);
+var VsphereConnectClient = function (_EventEmitter) {
+  inherits(VsphereConnectClient, _EventEmitter);
 
-  function VSphereClient(host, options) {
+  /**
+   *
+   * @param host {String} - viServer
+   * @param [options] {Object} - connection options
+   * @param [options.ignoreSSL=false] {Boolean} - ignores invalid ssl
+   * @param [options.cacheKey] {Function} - cache key function whose return value will be used as the cache key name
+   * @return {v}
+   */
+  function VsphereConnectClient(host, options) {
     var _ret;
 
-    classCallCheck(this, VSphereClient);
+    classCallCheck(this, VsphereConnectClient);
 
-    var _this = possibleConstructorReturn(this, (VSphereClient.__proto__ || Object.getPrototypeOf(VSphereClient)).call(this));
+    var _this = possibleConstructorReturn(this, (VsphereConnectClient.__proto__ || Object.getPrototypeOf(VsphereConnectClient)).call(this));
 
-    if (!host) throw new Error('No host specified');
-    _this._host = host;
-    _this._options = _.isObject(options) ? options : {};
-    _this._options.cacheKey = _this._options.cacheKey || cacheKey;
-    _this._endpoint = 'https://' + _this._host + '/sdk/vimService';
-    _this._wsdl = _this._endpoint + '.wsdl';
-    var soapEvents = _.isObject(_this._options.soapEvents) ? _this._options.soapEvents : {};
+    _this.loggedIn = false;
 
-    if (_this._options.ignoreSSL) process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    if (!_.isString(host) || _.isEmpty(host)) throw new Error('missing required parameter "host"');
 
-    _this._connection = soap.createClient(_this._wsdl, _this._options).then(function (client) {
-      if (_.isFunction(soapEvents.request)) client.on('soap.request', soapEvents.request);
-      if (_.isFunction(soapEvents.response)) client.on('soap.response', soapEvents.response);
-      if (_.isFunction(soapEvents.error)) client.on('soap.error', soapEvents.error);
-      if (_.isFunction(soapEvents.fault)) client.on('soap.fault', soapEvents.fault);
+    options = _.isObject(options) && !_.isArray(options) ? options : {};
 
+    options.cacheKey = _.isFunction(options.cacheKey) ? options.cacheKey : cacheKey;
+
+    if (options.ignoreSSL) process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
+    _this._connection = soap.createClient('https://' + host + '/sdk/vimService.wsdl', options).then(function (client) {
       _this._soapClient = client;
       _this._VimPort = _.get(client, 'services.VimService.VimPort');
 
@@ -1989,39 +2114,58 @@ var VSphereClient = function (_EventEmitter) {
       _this.serviceContent = _.get(result, 'returnval');
       _this.apiVersion = _.get(_this.serviceContent, 'about.apiVersion');
       _this.typeResolver = typeResolver(_this.apiVersion);
-      _.forEach(methods, function (fn, name) {
-        _this[name] = fn.bind(_this);
-      });
-      if (options.login !== false) return _this.login(_this._options);
+      return { connected: true };
     });
 
     return _ret = new v(_this), possibleConstructorReturn(_this, _ret);
   }
 
-  createClass(VSphereClient, [{
+  createClass(VsphereConnectClient, [{
     key: 'setSecurity',
     value: function setSecurity(securityObject) {
       this._soapClient.setSecurity(securityObject);
     }
+  }, {
+    key: 'destroy',
+    value: function destroy() {
+      return methods.destroy.apply(this, [].concat(Array.prototype.slice.call(arguments)));
+    }
+  }, {
+    key: 'login',
+    value: function login() {
+      return methods.login.apply(this, [].concat(Array.prototype.slice.call(arguments)));
+    }
+  }, {
+    key: 'logout',
+    value: function logout() {
+      return methods.logout.apply(this, [].concat(Array.prototype.slice.call(arguments)));
+    }
+  }, {
+    key: 'method',
+    value: function method() {
+      return methods.method.apply(this, [].concat(Array.prototype.slice.call(arguments)));
+    }
+  }, {
+    key: 'reload',
+    value: function reload() {
+      return methods.reload.apply(this, [].concat(Array.prototype.slice.call(arguments)));
+    }
+  }, {
+    key: 'rename',
+    value: function rename() {
+      return methods.rename.apply(this, [].concat(Array.prototype.slice.call(arguments)));
+    }
+  }, {
+    key: 'retrieve',
+    value: function retrieve() {
+      return methods.retrieve.apply(this, [].concat(Array.prototype.slice.call(arguments)));
+    }
   }]);
-  return VSphereClient;
+  return VsphereConnectClient;
 }(EventEmitter);
 
-/**
- * Creates a new v instance
- * @param {String} host - vsphere host
- * @param {Object} options
- * @param {String|Function} options.cacheKey
- * @param {Boolean} [options.ignoreSSL=false]
- * @returns {v}
- */
-function client$1(host, options) {
-  return new VSphereClient(host, options);
-}
+var index = function (host, options) {
+  return new VsphereConnectClient(host, options);
+};
 
-// add utility functions
-client$1.Cache = soap.Cache;
-client$1.Utils = Utils;
-client$1.Errors = Errors;
-
-module.exports = client$1;
+module.exports = index;

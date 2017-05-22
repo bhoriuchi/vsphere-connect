@@ -7,9 +7,17 @@ function getToken(headers) {
   return _.get(_.get(headers, 'set-cookie[0]', '').match(/"(.*)"/), '[1]', null)
 }
 
-export default function login (args) {
-  let { username, password, token } = _.isObject(args) ? args : {}
+/**
+ *
+ * @param username {String} - username or token
+ * @param password {String} - password (optional if token specified)
+ * @return {Promise.<TResult>|*|Promise.<*>}
+ */
+export default function login (username, password) {
   let isHostAgent = _.get(this, 'serviceContent.about.apiType') === 'HostAgent'
+  let token = _.isString(username) && !password
+    ? username
+    : null
 
   // token auth
   if (token) {
@@ -25,6 +33,7 @@ export default function login (args) {
       properties: ['currentSession']
     })
       .then(sessions => {
+        this.loggedIn = true
         this._session = _.get(sessions, '[0].currentSession')
         return this._session
       })
@@ -38,11 +47,12 @@ export default function login (args) {
       password
     })
       .then(session => {
+        this.loggedIn = true
         this._soapClient.setSecurity(CookieSecurity(this._soapClient.lastResponse.headers))
         this._token = getToken(this._soapClient.lastResponse.headers)
         this._session = session
         return this._session
-      })
+      }, console.error)
   }
 
   return Promise.reject('no credentials provided')

@@ -4,6 +4,6 @@ export default {
   entry: 'src/index.js',
   format: 'cjs',
   plugins: [ babel() ],
-  external: ['lodash', 'events', 'soap-connect', 'bluebird'],
+  external: ['lodash', 'events', 'soap-connect', 'bluebird', 'rxjs', 'debug'],
   dest: 'index.js'
 }
