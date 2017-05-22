@@ -1,6 +1,8 @@
 <template lang="pug">
   div
-    h4 Command: {{$route.params.command}}
+    h4
+      i.fa.fa-fw.fa-terminal
+      | &nbsp;{{$route.params.command}}
     hr
     h4.section Command syntax
     p
@@ -43,6 +45,9 @@
   })
 
   export default {
+    mounted () {
+      window.scrollTo(0, 0)
+    },
     directives: {
       SyntaxHighlight
     },

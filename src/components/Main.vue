@@ -16,7 +16,7 @@
 
 <style>
   #main {
-    top: -1px;
+    top: -2px;
     position: relative;
   }
 

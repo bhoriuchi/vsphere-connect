@@ -10,7 +10,7 @@
             span.icon-bar
             span.icon-bar
             span.icon-bar
-          router-link.navbar-brand(to="main") vSphere Connect
+          router-link.navbar-brand(to="/") vSphere Connect
         #navbar.navbar-collapse.collapse
           ul.nav.navbar-nav.navbar-right
             li
