@@ -8,6 +8,7 @@
 
     div(v-for="section in apiData")
       span.menu-header.lg {{section.section}}
+      p(v-if="section.description", v-html="section.description")
       div(v-for="(cmd, cmdName) in section.commands")
         h4.txt-bold(:id="'about-' + cmdName") {{cmdName}}
         p

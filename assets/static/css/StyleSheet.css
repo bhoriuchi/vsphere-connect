@@ -20,7 +20,9 @@ p.usage {
 }
 
 @media (min-width: 768px) {
-
+  .desktop-hide {
+    display: none;
+  }
 }
 
 @media (min-width: 992px) {
@@ -29,6 +31,15 @@ p.usage {
 
 @media (min-width: 1200px) {
 
+}
+
+@media (max-width: 768px) {
+  .mobile-hide {
+    display: none;
+  }
+  .mobile-show {
+    display: block;
+  }
 }
 
 .fade-enter-active, .fade-leave-active {

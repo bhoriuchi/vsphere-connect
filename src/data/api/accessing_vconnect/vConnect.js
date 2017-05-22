@@ -4,10 +4,7 @@ export default {
   example: {
     description: 'Establish a client session',
     code: `import VConnect from 'vsphere-connect'
-let v = VConnect('vcenter.mydomain.com', {
-  username: 'administrator@vsphere.local'
-  password: 'vmware100'
-})`
+let v = VConnect('vcenter.mydomain.com')`
   },
   params: {
     viserver: {
@@ -20,22 +17,21 @@ let v = VConnect('vcenter.mydomain.com', {
       description: 'Connection options',
       optional: false,
       fields: {
-        username: {
-          type: 'String',
-          description: 'User name for vSphere access',
-          optional: true
-        },
-        password: {
-          type: 'String',
-          description: 'Password for vSphere access',
-          optional: true
-        },
-        token: {
-          type: 'String',
-          description: 'Session token that can be used for authenticating',
+        ignoreSSL: {
+          type: 'Boolean',
+          description: 'Disable SSL security checks',
           optional: true
         }
       }
     }
-  }
+  },
+  content: [
+    {
+      type: 'example',
+      description: 'Access a self-signed viserver by ignoring invalid SSL',
+      code: `let v = VConnect('vcenter01.mydomain.com', {
+  ignoreSSL: true
+})`
+    }
+  ]
 }

@@ -10,5 +10,21 @@ export default {
     code: `let vmId = 'vm-10'
 v.branch(v.expr(vmId).eq('vm-10'), 'equal', 'not-equal')
 `
-  }
+  },
+  content: [
+    {
+      type: 'example',
+      description: 'Make a decision based on a request\'s result',
+      code: `v.type('vm')
+  .get('vm-23')('name')
+  .default(null)
+  .eq('myvm01')
+  .branch(
+    v.type('vm')
+      .get('vm-23')
+      .destroy(),
+    'do nothing'
+  )`
+    }
+  ]
 }

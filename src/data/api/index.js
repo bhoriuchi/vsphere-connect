@@ -11,6 +11,9 @@ export default [
   },
   {
     section: 'Backend Client',
+    description: 'The following commands are used to access the backend client directly. ' +
+    'They cannot directly be used in combination with any of the chained commands. To access the backend client use ' +
+    'the <code>v.client</code> command.',
     commands: backendClient
   },
   {

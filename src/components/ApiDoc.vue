@@ -1,7 +1,7 @@
 <template lang="pug">
   #apidoc.container.page-container
     .row
-      #command-menu.col-md-3.cmd-menu
+      #command-menu.col-md-3.mobile-hide
         div(v-for="section in apiData")
           span.menu-header.sm {{section.section}}
           ul.command-list
@@ -84,12 +84,6 @@
 
   hr.command-split {
     margin-top: 30px;
-  }
-
-  @media (max-width: 768px) {
-    .cmd-menu {
-      display: none;
-    }
   }
 
 </style>

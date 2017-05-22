@@ -10,7 +10,9 @@
             span.icon-bar
             span.icon-bar
             span.icon-bar
-          router-link.navbar-brand(to="/") vSphere Connect
+          router-link.navbar-brand(to="/")
+            img(src="../assets/vsphere-connect-logo-sm.png", style="display: inline-block; height: 30px;")
+            span.mobile-hide &nbsp; vSphere Connect
         #navbar.navbar-collapse.collapse
           ul.nav.navbar-nav.navbar-right
             li
@@ -99,6 +101,12 @@
 
   button.navbar-toggle .icon-bar {
     background-color: #fdfdfd;
+  }
+
+  #nav .nav-search input {
+    background-color: #ffffff;
+    border-radius: 4px;
+    padding: 5px 10px 5px 10px;
   }
 
 </style>

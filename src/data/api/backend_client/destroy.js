@@ -1,6 +1,6 @@
 export default {
-  description: 'Destroys a Managed Object',
-  usage: ['client.destroy(args, [options]) → Task'],
+  description: 'Destroys a managed object',
+  usage: ['client.destroy(moRef, [options]) → Task'],
   example: {
     description: 'Destroy a managed object',
     code: `client.destroy({
@@ -9,24 +9,19 @@ export default {
 })`
   },
   params: {
-    args: {
+    moRef: {
       type: 'Object',
       description: 'Object identifier hash',
       optional: false,
       fields: {
         type: {
           type: 'String',
-          description: 'Managed Object type',
+          description: 'Managed object type',
           optional: true
         },
         id: {
           type: 'String',
-          description: 'Managed Object id',
-          optional: true
-        },
-        moRef: {
-          type: 'ManagedObjectReference',
-          description: 'ManagedObjectReference to the object',
+          description: 'Managed object id',
           optional: true
         }
       }
