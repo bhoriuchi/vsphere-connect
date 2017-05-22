@@ -13,11 +13,13 @@
       ul
         li(v-for="(param, paramName) in apiData.params")
           code {{param.optional === true ? '[' + paramName + ']' : paramName}}
-          | { {{param.type}} } - {{param.description}}
+          | { {{param.type}} } - &nbsp;
+          span(v-html="param.description")
           ul(v-if="param.fields")
             li(v-for="(field, fieldName) in param.fields")
               code {{field.optional === true ? '[' + fieldName + ']' : fieldName}}
-              | { {{field.type}} } - {{field.description}}
+              | { {{field.type}} } - &nbsp;
+              span(v-html="field.description")
     hr
     p.regular-text(v-if="apiData.example")
       strong Example:
