@@ -1,12 +1,12 @@
 export default {
-  description: 'Destroys a managed object',
-  usage: ['client.destroy(moRef, [options]) → Promise<Task>'],
+  description: 'Renames a managed object',
+  usage: ['client.rename(moRef, newName, [options]) → Promise<Task>'],
   example: {
-    description: 'Destroy a managed object',
-    code: `client.destroy({
+    description: 'Rename a managed object',
+    code: `client.rename({
   type: 'vm',
   id: 'vm-10'
-})`
+}, 'vmrenamed01')`
   },
   params: {
     moRef: {
@@ -25,6 +25,11 @@ export default {
           optional: true
         }
       }
+    },
+    newName: {
+      type: 'String',
+      description: 'New name to set',
+      optional: false
     },
     options: {
       type: 'Object',
