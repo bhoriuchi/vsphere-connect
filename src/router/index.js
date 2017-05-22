@@ -10,7 +10,6 @@ import SummaryApiDoc from '@/components/SummaryApiDoc'
 Vue.use(Router)
 
 export default new Router({
-  mode: 'history',
   base: '/vsphere-connect/',
   routes: [
     {
@@ -46,12 +45,5 @@ export default new Router({
       path: '*',
       redirect: '/'
     }
-  ],
-  scrollBehavior (to, from, savedPosition) {
-    if (to.hash) {
-      return {
-        selector: to.hash
-      }
-    }
-  }
+  ]
 })

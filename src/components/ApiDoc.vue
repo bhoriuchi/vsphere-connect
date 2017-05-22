@@ -19,11 +19,21 @@
         return this.$route.params.command
           ? `/api/${name}`
           : `#about-${name}`
+      },
+      scrollToSection (id) {
+        document.getElementById(`about-${id}`).scrollIntoView()
       }
     },
     data () {
       return {
         apiData
+      }
+    },
+    watch: {
+      $route (val) {
+        if (val.path === '/api' && val.hash) {
+          document.getElementById(val.hash.replace(/^#/, '')).scrollIntoView()
+        }
       }
     }
   }
