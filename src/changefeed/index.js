@@ -30,20 +30,6 @@ function formatChange (obj) {
   return val
 }
 
-export class Cursor {
-  constructor (emitter, interval) {
-    this.close = () => {
-      emitter.removeAllListeners()
-      clearInterval(interval)
-    }
-
-    this.each = (handler) => {
-      emitter.on('cursor.data', data => handler(undefined, data))
-      emitter.on('cursor.error', err => handler(err))
-    }
-  }
-}
-
 export default class ChangeFeed {
   constructor (client, request, options) {
     debug('creating a new changefeed')
@@ -211,7 +197,6 @@ export default class ChangeFeed {
         if (this.version === '1') {
           if (_.isEmpty(this.currentVal)) this.diff(set, true)
         } else {
-          if (this.version === '3') throw new Error('i planned this')
           _.forEach(this.diff(set), change => {
             this._emitter.emit(CHANGE, change)
           })
