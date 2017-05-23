@@ -1,14 +1,21 @@
 {
   "name": "vsphere-connect",
-  "version": "1.1.1",
-  "description": "vSphere Connect",
-  "main": "lib/index.js",
+  "version": "2.0.0-alpha.0",
+  "description": "A modern vSphere client",
+  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/bhoriuchi/vsphere-connect.git"
   },
   "keywords": [
-    "vsphere"
+    "vsphere",
+    "client",
+    "vmware",
+    "vcenter",
+    "esx",
+    "esxi",
+    "api",
+    "vim"
   ],
   "author": "Branden Horiuchi <bhoriuchi@gmail.com>",
   "license": "MIT",
@@ -17,15 +24,32 @@
     "url": "https://github.com/bhoriuchi/vsphere-connect/issues"
   },
   "dependencies": {
-    "vsphere-schema": "^1.0.0",
-    "bluebird": "^3.2.2",
-    "soap": "^0.13.0",
-    "soap-cookie": "^0.10.1",
-    "nodexml": "^1.0.2",
-    "lodash": "^4.5.1"
+    "bluebird": "^3.5.0",
+    "debug": "^2.6.8",
+    "lodash": "^4.17.4",
+    "rxjs": "^5.4.0",
+    "soap-connect": "git+https://github.com/bhoriuchi/soap-connect#development"
+  },
+  "devDependencies": {
+    "babel-core": "^6.24.0",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-es2015": "^6.24.0",
+    "babel-preset-es2015-rollup": "^3.0.0",
+    "babel-preset-stage-2": "^6.22.0",
+    "babel-register": "^6.24.0",
+    "babel-runtime": "^6.23.0",
+    "chai": "^3.5.0",
+    "chalk": "^1.1.3",
+    "mocha": "^3.0.0",
+    "rollup": "^0.41.6",
+    "rollup-plugin-babel": "^2.7.1"
   },
   "scripts": {
-    "test": "echo \\\"Error: no test specified\\\" && exit 1"
+    "test": "npm run build && mocha test/index.js",
+    "copy:soap": "cp ../soap-connect/*.js node_modules/soap-connect/",
+    "build:copybrc": "cp build/.build.babelrc src/.babelrc",
+    "build:rmbrc": "rm -f src/.babelrc",
+    "build": "npm run build:copybrc && rollup -c build/rollup.config.js && npm run build:rmbrc"
   },
   "directories": {
     "example": "example"
