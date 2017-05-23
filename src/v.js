@@ -4,6 +4,7 @@ import ChangeFeed from './changefeed/index'
 import { OPERATIONS as ops } from './common/contants'
 import buildPropList from './common/buildPropList'
 import pluck from './common/pluck'
+import orderDoc from './common/orderDoc'
 
 /**
  * returns a new request context built from the existing
@@ -148,11 +149,18 @@ export default class v {
    */
   default (val) {
     return processTerm.call(this, (result, req) => {
-      if (result === undefined || req.error) {
-        if (req.error) req.error = null
-        return val
-      }
-      return result
+      let error = req.error
+        ? req.error
+        : result === undefined
+          ? new Error('NoResultsError: the selection has no results')
+          : null
+      req.error = null
+
+      return error
+        ? _.isFunction(val)
+          ? val(error)
+          : val
+        : result
     }, {}, true)
   }
 
@@ -241,10 +249,14 @@ export default class v {
         default:
           break
       }
-      return Promise.all([val, data])
+      return Promise.resolve(data).then(compare => {
+        return Promise.reduce([...arguments], (accum, item) => {
+          return accum && _.isEqual(compare, item)
+        }, true)
+      })
         .then(result => {
           req.operation = ops.EQ
-          return _.isEqual(result[0], result[1])
+          return result
         })
     })
   }
@@ -406,11 +418,8 @@ export default class v {
         default:
           break
       }
-      return Promise.map([val, data])
-        .then(result => {
-          req.operation = ops.NE
-          return !_.isEqual(result[0], result[1])
-        })
+      let expr =  this.expr(data)
+      return expr.eq.apply(expr, [...arguments]).not()
     })
   }
 
@@ -444,7 +453,15 @@ export default class v {
    */
   orderBy (doc) {
     return processTerm.call(this, (value, req) => {
-      _.set(req, 'options.orderBy', doc)
+      switch (req.operation) {
+        case ops.RETRIEVE:
+          _.set(req, 'options.orderBy', doc)
+          break
+        default:
+          let orderBy = orderDoc(doc)
+          value = _.orderBy(value, orderBy.fields, orderBy.directions)
+          break
+      }
       return value
     })
   }

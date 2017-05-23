@@ -1,9 +1,23 @@
 import _ from 'lodash'
-import VSphere from '../index'
-import cred from '../../credentials'
+import VSphere from '../src/index'
+import cred from '../credentials'
 let { host, username, password } = cred
 
-let v = VSphere(host, { ignoreSSL: true }).login(username, password)
+let v = VSphere(host, { ignoreSSL: true })
+v = v.login(username, password)
+
+v.type('vm').get('vm-49')('name').default(err => {
+  console.log(err)
+  return 'ok'
+})
+  .then(vms => {
+    console.log(JSON.stringify(vms, null, '  '))
+  }, err => {
+    console.error({ err })
+  })
+  .finally(() => {
+    return v.logout()
+  })
 
 /*
 v.type('vm').nth(0)('name1').then(vms => {
@@ -15,6 +29,7 @@ v.type('vm').nth(0)('name1').then(vms => {
   })
 */
 
+/*
 v.type('datacenter').changes().subscribe(
   change => {
     console.log({change})
@@ -26,6 +41,7 @@ v.type('datacenter').changes().subscribe(
     console.log('complete')
   }
 )
+*/
 
 
 /*

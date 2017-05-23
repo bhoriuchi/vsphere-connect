@@ -1008,6 +1008,15 @@ function convertRetrievedProperties(results, moRef) {
   });
 }
 
+function orderDoc(doc) {
+  return {
+    fields: _.keys(doc),
+    directions: _.map(doc, function (dir) {
+      return dir === 'desc' || dir === -1 ? 'desc' : 'asc';
+    })
+  };
+}
+
 function getResults(result, objects, limit, skip, nth, orderBy, moRef, fn) {
   var _this2 = this;
 
@@ -1021,11 +1030,10 @@ function getResults(result, objects, limit, skip, nth, orderBy, moRef, fn) {
     });
   }
 
-  objs = orderBy ? _.orderBy(objs, orderBy[0], orderBy[1]) : objs;
+  objs = orderBy ? _.orderBy(objs, orderBy.fields, orderBy.directions) : objs;
 
   if (nth !== null) {
-    if (nth < 0 || nth >= objs.length - 1) return Promise$1.reject(new Error('nth selection out of range'));
-    return Promise$1.resolve(objs[nth]);
+    return Promise$1.resolve(_.nth(objs, nth));
   }
 
   var results = _.slice(objs, skip || 0, limit || objs.length);
@@ -1043,17 +1051,11 @@ function retrieve(args, options) {
   var nth = _.isNumber(options.nth) ? Math.ceil(options.nth) : null;
   var properties = _.get(args, 'properties', []);
   var moRef = true; // _.includes(properties, 'moRef') || _.includes(properties, 'id')
-  var orderBy = null;
+  var orderBy = options.orderBy ? orderDoc(options.orderBy) : null;
   var fn = _.isFunction(options.resultHandler) ? options.resultHandler : function (result) {
     return result;
   };
   args.properties = _.without(properties, 'moRef', 'id', 'moRef.value', 'moRef.type');
-
-  if (_.isObject(options.orderBy)) {
-    orderBy = [_.keys(options.orderBy), _.map(options.orderBy, function (dir) {
-      return dir === 'desc' || dir === -1 ? 'desc' : 'asc';
-    })];
-  }
 
   if (_.isNumber(skip) && _.isNumber(limit)) limit += skip;
 
@@ -1103,8 +1105,6 @@ function formatChange(obj) {
 
   return val;
 }
-
-
 
 var ChangeFeed = function () {
   function ChangeFeed(client, request, options) {
@@ -1284,7 +1284,6 @@ var ChangeFeed = function () {
         if (_this5.version === '1') {
           if (_.isEmpty(_this5.currentVal)) _this5.diff(set$$1, true);
         } else {
-          if (_this5.version === '3') throw new Error('i planned this');
           _.forEach(_this5.diff(set$$1), function (change) {
             _this5._emitter.emit(CHANGE, change);
           });
@@ -1519,11 +1518,10 @@ var v = function () {
     key: 'default',
     value: function _default(val) {
       return processTerm.call(this, function (result, req) {
-        if (result === undefined || req.error) {
-          if (req.error) req.error = null;
-          return val;
-        }
-        return result;
+        var error = req.error ? req.error : result === undefined ? new Error('NoResultsError: the selection has no results') : null;
+        req.error = null;
+
+        return error ? _.isFunction(val) ? val(error) : val : result;
       }, {}, true);
     }
 
@@ -1613,7 +1611,8 @@ var v = function () {
   }, {
     key: 'eq',
     value: function eq(val) {
-      var _this5 = this;
+      var _this5 = this,
+          _arguments = arguments;
 
       return processTerm.call(this, function (value, req) {
         var data = value;
@@ -1624,9 +1623,13 @@ var v = function () {
           default:
             break;
         }
-        return Promise$1.all([val, data]).then(function (result) {
+        return Promise$1.resolve(data).then(function (compare) {
+          return Promise$1.reduce([].concat(Array.prototype.slice.call(_arguments)), function (accum, item) {
+            return accum && _.isEqual(compare, item);
+          }, true);
+        }).then(function (result) {
           req.operation = OPERATIONS.EQ;
-          return _.isEqual(result[0], result[1]);
+          return result;
         });
       });
     }
@@ -1813,7 +1816,8 @@ var v = function () {
   }, {
     key: 'ne',
     value: function ne(val) {
-      var _this11 = this;
+      var _this11 = this,
+          _arguments2 = arguments;
 
       return processTerm.call(this, function (value, req) {
         var data = value;
@@ -1824,10 +1828,8 @@ var v = function () {
           default:
             break;
         }
-        return Promise$1.map([val, data]).then(function (result) {
-          req.operation = OPERATIONS.NE;
-          return !_.isEqual(result[0], result[1]);
-        });
+        var expr = _this11.expr(data);
+        return expr.eq.apply(expr, [].concat(Array.prototype.slice.call(_arguments2))).not();
       });
     }
 
@@ -1870,7 +1872,15 @@ var v = function () {
     key: 'orderBy',
     value: function orderBy(doc) {
       return processTerm.call(this, function (value, req) {
-        _.set(req, 'options.orderBy', doc);
+        switch (req.operation) {
+          case OPERATIONS.RETRIEVE:
+            _.set(req, 'options.orderBy', doc);
+            break;
+          default:
+            var orderBy = orderDoc(doc);
+            value = _.orderBy(value, orderBy.fields, orderBy.directions);
+            break;
+        }
         return value;
       });
     }
