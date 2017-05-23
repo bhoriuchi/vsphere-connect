@@ -15,12 +15,13 @@ let v = VConnect('vcenter.mydomain.com')`
     options: {
       type: 'Object',
       description: 'Connection options',
-      optional: false,
+      optional: true,
       fields: {
         ignoreSSL: {
           type: 'Boolean',
           description: 'Disable SSL security checks',
-          optional: true
+          optional: true,
+          default: false
         }
       }
     }

@@ -45,6 +45,7 @@
     computed: {
       apiSubMenuData () {
         if (!this.search) return this.apiData
+        let rx = new RegExp(this.search, 'i')
         let newData = []
         forEach(this.apiData, section => {
           let s = {
@@ -52,7 +53,7 @@
             commands: {}
           }
           forEach(section.commands, (cmd, cmdName) => {
-            if (cmdName.toLowerCase().match(this.search, 'i')) s.commands[cmdName] = cmd
+            if (cmdName.toLowerCase().match(rx)) s.commands[cmdName] = cmd
           })
           if (Object.keys(s.commands).length) newData.push(s)
         })
@@ -95,6 +96,7 @@
     bottom: 0px;
     text-align: left;
     background-color: #182756;
+    overflow-y: auto;
   }
 
   #mobile-nav ul {

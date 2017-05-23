@@ -1,9 +1,9 @@
 export default {
   description: 'Executes a vSphere method',
-  usage: ['client.method(name, args) → Promise<any>'],
+  usage: ['v.method(name, args) → Promise<any>'],
   example: {
     description: 'Destroy a VirtualMachine',
-    code: `client.method('Destroy_Task', {
+    code: `v.method('Destroy_Task', {
   _this: {
     type: 'VirtualMachine',
     value: 'vm-53'

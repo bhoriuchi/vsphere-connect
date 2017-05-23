@@ -1,5 +1,11 @@
+import filter from './filter'
+import get from './get'
 import type from './type'
+import retrieve from './retrieve'
 
 export default {
-  type
+  filter,
+  get,
+  type,
+  retrieve
 }

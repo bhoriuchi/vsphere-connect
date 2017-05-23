@@ -2,7 +2,11 @@
   #apidoc.container.page-container
     .row
       #command-menu.col-md-3.mobile-hide
-        div(v-for="section in apiData")
+        .form-group
+          .input-group
+            input.form-control(type="text", placeholder="Filter commands", v-model="search")
+            i.input-group-addon.glyphicon.glyphicon-filter
+        div(v-for="section in filteredApi")
           span.menu-header.sm {{section.section}}
           ul.command-list
             li(v-for="(cmd, cmdName) in section.commands")
@@ -13,7 +17,26 @@
 
 <script type="text/babel">
   import apiData from '@/data/api/index'
+  import { forEach } from '@/assets/js/utils'
   export default {
+    computed: {
+      filteredApi () {
+        if (!this.search) return this.apiData
+        let rx = new RegExp(this.search, 'i')
+        let newData = []
+        forEach(this.apiData, section => {
+          let s = {
+            section: section.section,
+            commands: {}
+          }
+          forEach(section.commands, (cmd, cmdName) => {
+            if (cmdName.toLowerCase().match(rx)) s.commands[cmdName] = cmd
+          })
+          if (Object.keys(s.commands).length) newData.push(s)
+        })
+        return newData
+      }
+    },
     methods: {
       makeLink (name) {
         return this.$route.params.command
@@ -26,7 +49,8 @@
     },
     data () {
       return {
-        apiData
+        apiData,
+        search: ''
       }
     },
     watch: {

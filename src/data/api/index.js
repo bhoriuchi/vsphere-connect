@@ -1,13 +1,21 @@
 import accessingVconnect from './accessing_vconnect/index'
+import writingData from './writing_data'
 import backendClient from './backend_client'
 import selectingData from './selecting_data'
+import transformations from './transformations'
+import aggregation from './aggregation'
 import objectManipulation from './object_manipulation'
+import mathAndLogic from './math_and_logic'
 import controlStructures from './control_structures'
 
 export default [
   {
     section: 'Accessing vConnect',
     commands: accessingVconnect
+  },
+  {
+    section: 'Writing Data',
+    commands: writingData
   },
   {
     section: 'Backend Client',
@@ -21,8 +29,20 @@ export default [
     commands: selectingData
   },
   {
+    section: 'Transformations',
+    commands: transformations
+  },
+  {
+    section: 'Aggregation',
+    commands: aggregation
+  },
+  {
     section: 'Object Manipulation',
     commands: objectManipulation
+  },
+  {
+    section: 'Math and logic',
+    commands: mathAndLogic
   },
   {
     section: 'Control Structures',

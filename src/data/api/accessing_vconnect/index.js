@@ -4,6 +4,7 @@ import logout from './logout'
 import v from './v'
 import createClient from './createClient'
 import changes from './changes'
+import method from './method'
 
 export default {
   vConnect,
@@ -11,5 +12,6 @@ export default {
   logout,
   v,
   createClient,
-  changes
+  changes,
+  method
 }

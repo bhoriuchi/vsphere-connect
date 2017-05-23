@@ -12,7 +12,7 @@
             span.icon-bar
           router-link.navbar-brand(to="/")
             img(src="../assets/vsphere-connect-logo-sm.png", style="display: inline-block; height: 30px;")
-            span.mobile-hide &nbsp; vSphere Connect
+            span &nbsp; vSphere Connect
         #navbar.navbar-collapse.collapse
           ul.nav.navbar-nav.navbar-right
             li
@@ -107,6 +107,12 @@
     background-color: #ffffff;
     border-radius: 4px;
     padding: 5px 10px 5px 10px;
+  }
+
+  @media (max-width: 768px) {
+    .navbar-brand span {
+      font-size: 0.8em;
+    }
   }
 
 </style>

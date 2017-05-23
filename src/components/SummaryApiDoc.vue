@@ -5,7 +5,6 @@
       strong Does this documentation look familiar?
       p It has been intentionally modeled after the RethinkDB documentation because the command structure was modeled after RethinkDB itself.
 
-
     div(v-for="section in apiData")
       span.menu-header.lg {{section.section}}
       p(v-if="section.description", v-html="section.description")
