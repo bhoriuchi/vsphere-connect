@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import Promise from 'bluebird'
 import RequestBuilder from './RequestBuilder'
-import ChangeFeed from './changefeed/index'
+import ChangeFeed from './ChangeFeed'
 import orderDoc from './common/orderDoc'
 import pluck from './common/pluck'
 import buildPropList from './common/buildPropList'
@@ -89,7 +89,7 @@ export default class v {
    * @returns {*}
    */
   changes (options) {
-    return new ChangeFeed(this._rb.client, this._rb, options).create()
+    return new ChangeFeed(this._rb, options).create()
   }
 
   /**

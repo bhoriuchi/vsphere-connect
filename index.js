@@ -1185,17 +1185,17 @@ function formatChange(obj) {
 }
 
 var ChangeFeed = function () {
-  function ChangeFeed(client, request, options) {
+  function ChangeFeed(rb, options) {
     var _this2 = this;
 
     classCallCheck(this, ChangeFeed);
 
     debug$1('creating a new changefeed');
-    debug$1('args %O', request.args);
-    debug$1('options %O', request.options);
+    debug$1('args %O', rb.args);
+    debug$1('options %O', rb.options);
 
-    this._client = client;
-    this._request = request;
+    this._client = rb.client;
+    this._request = rb;
     this._options = options;
     this._interval = null;
     this._emitter = new EventEmitter();
@@ -1229,7 +1229,8 @@ var ChangeFeed = function () {
 
       this._request.term.then(function () {
         var reqArgs = _.cloneDeep(_this3._request.args) || {};
-        reqArgs.properties = reqArgs.properties || [];
+        if (_this3._request.allData) reqArgs.properties = [];
+        reqArgs.properties = reqArgs.properties || ['moRef', 'name'];
         reqArgs.properties = _.without(reqArgs.properties, 'moRef', 'id');
         var specMap = _.map(graphSpec(reqArgs), function (s) {
           return PropertyFilterSpec$1(s, _this3._client).spec;
@@ -1484,7 +1485,7 @@ var v = function () {
   }, {
     key: 'changes',
     value: function changes(options) {
-      return new ChangeFeed(this._rb.client, this._rb, options).create();
+      return new ChangeFeed(this._rb, options).create();
     }
 
     /**
