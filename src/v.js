@@ -1,60 +1,36 @@
 import _ from 'lodash'
 import Promise from 'bluebird'
+import RequestBuilder from './RequestBuilder'
 import ChangeFeed from './changefeed/index'
-import { OPERATIONS as ops } from './common/contants'
-import buildPropList from './common/buildPropList'
-import pluck from './common/pluck'
 import orderDoc from './common/orderDoc'
+import pluck from './common/pluck'
+import buildPropList from './common/buildPropList'
+import { RETRIEVE } from './common/contants'
 
-/**
- * returns a new request context built from the existing
- * @param target
- * @param source
- * @param obj
- * @param term
- */
-function assignRequest (target, source, obj = {}, term) {
-  _.merge(target, _.omit(source, ['term']), obj)
-  if (term == true) target.term = source.term
-}
-
-/**
- * processes the current term promise and updates the context
- * @param handler
- * @param obj
- * @return {v}
- */
-function processTerm (handler, obj = {}, isDefault) {
-  let req = {
-    term: this._request.term.then(value => {
-      assignRequest(req, this._request, obj)
-      if (this._request.error && !isDefault) return null
-      if (isDefault) req.error = null
-      return handler(value, req)
-    })
-  }
-  return new v(this._client, req)
-}
-
-/**
- * recursively processes the branch statements
- * @param args
- * @param resolve
- * @param reject
- * @return {*|Promise.<*>|Promise.<TResult>}
- */
 function processBranch (args, resolve, reject) {
   let condition = args.shift()
   let val = args.shift()
   let las = _.last(args)
 
-  return Promise.resolve(condition)
+  return (
+    condition instanceof v
+      ? condition._rb.value
+      : Promise.resolve(condition)
+  )
     .then(c => {
       if (c === true) {
-        return Promise.resolve(_.isFunction(val) ? val() : val)
+        return (
+          val instanceof v
+            ? val._rb.value
+            : Promise.resolve(_.isFunction(val) ? val() : val)
+        )
           .then(resolve, reject)
       } else if (args.length === 1) {
-        return Promise.resolve(_.isFunction(las) ? las() : las)
+        return (
+          las instanceof v
+            ? las._rb.value
+            : Promise.resolve(_.isFunction(las) ? las() : las)
+        )
           .then(resolve, reject)
       } else {
         return processBranch(args, resolve, reject)
@@ -62,63 +38,45 @@ function processBranch (args, resolve, reject) {
     }, reject)
 }
 
-/**
- * retrieves records and clears out the request context
- * @param req
- * @return {*|Promise.<*>}
- */
-function performRetrieve (req) {
-  return this._client.retrieve(req.args, req.options)
-    .then(result => {
-      req.args = {}
-      req.options = {}
-      return result
-    })
-}
-
 export default class v {
-  constructor (client, request) {
+  constructor (client, rb) {
+    this._rb = null
+
     let term = function (field) {
-      return _.isString(field)
-        ? term.value(field)
-        : processTerm.call(this, result => result)
+      return term.value(field)
     }
     Object.setPrototypeOf(term, v.prototype)
 
-    term._client = client
-    term._request = _.isObject(request)
-      ? request
-      : {}
-    term._request.term = term._request.term || client._connection
-    term._request.error = term._request.error || null
+    term._rb = rb instanceof RequestBuilder
+      ? rb
+      : new RequestBuilder(client)
+
     return term
   }
 
   /**
-   * updates the request to return all fields
-   * @return {*}
+   * returns add data from the current type
    */
   allData () {
-    return processTerm.call(this, (value, req) => {
-      _.set(req, 'args.properties', [])
+    return this._rb.next((value, rb) => {
+      rb.args.properties = []
+      rb.allData = true
       return value
     })
   }
 
   /**
-   * performs a branch operation
-   * @return {*}
+   * performs an if then else
    */
   branch () {
     let args = [...arguments]
-    return processTerm.call(this, (value, req) => {
-      req.operation = null
+    return this._rb.next((value, rb) => {
       args = args.length === 2
         ? _.union([value], args)
         : args
 
       if (args.length < 3 || args.length % 2 !== 1) {
-        req.error = new Error('branch has an invalid number of arguments')
+        rb.error = 'branch has an invalid number of arguments'
         return
       }
       return new Promise((resolve, reject) => processBranch(args, resolve, reject))
@@ -126,264 +84,245 @@ export default class v {
   }
 
   /**
-   * creates a new changefeed
+   * creates a new changefeed and returns an observable
    * @param options
-   * @return {*}
+   * @returns {*}
    */
   changes (options) {
-    return new ChangeFeed(this._client, this._request, options).create()
+    return new ChangeFeed(this._rb.client, this._rb, options).create()
   }
 
   /**
-   * Completes the connection process and returns the backend client
-   * @return {*|Promise.<VsphereConnectClient>}
+   * returns the backend client
+   * @returns {*}
    */
   createClient () {
-    return this._client._connection.then(() => this._client)
+    return this._rb.client._connection
+      .then(() => this._rb.client)
   }
 
   /**
-   * default to a value if one does not exist
+   * sets a default value if there is an error and clears the error
    * @param val
-   * @return {*}
    */
   default (val) {
-    return processTerm.call(this, (result, req) => {
-      let error = req.error
-        ? req.error
-        : result === undefined
-          ? new Error('NoResultsError: the selection has no results')
-          : null
-      req.error = null
+    return this._rb.next((value, rb) => {
+      return this._rb.value.then(value => {
+        rb.operation = 'DEFAULT'
+        let error = this._rb.error
+          ? this._rb.error
+          : value === undefined
+            ? new Error('NoResultsError: the selection has no results')
+            : null
+        this._rb.error = null
+        rb.error = null
 
-      return error
-        ? _.isFunction(val)
-          ? val(error)
-          : val
-        : result
-    }, {}, true)
+        return error
+          ? _.isFunction(val)
+            ? val(error)
+            : val
+          : value
+      })
+    }, true)
   }
 
   /**
-   * destroys a selection of objects
+   * destroys all of the vms in the selection
    * @param options
-   * @return {*}
    */
   destroy (options) {
-    return processTerm.call(this, (result, req) => {
-      let args = _.get(req, 'args', {})
-      let opts = _.get(req, 'options', {})
-
-      let arrayResults = !_.isNumber(opts.nth) &&
-        opts.limit !== 1 &&
-        (!args.id || (_.isArray(args.id) && args.id.length))
-
-      return performRetrieve.call(this, req)
-        .then(results => {
-          return Promise.map(results, res => {
-            return this._client.destroy(res.moRef, options)
-          })
+    return this._rb.next(() => {
+      return this._rb.value.then(value => {
+        this.operation = 'DESTROY'
+        return Promise.map(_.castArray(value), mo => {
+          return this._rb.client.destroy(mo.moRef, options)
         })
-        .then(results => {
-          return arrayResults ? results : _.first(results)
-        })
+      })
     })
   }
 
   /**
-   * performs a nested operation
-   * @return {*}
+   * performs one or more operations and feeds them into a handler function
    */
   do () {
     let args = [...arguments]
     let fn = _.last(args)
     if (!_.isFunction(fn)) throw new Error('invalid value for do')
-    return processTerm.call(this, (value, req) => {
-      let params = args.length > 1
-        ? args.slice(0, args.length - 1)
-        : [value]
+
+    return this._rb.next((value, rb) => {
+      let params = _.map(args.length > 1 ? args.slice(0, args.length - 1) : [value], param => {
+        return param instanceof v ? param._rb.value : _.isFunction(param) ? param() : param
+      })
+
       return Promise.map(params, param => param)
         .then(params => {
-          req.operation = ops.DO
           return fn.apply(null, params)
         })
     })
   }
 
   /**
-   * loops through a collection and performs the iteratee function
+   * iterates over a set of values and executes an iteratee function on their values
    * @param iteratee
-   * @return {*}
    */
   each (iteratee) {
-    iteratee = _.isFunction(iteratee) ? iteratee : _.identity
-    return processTerm.call(this, (value, req) => {
-      let data = value
-      switch (req.operation) {
-        case ops.RETRIEVE:
-          data = performRetrieve.call(this, req)
-          break
-        default:
-          break
-      }
-      return Promise.each(data, iteratee)
-        .then(result => {
-          req.operation = ops.EACH
-          return result
-        })
+    return this._rb.next((value, rb) => {
+      return this._rb.value.then(value => {
+        rb.operation = 'EACH'
+        if (!_.isArray(value)) {
+          rb.error = 'cannot call each on single selection'
+          return null
+        }
+        return Promise.each(value, _.isFunction(iteratee) ? iteratee : _.identity)
+      })
     })
   }
 
   /**
-   * compares passed value to current value
-   * @param val
-   * @return {*}
+   * determines if one or more values equal the current selection
    */
-  eq (val) {
-    return processTerm.call(this, (value, req) => {
-      let data = value
-      switch (req.operation) {
-        case ops.RETRIEVE:
-          data = performRetrieve.call(this, req)
-          break
-        default:
-          break
-      }
-      return Promise.resolve(data).then(compare => {
+  eq () {
+    let args = [...arguments]
+    if (!args.length) throw new Error('eq requires at least one argument')
+    return this._rb.next((value, rb) => {
+      return this._rb.value.then(value => {
+        rb.operation = 'EQ'
         return Promise.reduce([...arguments], (accum, item) => {
-          return accum && _.isEqual(compare, item)
+          return accum && _.isEqual(value, item)
         }, true)
       })
-        .then(result => {
-          req.operation = ops.EQ
-          return result
-        })
     })
   }
 
   /**
-   * creates a new expression
+   * converts a native value into a vConnect object
    * @param val
-   * @return {*}
    */
   expr (val) {
-    return processTerm.call(this, (value, req) => {
-      req.operation = ops.EXPR
+    if (val === undefined) throw new Error('cannot wrap undefined with expr')
+    return this._rb.next((value, rb) => {
+      rb.operation = 'EXPR'
+      rb.single = !_.isArray(val)
       return val
     })
   }
 
   /**
-   * Filters a collection
-   * @param iteratee
+   * filters out all values that do not return true from the filterer function
+   * @param filterer
    * @param options
-   * @return {*}
    */
-  filter (iteratee, options) {
-    iteratee = _.isFunction(iteratee) ? iteratee : _.identity
-    return processTerm.call(this, (value, req) => {
-      let data = value
-      switch (req.operation) {
-        case ops.RETRIEVE:
-          data = performRetrieve.call(this, req)
-          break
-        default:
-          break
-      }
-      return Promise.filter(data, iteratee, options)
-        .then(result => {
-          req.operation = ops.FILTER
-          return result
-        })
+  filter (filterer, options) {
+    return this._rb.next((value, rb) => {
+      return this._rb.value.then(value => {
+        rb.operation = 'FILTER'
+        if (!_.isArray(value)) {
+          rb.error = 'cannot call filter on single selection'
+          return null
+        }
+        return Promise.filter(value, _.isFunction(filterer) ? filterer : _.identity, options)
+      })
     })
   }
 
   /**
-   * gets one or more objects by id
-   * @param id
-   * @return {*}
+   * gets one or more managed objects by id
    */
   get () {
     let ids = [...arguments]
-    return processTerm.call(this, (value, req) => {
-      _.set(req, 'args.id', ids)
-      return performRetrieve.call(this, req)
-        .then(result => {
-          req.operation = ops.GET
-          return ids.length > 1
-            ? result
-            :_.get(result, '[0]', null)
-        })
+    return this._rb.next((value, rb) => {
+      if (rb.operation === RETRIEVE) {
+        rb.args.id = ids
+        rb.single = ids.length === 1
+        return value
+      }
+      if (!_.isArray(value)) {
+        rb.error = new Error('cannot get from non-array')
+        return null
+      }
+      return _.filter(value, mo => {
+        let { type, value } = _.get(mo, 'moRef', {})
+        return _.get(rb.args, 'type') === type && _.includes(ids, value)
+      })
     })
   }
 
   /**
-   * returns the id value from the current selection
-   * @return {*}
+   * gets the id from the current selection or object
+   * @returns {*}
    */
   id () {
-    return processTerm.call(this, (value, req) => {
-      req.operation = null
-      return _.isArray(value)
-        ? _.map(value, v => _.get(v, 'moRef.value', null))
-        : _.get(value, 'moRef.value', null)
+    return this._rb.next((value, rb) => {
+      return this._rb.value.then(value => {
+        rb.operation = 'ID'
+        return _.isArray(value)
+          ? _.map(value, v => _.get(v, 'moRef.value', null))
+          : _.get(value, 'moRef.value', null)
+      })
     })
   }
 
   /**
-   * Limits the number of records returned
+   * limits the number of results
    * @param limit
-   * @return {*}
+   * @returns {*}
    */
   limit (limit) {
     if (!_.isNumber(limit)) throw new Error('invalid value for limit')
-    return processTerm.call(this, (value, req) => {
-      _.set(req, 'options.limit', Math.ceil(limit))
-      return value
+    return this._rb.next((value, rb) => {
+      if (rb.single) {
+        rb.error = new Error('cannot limit single selection')
+        return null
+      }
+      if (rb.operation === RETRIEVE) {
+        rb.options.limit = Math.ceil(limit)
+        return value
+      }
+      if (!_.isArray(value)) {
+        rb.error = new Error('cannot limit non-array')
+        return null
+      }
+      return _.first(value)
     })
   }
 
   /**
-   * logs the user in or changes the token
+   * creates a new session or sets the token for the current instance
    * @param username
    * @param password
-   * @return {*}
    */
   login (username, password) {
-    return processTerm.call(this, (value, req) => {
-      return this._client.login(username, password)
+    return this._rb.next((value, rb) => {
+      rb.operation = 'LOGIN'
+      return rb.client.login(username, password)
     })
   }
 
   /**
-   * Logs out of the current vSphere session
-   * @return {*|Promise.<Object>}
+   * logs out the current session
    */
   logout () {
-    return this._request.term.then(this._client.logout())
+    return this._rb.next((value, rb) => {
+      rb.operation = 'LOGOUT'
+      return rb.client.logout()
+    })
   }
 
   /**
-   * performs a map operation
-   * @param iteratee
-   * @return {*}
+   * maps a selection
+   * @param mapper
+   * @param options
    */
-  map (iteratee, options) {
-    iteratee = _.isFunction(iteratee) ? iteratee : _.identity
-    return processTerm.call(this, (value, req) => {
-      let data = value
-      switch (req.operation) {
-        case ops.RETRIEVE:
-          data = performRetrieve.call(this, req)
-          break
-        default:
-          break
-      }
-      return Promise.map(data, iteratee, options)
-        .then(result => {
-          req.operation = ops.MAP
-          return result
-        })
+  map (mapper, options) {
+    return this._rb.next((value, rb) => {
+      return this._rb.value.then(value => {
+        rb.operation = 'MAP'
+        if (!_.isArray(value)) {
+          rb.error = 'cannot call map on single selection'
+          return null
+        }
+        return Promise.map(value, _.isFunction(mapper) ? mapper : _.identity, options)
+      })
     })
   }
 
@@ -394,32 +333,26 @@ export default class v {
    * @return {*}
    */
   method (name, args) {
-    return processTerm.call(this, (value, req) => {
-      return this._client.method(name, args)
-        .then(result => {
-          req.operation = null
-          return result
-        })
+    return this._rb.next((value, rb) => {
+      rb.operation = 'METHOD'
+      rb._value = undefined
+      return rb.client.method(name, args)
     })
   }
 
   /**
-   * compares passed value to current value
-   * @param val
-   * @return {*}
+   * determines if one or more values equal the current selection
    */
-  ne (val) {
-    return processTerm.call(this, (value, req) => {
-      let data = value
-      switch (req.operation) {
-        case ops.RETRIEVE:
-          data = performRetrieve.call(this, req)
-          break
-        default:
-          break
-      }
-      let expr =  this.expr(data)
-      return expr.eq.apply(expr, [...arguments]).not()
+  ne () {
+    let args = [...arguments]
+    if (!args.length) throw new Error('ne requires at least one argument')
+    return this._rb.next((value, rb) => {
+      return this._rb.value.then(value => {
+        rb.operation = 'NE'
+        return Promise.reduce([...arguments], (accum, item) => {
+          return accum && !_.isEqual(value, item)
+        }, true)
+      })
     })
   }
 
@@ -428,9 +361,15 @@ export default class v {
    * @return {*}
    */
   not () {
-    return processTerm.call(this, (value, req) => {
-      req.operation = ops.NOT
-      return !_.includes([true, 1, "true", "TRUE"], value)
+    return this._rb.next((value, rb) => {
+      return this._rb.value.then(value => {
+        rb.operation = 'NOT'
+        if (value === undefined) {
+          rb.error = new Error('cannot not an undefined value')
+          return null
+        }
+        return _.includes([false, null], value)
+      })
     })
   }
 
@@ -438,11 +377,24 @@ export default class v {
    * Gets a specific record from a list of records
    * @param index
    */
-  nth (index) {
+  nth (n) {
     if (!_.isNumber(index)) throw new Error('invalid value for nth')
-    return processTerm.call(this, (value, req) => {
-      _.set(req, 'options.nth', Math.ceil(index))
-      return value
+    return this._rb.next((value, rb) => {
+      if (rb.single) {
+        rb.error = new Error('cannot get nth on single selection')
+        return null
+      }
+      if (rb.operation === RETRIEVE) {
+        rb.single = true
+        rb.options.nth = Math.ceil(n)
+        return value
+      }
+      if (!_.isArray(value)) {
+        rb.error = new Error('cannot get nth on non-array')
+        return null
+      }
+      rb.single = true
+      return _.nth(value, n)
     })
   }
 
@@ -452,17 +404,21 @@ export default class v {
    * @return {*}
    */
   orderBy (doc) {
-    return processTerm.call(this, (value, req) => {
-      switch (req.operation) {
-        case ops.RETRIEVE:
-          _.set(req, 'options.orderBy', doc)
-          break
-        default:
-          let orderBy = orderDoc(doc)
-          value = _.orderBy(value, orderBy.fields, orderBy.directions)
-          break
+    return this._rb.next((value, rb) => {
+      if (rb.single) {
+        rb.error = new Error('cannot order single selection')
+        return null
       }
-      return value
+      if (rb.operation === RETRIEVE) {
+        rb.options.orderBy = doc
+        return value
+      }
+      if (!_.isArray(value)) {
+        rb.error = new Error('cannot order non-array')
+        return null
+      }
+      let { fields, directions } = orderDoc(doc)
+      return _.orderBy(value, fields, directions)
     })
   }
 
@@ -471,19 +427,31 @@ export default class v {
    * @return {v}
    */
   pluck () {
-    let propList = buildPropList([...arguments])
-    return processTerm.call(this, (value, req) => {
-      let currentProps = _.get(req, 'args.properties', propList)
+    return this._rb.next((value, rb) => {
+      rb.allData = false
+      let propList = buildPropList([...arguments])
+      let currentProps = _.get(rb.args, 'properties', propList)
       let useProps = _.intersection(propList, currentProps)
       useProps = useProps.length ? useProps : propList
 
-      switch (req.operation) {
-        case ops.RETRIEVE:
-          _.set(req, 'args.properties', useProps)
-          return value
-        default:
-          return pluck(value, useProps)
+      if (rb.operation === RETRIEVE) {
+        rb.args.properties = useProps
+        return value
       }
+      return pluck(value, useProps)
+    })
+  }
+
+  reduce (reducer, initialValue) {
+    return this._rb.next((value, rb) => {
+      return this._rb.value.then(value => {
+        rb.operation = 'REDUCE'
+        if (!_.isArray(value)) {
+          rb.error = 'cannot call reduce on single selection'
+          return null
+        }
+        return Promise.reduce(value, _.isFunction(reducer) ? reducer : _.identity, initialValue)
+      })
     })
   }
 
@@ -494,112 +462,63 @@ export default class v {
    * @return {*}
    */
   retrieve (args, options) {
-    return processTerm.call(this, (value, req) => {
-      return this._client.retrieve(args, options)
-        .then(result => {
-          req.operation = null
-          return result
-        })
+    return this._rb.next((value, rb) => {
+      rb.operation = 'RETRIEVE'
+      rb._value = undefined
+      return rb.client.retrieve(args, options)
     })
   }
 
   /**
-   * selects a value from the current result
-   * @param p
-   * @return {*}
+   * limits the number of results
+   * @param limit
+   * @returns {*}
    */
-  value (p) {
-    return processTerm.call(this, (value, req) => {
-      let data = Promise.resolve(value)
-      switch (req.operation) {
-        case ops.RETRIEVE:
-          data = performRetrieve.call(this, req)
-          break
-        default:
-          break
+  skip (n) {
+    if (!_.isNumber(n) || n < 1) throw new Error('invalid value for skip')
+    return this._rb.next((value, rb) => {
+      if (rb.single) {
+        rb.error = new Error('cannot skip single selection')
+        return null
       }
-      return data.then(result => {
-        req.operation = null
-
-        if (_.isString(p)) {
-          if (_.isArray(result)) {
-            return _.without(_.map(result, res => _.get(res, p)), undefined)
-          } else {
-            let val = _.get(result, p)
-            if (val === undefined) {
-              req.error = new Error(`no attribute "${p}" in object`)
-            }
-            return val
-          }
-        }
-        return result
-      })
-    })
-  }
-
-  /**
-   * performs a reduce operation
-   * @param iteratee
-   * @param initialValue
-   * @return {*}
-   */
-  reduce (iteratee, initialValue) {
-    iteratee = _.isFunction(iteratee) ? iteratee : _.identity
-    return processTerm.call(this, (value, req) => {
-      let data = value
-      switch (req.operation) {
-        case ops.RETRIEVE:
-          data = performRetrieve.call(this, req)
-          break
-        default:
-          break
+      if (rb.operation === RETRIEVE) {
+        rb.options.skip = Math.ceil(n)
+        return value
       }
-      return Promise.reduce(data, iteratee, initialValue)
-        .then(result => {
-          req.operation = ops.REDUCE
-          return result
-        })
+      if (!_.isArray(value)) {
+        rb.error = new Error('cannot skip non-array')
+        return null
+      }
+      return _.slice(value, Math.ceil(n))
     })
   }
 
-  /**
-   * Limits the number of records returned
-   * @param count
-   * @return {*}
-   */
-  skip (count) {
-    if (!_.isNumber(count)) throw new Error('invalid value for skip')
-    return processTerm.call(this, (value, req) => {
-      _.set(req, 'options.skip', Math.ceil(skip))
-      return value
-    })
-  }
 
   /**
-   * Sets the current type
+   * sets the managed object type of the current request chain
    * @param name
-   * @return {v}
    */
   type (name) {
-    return processTerm.call(this, (value, req) => {
-      let type = this._client.typeResolver(name)
-      let operation = ops.RETRIEVE
-      if (!type) {
-        req.error = new Error(`invalid type ${name}`)
-        return
+    return this._rb.next((value, rb) => {
+      rb.args.type = rb.client.typeResolver(name)
+      // rb.args.properties = rb.args.properties || ['moRef', 'name']
+      if (!rb.args.type) {
+        rb.error = `InvalidTypeError: "${name}" is not a valid type or alias`
+        return null
       }
-      assignRequest(req, this._request, { operation, type })
-      _.set(req, 'args.type', type)
-      _.set(req, 'args.properties', ['moRef', 'name'])
-      return value
+      rb._value = undefined
+      rb.operation = RETRIEVE
+      rb.single = false
+
+      return null
     })
   }
 
   /**
-   * Performs the chain of operations
+   * resolves the current request chain
    * @param onFulfilled
    * @param onRejected
-   * @return {*|Promise.<*>}
+   * @returns {Promise.<TResult>}
    */
   then (onFulfilled, onRejected) {
     onFulfilled = _.isFunction(onFulfilled)
@@ -609,18 +528,32 @@ export default class v {
       ? onRejected
       : _.noop
 
-    return this._request.term.then(value => {
-      if (this._request.error) throw this._request.error
+    return this._rb.value.then(result => {
+      this.operation = null
+      return this._rb.error
+        ? Promise.reject(this._rb.error)
+        : result
+    })
+      .then(onFulfilled, onRejected)
+  }
 
-      switch (this._request.operation) {
-        case ops.RETRIEVE:
-          return this._client.retrieve(this._request.args, this._request.options)
-            .then(onFulfilled, onRejected)
-
-        default:
-          return onFulfilled(value)
-      }
-      throw new Error(`UnsupportedOperation: ${this._request.operation}`)
-    }, onRejected)
+  /**
+   * selects a specific value of the current selection
+   * or object if attr is supplied or the current value if no arguments
+   * @param attr
+   */
+  value (attr) {
+    return this._rb.next((value, rb) => {
+      return this._rb.value.then(value => {
+        rb.operation = 'VALUE'
+        if (_.isString(attr)) {
+          if (_.isArray(value)) return _.without(_.map(value, val => _.get(val, attr)), undefined)
+          let val = _.get(value, attr)
+          if (val === undefined) rb.error = `no attribute "${attr} in object"`
+          return val
+        }
+        return value
+      })
+    })
   }
 }

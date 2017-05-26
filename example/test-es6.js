@@ -4,19 +4,34 @@ import cred from '../credentials'
 let { host, username, password } = cred
 
 let v = VSphere(host, { ignoreSSL: true })
-  v.login(username, password)
-    /*
-  .type('vm').get('vm-15').allData()
+v =  v.login(username, password)
+v.type('vm')
+
+/*
+v.type('vm').get('vm-16')('moRef')('value').eq('vm-16')
   .then(console.log, console.error)
   .finally(() => {
     return v.logout()
   })
   */
+    /*
+  .type('vm').get('vm-16').each(console.log)
+  .then(console.log, console.error)
+  .finally(() => {
+    return v.logout()
+  })
+  */
+
+// v.type('vm').map(val => val.moRef).map(val => val.value)
 /*
-v.do(v.type('vm').get('vm-16'), v.type('vm').get('vm-15'), (vm1, vm2) => {
+v.do(vm16.id(), vm16.id(), (vm1, vm2) => {
   return { vm1, vm2 }
 })
 */
+  .then(console.log, console.error)
+  .finally(() => {
+    return v.logout()
+  })
 /*
 v.type('vm').get('vm-16')('name')
   .then(console.log, console.error)
@@ -24,12 +39,13 @@ v.type('vm').get('vm-16')('name')
     return v.logout()
   })
 */
-
-v.expr(true) // .branch(v.type('vm').get('vm-16'), v.type('vm').get('vm-15'))
+/*
+v.expr(true).branch(() => v.type('vm').get('vm-16'), v.type('vm').get('vm-15'))
   .then(console.log, console.error)
   .finally(() => {
     return v.logout()
   })
+  */
 /*
 v = v.login(username, password).type('vm')
 v
