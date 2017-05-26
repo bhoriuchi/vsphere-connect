@@ -14,7 +14,6 @@ export default class RequestBuilder {
     this._error = null
     this.args = {}
     this.options = {}
-    this.resolved = false
     this.resolving = null
     this.single = false
     this._value = undefined
@@ -25,7 +24,6 @@ export default class RequestBuilder {
     rb.operation = this.operation
     rb.args = _.cloneDeep(this.args)
     rb.options = _.cloneDeep(this.options)
-    rb.resolved = this.resolved
     rb.single = this.single
     rb._value = value
   }
@@ -60,29 +58,25 @@ export default class RequestBuilder {
     else this._error = new Error(err)
   }
 
-  get value () {
-    if (this.resolved) return Promise.resolve(this._value)
+  value (rb = {}) {
+    return this.term.then(value => {
+      if (this.resolving) return this.resolving
 
-    return this.next((value, rb) => {
-      switch (rb.operation) {
+      switch (this.operation) {
         case RETRIEVE:
           debug('retrieving - %o', { args: this.args, options: this.options })
-          rb.resolving = rb.client.retrieve(this.args, this.options)
+          this.resolving = rb.resolving = this.client.retrieve(this.args, this.options)
             .then(result => {
-              rb.resolved = true
-              this.resolved = true
-              this._value = rb.toResult(result)
-              return this._value
+              this.operation = null
+              rb.operation = null
+              return this.toResult(result)
             })
           break
         default:
-          debug('using resolved value')
-          rb.resolving = rb.toResult(value)
+          this.resolving = rb.resolving = Promise.resolve(this.toResult(value))
           break
       }
-      return rb.resolving
+      return this.resolving
     })
-      ._rb
-      .term
   }
 }

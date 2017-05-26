@@ -119,18 +119,20 @@ export default class v {
    */
   default (val) {
     return this._rb.next((value, rb) => {
-      let error = rb.error
-        ? rb.error
-        : value === undefined
-          ? new Error('NoResultsError: the selection has no results')
-          : null
-      rb.error = null
+      return this._rb.value().then(value => {
+        let error = rb.error
+          ? rb.error
+          : value === undefined
+            ? new Error('NoResultsError: the selection has no results')
+            : null
+        rb.error = null
 
-      return error
-        ? _.isFunction(val)
-          ? val(error)
-          : val
-        : value
+        return error
+          ? _.isFunction(val)
+            ? val(error)
+            : val
+          : value
+      })
     }, true)
   }
 
@@ -193,7 +195,7 @@ export default class v {
    */
   expr (val) {
     return this._rb.next((value, rb) => {
-      rb.resolved = true
+      rb.resolving = Promise.resolve(val)
       return val
     })
   }
@@ -246,14 +248,13 @@ export default class v {
       ? onRejected
       : _.noop
 
-    return this._rb.term.then(() => {
+    return this._rb.value().then(result => {
       if (this._rb.error) {
         onRejected(this._rb.error)
         return Promise.reject(this._rb.error)
       }
-      return this._rb.value
-    })
-      .then(onFulfilled)
+      onFulfilled(result)
+    }, onRejected)
   }
 
   /**
@@ -282,16 +283,16 @@ export default class v {
    */
   value (attr) {
     return this._rb.next((value, rb) => {
-      return Promise.resolve(value)
-        .then(value => {
-          if (_.isString(attr)) {
-            if (_.isArray(value)) return _.without(_.map(value, val => _.get(val, attr)), undefined)
-            let val = _.get(value, attr)
-            if (val === undefined) rb.error = `no attribute "${attr} in object"`
-            return val
-          }
-          return value
-        })
+      return this._rb.value(rb).then(value => {
+        rb.resolving = null
+        if (_.isString(attr)) {
+          if (_.isArray(value)) return _.without(_.map(value, val => _.get(val, attr)), undefined)
+          let val = _.get(value, attr)
+          if (val === undefined) rb.error = `no attribute "${attr} in object"`
+          return val
+        }
+        return value
+      })
     })
   }
 }
