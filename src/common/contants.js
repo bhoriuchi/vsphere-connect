@@ -19,3 +19,5 @@ export const OPERATIONS = {
   EXPR: 'EXPR',
   DO: 'DO'
 }
+
+export const RETRIEVE = 'RETRIEVE'

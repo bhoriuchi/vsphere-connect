@@ -6,8 +6,8 @@ var _ = _interopDefault(require('lodash'));
 var EventEmitter = _interopDefault(require('events'));
 var soap = _interopDefault(require('soap-connect'));
 var Promise$1 = _interopDefault(require('bluebird'));
-var Rx = _interopDefault(require('rxjs'));
 var Debug = _interopDefault(require('debug'));
+var Rx = _interopDefault(require('rxjs'));
 
 /*
  * cacheKey function to allow re-use of cache on same api version and type
@@ -1008,6 +1008,15 @@ function convertRetrievedProperties(results, moRef) {
   });
 }
 
+function orderDoc(doc) {
+  return {
+    fields: _.keys(doc),
+    directions: _.map(doc, function (dir) {
+      return dir === 'desc' || dir === -1 ? 'desc' : 'asc';
+    })
+  };
+}
+
 function getResults(result, objects, limit, skip, nth, orderBy, moRef, fn) {
   var _this2 = this;
 
@@ -1021,11 +1030,10 @@ function getResults(result, objects, limit, skip, nth, orderBy, moRef, fn) {
     });
   }
 
-  objs = orderBy ? _.orderBy(objs, orderBy[0], orderBy[1]) : objs;
+  objs = orderBy ? _.orderBy(objs, orderBy.fields, orderBy.directions) : objs;
 
   if (nth !== null) {
-    if (nth < 0 || nth >= objs.length - 1) return Promise$1.reject(new Error('nth selection out of range'));
-    return Promise$1.resolve(objs[nth]);
+    return Promise$1.resolve(_.nth(objs, nth));
   }
 
   var results = _.slice(objs, skip || 0, limit || objs.length);
@@ -1035,25 +1043,19 @@ function getResults(result, objects, limit, skip, nth, orderBy, moRef, fn) {
 function retrieve(args, options) {
   var _this3 = this;
 
-  args = _.isObject(args) ? args : {};
-  options = _.isObject(options) ? options : {};
+  args = _.isObject(args) ? _.cloneDeep(args) : {};
+  options = _.isObject(options) ? _.cloneDeep(options) : {};
 
   var limit = options.limit;
   var skip = options.skip || 0;
   var nth = _.isNumber(options.nth) ? Math.ceil(options.nth) : null;
   var properties = _.get(args, 'properties', []);
   var moRef = true; // _.includes(properties, 'moRef') || _.includes(properties, 'id')
-  var orderBy = null;
+  var orderBy = options.orderBy ? orderDoc(options.orderBy) : null;
   var fn = _.isFunction(options.resultHandler) ? options.resultHandler : function (result) {
     return result;
   };
   args.properties = _.without(properties, 'moRef', 'id', 'moRef.value', 'moRef.type');
-
-  if (_.isObject(options.orderBy)) {
-    orderBy = [_.keys(options.orderBy), _.map(options.orderBy, function (dir) {
-      return dir === 'desc' || dir === -1 ? 'desc' : 'asc';
-    })];
-  }
 
   if (_.isNumber(skip) && _.isNumber(limit)) limit += skip;
 
@@ -1080,7 +1082,85 @@ var methods = {
   retrieve: retrieve
 };
 
-var debug = Debug('vconnect.changefeed');
+var RETRIEVE = 'RETRIEVE';
+
+var debug = Debug('vconnect.rb');
+
+var RequestBuilder = function () {
+  function RequestBuilder(client, parent) {
+    classCallCheck(this, RequestBuilder);
+
+    this.client = client;
+    this.parent = parent;
+    this.term = client._connection;
+    this.operation = null;
+    this.error = null;
+    this.args = {};
+    this.options = {};
+    this.single = false;
+    this._value = undefined;
+    this.allData = false;
+  }
+
+  createClass(RequestBuilder, [{
+    key: 'assignProps',
+    value: function assignProps(rb) {
+      rb.error = this.error;
+      rb.operation = this.operation;
+      rb.args = _.cloneDeep(this.args);
+      rb.options = _.cloneDeep(this.options);
+      rb.single = this.single;
+    }
+  }, {
+    key: 'toResult',
+    value: function toResult(value) {
+      return this.single && _.isArray(value) ? _.first(value) : value;
+    }
+  }, {
+    key: 'next',
+    value: function next(handler, isDefault) {
+      var _this = this;
+
+      var rb = new RequestBuilder(this.client, this);
+
+      rb.term = this.term.then(function (value) {
+        _this._value = value;
+        _this.assignProps(rb);
+        if (rb.error && !isDefault) return null;
+        if (isDefault) rb.error = null;
+        return _.isFunction(handler) ? handler(value, rb) : value;
+      });
+
+      return new v(this.client, rb);
+    }
+  }, {
+    key: 'value',
+    get: function get$$1() {
+      var _this2 = this;
+
+      return this.term.then(function (value) {
+        switch (_this2.operation) {
+          case RETRIEVE:
+            debug('retrieving - %o', { args: _this2.args, options: _this2.options });
+            if (_this2.allData) _this2.args.properties = [];
+            if (!_this2.args.properties) _this2.args.properties = ['moRef', 'name'];
+            return _this2.client.retrieve(_this2.args, _this2.options).then(function (result) {
+              _this2.operation = null;
+              _this2._value = _this2.toResult(result);
+              return _this2._value;
+            });
+          default:
+            break;
+        }
+        _this2._value = _this2.toResult(value);
+        return _this2._value;
+      });
+    }
+  }]);
+  return RequestBuilder;
+}();
+
+var debug$1 = Debug('vconnect.changefeed');
 
 var DEFAULT_INTERVAL_MS = 10000;
 var CREATED = 'enter';
@@ -1104,20 +1184,18 @@ function formatChange(obj) {
   return val;
 }
 
-
-
 var ChangeFeed = function () {
-  function ChangeFeed(client, request, options) {
+  function ChangeFeed(rb, options) {
     var _this2 = this;
 
     classCallCheck(this, ChangeFeed);
 
-    debug('creating a new changefeed');
-    debug('args %O', request.args);
-    debug('options %O', request.options);
+    debug$1('creating a new changefeed');
+    debug$1('args %O', rb.args);
+    debug$1('options %O', rb.options);
 
-    this._client = client;
-    this._request = request;
+    this._client = rb.client;
+    this._request = rb;
     this._options = options;
     this._interval = null;
     this._emitter = new EventEmitter();
@@ -1125,12 +1203,12 @@ var ChangeFeed = function () {
       _this2.close();
     });
 
-    debug('using method %s', this._waitMethod);
+    debug$1('using method %s', this._waitMethod);
 
     var intervalMS = _.get(options, 'interval');
     this._intervalMS = _.isNumber(intervalMS) ? Math.ceil(intervalMS) : DEFAULT_INTERVAL_MS;
 
-    debug('using interval %d', this._intervalMS);
+    debug$1('using interval %d', this._intervalMS);
 
     this.collector = {};
     this.version = '';
@@ -1151,7 +1229,8 @@ var ChangeFeed = function () {
 
       this._request.term.then(function () {
         var reqArgs = _.cloneDeep(_this3._request.args) || {};
-        reqArgs.properties = reqArgs.properties || [];
+        if (_this3._request.allData) reqArgs.properties = [];
+        reqArgs.properties = reqArgs.properties || ['moRef', 'name'];
         reqArgs.properties = _.without(reqArgs.properties, 'moRef', 'id');
         var specMap = _.map(graphSpec(reqArgs), function (s) {
           return PropertyFilterSpec$1(s, _this3._client).spec;
@@ -1161,7 +1240,7 @@ var ChangeFeed = function () {
         _this3._waitMethod = _this3._VimPort.WaitForUpdatesEx ? 'WaitForUpdatesEx' : 'WaitForUpdates';
 
         return Promise$1.all(specMap).then(function (specSet) {
-          debug('specMap %j', specSet);
+          debug$1('specMap %j', specSet);
           return _this3._client.method('CreatePropertyCollector', { _this: _this }).then(function (_this) {
             _this3.collector = _this;
             return Promise$1.each(specSet, function (spec) {
@@ -1237,7 +1316,7 @@ var ChangeFeed = function () {
               _.set(updates, id, newVal);
               change.new_val = newVal;
             } else {
-              debug('unhandled kind %s', obj.kind);
+              debug$1('unhandled kind %s', obj.kind);
             }
           }
 
@@ -1269,7 +1348,7 @@ var ChangeFeed = function () {
 
       if (this.updating) return; // prevent concurrent calls to update
       this.updating = true;
-      debug('update running');
+      debug$1('update running');
       return this._client.method(this._waitMethod, {
         _this: this.collector,
         version: this.version,
@@ -1284,7 +1363,6 @@ var ChangeFeed = function () {
         if (_this5.version === '1') {
           if (_.isEmpty(_this5.currentVal)) _this5.diff(set$$1, true);
         } else {
-          if (_this5.version === '3') throw new Error('i planned this');
           _.forEach(_this5.diff(set$$1), function (change) {
             _this5._emitter.emit(CHANGE, change);
           });
@@ -1298,27 +1376,17 @@ var ChangeFeed = function () {
   return ChangeFeed;
 }();
 
-var OPERATIONS = {
-  RETRIEVE: 'RETRIEVE',
-  LOGOUT: 'LOGOUT',
-  TYPE: 'TYPE',
-  PLUCK: 'PLUCK',
-  MAP: 'MAP',
-  REDUCE: 'REDUCE',
-  FILTER: 'FILTER',
-  EACH: 'EACH',
-  GET: 'GET',
-  GETALL: 'GETALL',
-  EQ: 'EQ',
-  NE: 'NE',
-  GT: 'GT',
-  LT: 'LT',
-  LTE: 'LTE',
-  GTE: 'GTE',
-  NOT: 'NOT',
-  EXPR: 'EXPR',
-  DO: 'DO'
-};
+function pluckProperties(obj, props) {
+  return _.reduce(props, function (o, prop) {
+    return _.set(o, prop, _.get(obj, prop));
+  }, {});
+}
+
+function pluck(obj, props) {
+  return _.isArray(obj) ? _.map(obj, function (o) {
+    return pluckProperties(o, props);
+  }) : pluckProperties(obj, props);
+}
 
 function makeDotPath(obj) {
   var list = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
@@ -1340,140 +1408,66 @@ function buildPropList(args) {
   return props;
 }
 
-function pluckProperties(obj, props) {
-  return _.reduce(props, function (o, prop) {
-    return _.set(o, prop, _.get(obj, prop));
-  }, {});
-}
-
-function pluck(obj, props) {
-  return _.isArray(obj) ? _.map(obj, function (o) {
-    return pluckProperties(o, props);
-  }) : pluckProperties(obj, props);
-}
-
-/**
- * returns a new request context built from the existing
- * @param target
- * @param source
- * @param obj
- * @param term
- */
-function assignRequest(target, source) {
-  var obj = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-  var term = arguments[3];
-
-  _.merge(target, _.omit(source, ['term']), obj);
-  if (term == true) target.term = source.term;
-}
-
-/**
- * processes the current term promise and updates the context
- * @param handler
- * @param obj
- * @return {v}
- */
-function processTerm(handler) {
-  var _this = this;
-
-  var obj = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-  var isDefault = arguments[2];
-
-  var req = {
-    term: this._request.term.then(function (value) {
-      assignRequest(req, _this._request, obj);
-      if (_this._request.error && !isDefault) return null;
-      if (isDefault) req.error = null;
-      return handler(value, req);
-    })
-  };
-  return new v(this._client, req);
-}
-
-/**
- * recursively processes the branch statements
- * @param args
- * @param resolve
- * @param reject
- * @return {*|Promise.<*>|Promise.<TResult>}
- */
 function processBranch(args, resolve, reject) {
   var condition = args.shift();
   var val = args.shift();
   var las = _.last(args);
 
-  return Promise$1.resolve(condition).then(function (c) {
+  return (condition instanceof v ? condition._rb.value : Promise$1.resolve(condition)).then(function (c) {
     if (c === true) {
-      return Promise$1.resolve(_.isFunction(val) ? val() : val).then(resolve, reject);
+      return (val instanceof v ? val._rb.value : Promise$1.resolve(_.isFunction(val) ? val() : val)).then(resolve, reject);
     } else if (args.length === 1) {
-      return Promise$1.resolve(_.isFunction(las) ? las() : las).then(resolve, reject);
+      return (las instanceof v ? las._rb.value : Promise$1.resolve(_.isFunction(las) ? las() : las)).then(resolve, reject);
     } else {
       return processBranch(args, resolve, reject);
     }
   }, reject);
 }
 
-/**
- * retrieves records and clears out the request context
- * @param req
- * @return {*|Promise.<*>}
- */
-function performRetrieve(req) {
-  return this._client.retrieve(req.args, req.options).then(function (result) {
-    req.args = {};
-    req.options = {};
-    return result;
-  });
-}
-
 var v = function () {
-  function v(client, request) {
+  function v(client, rb) {
     classCallCheck(this, v);
 
+    this._rb = null;
+
     var term = function term(field) {
-      return _.isString(field) ? term.value(field) : processTerm.call(this, function (result) {
-        return result;
-      });
+      return term.value(field);
     };
     Object.setPrototypeOf(term, v.prototype);
 
-    term._client = client;
-    term._request = _.isObject(request) ? request : {};
-    term._request.term = term._request.term || client._connection;
-    term._request.error = term._request.error || null;
+    term._rb = rb instanceof RequestBuilder ? rb : new RequestBuilder(client);
+
     return term;
   }
 
   /**
-   * updates the request to return all fields
-   * @return {*}
+   * returns add data from the current type
    */
 
 
   createClass(v, [{
     key: 'allData',
     value: function allData() {
-      return processTerm.call(this, function (value, req) {
-        _.set(req, 'args.properties', []);
+      return this._rb.next(function (value, rb) {
+        rb.args.properties = [];
+        rb.allData = true;
         return value;
       });
     }
 
     /**
-     * performs a branch operation
-     * @return {*}
+     * performs an if then else
      */
 
   }, {
     key: 'branch',
     value: function branch() {
       var args = [].concat(Array.prototype.slice.call(arguments));
-      return processTerm.call(this, function (value, req) {
-        req.operation = null;
+      return this._rb.next(function (value, rb) {
         args = args.length === 2 ? _.union([value], args) : args;
 
         if (args.length < 3 || args.length % 2 !== 1) {
-          req.error = new Error('branch has an invalid number of arguments');
+          rb.error = 'branch has an invalid number of arguments';
           return;
         }
         return new Promise$1(function (resolve, reject) {
@@ -1483,54 +1477,57 @@ var v = function () {
     }
 
     /**
-     * creates a new changefeed
+     * creates a new changefeed and returns an observable
      * @param options
-     * @return {*}
+     * @returns {*}
      */
 
   }, {
     key: 'changes',
     value: function changes(options) {
-      return new ChangeFeed(this._client, this._request, options).create();
+      return new ChangeFeed(this._rb, options).create();
     }
 
     /**
-     * Completes the connection process and returns the backend client
-     * @return {*|Promise.<VsphereConnectClient>}
+     * returns the backend client
+     * @returns {*}
      */
 
   }, {
     key: 'createClient',
     value: function createClient() {
-      var _this2 = this;
+      var _this = this;
 
-      return this._client._connection.then(function () {
-        return _this2._client;
+      return this._rb.client._connection.then(function () {
+        return _this._rb.client;
       });
     }
 
     /**
-     * default to a value if one does not exist
+     * sets a default value if there is an error and clears the error
      * @param val
-     * @return {*}
      */
 
   }, {
     key: 'default',
     value: function _default(val) {
-      return processTerm.call(this, function (result, req) {
-        if (result === undefined || req.error) {
-          if (req.error) req.error = null;
-          return val;
-        }
-        return result;
-      }, {}, true);
+      var _this2 = this;
+
+      return this._rb.next(function (value, rb) {
+        return _this2._rb.value.then(function (value) {
+          rb.operation = 'DEFAULT';
+          var error = _this2._rb.error ? _this2._rb.error : value === undefined ? new Error('NoResultsError: the selection has no results') : null;
+          _this2._rb.error = null;
+          rb.error = null;
+
+          return error ? _.isFunction(val) ? val(error) : val : value;
+        });
+      }, true);
     }
 
     /**
-     * destroys a selection of objects
+     * destroys all of the vms in the selection
      * @param options
-     * @return {*}
      */
 
   }, {
@@ -1538,25 +1535,18 @@ var v = function () {
     value: function destroy(options) {
       var _this3 = this;
 
-      return processTerm.call(this, function (result, req) {
-        var args = _.get(req, 'args', {});
-        var opts = _.get(req, 'options', {});
-
-        var arrayResults = !_.isNumber(opts.nth) && opts.limit !== 1 && (!args.id || _.isArray(args.id) && args.id.length);
-
-        return performRetrieve.call(_this3, req).then(function (results) {
-          return Promise$1.map(results, function (res) {
-            return _this3._client.destroy(res.moRef, options);
+      return this._rb.next(function () {
+        return _this3._rb.value.then(function (value) {
+          _this3.operation = 'DESTROY';
+          return Promise$1.map(_.castArray(value), function (mo) {
+            return _this3._rb.client.destroy(mo.moRef, options);
           });
-        }).then(function (results) {
-          return arrayResults ? results : _.first(results);
         });
       });
     }
 
     /**
-     * performs a nested operation
-     * @return {*}
+     * performs one or more operations and feeds them into a handler function
      */
 
   }, {
@@ -1565,21 +1555,23 @@ var v = function () {
       var args = [].concat(Array.prototype.slice.call(arguments));
       var fn = _.last(args);
       if (!_.isFunction(fn)) throw new Error('invalid value for do');
-      return processTerm.call(this, function (value, req) {
-        var params = args.length > 1 ? args.slice(0, args.length - 1) : [value];
+
+      return this._rb.next(function (value, rb) {
+        var params = _.map(args.length > 1 ? args.slice(0, args.length - 1) : [value], function (param) {
+          return param instanceof v ? param._rb.value : _.isFunction(param) ? param() : param;
+        });
+
         return Promise$1.map(params, function (param) {
           return param;
         }).then(function (params) {
-          req.operation = OPERATIONS.DO;
           return fn.apply(null, params);
         });
       });
     }
 
     /**
-     * loops through a collection and performs the iteratee function
+     * iterates over a set of values and executes an iteratee function on their values
      * @param iteratee
-     * @return {*}
      */
 
   }, {
@@ -1587,199 +1579,201 @@ var v = function () {
     value: function each(iteratee) {
       var _this4 = this;
 
-      iteratee = _.isFunction(iteratee) ? iteratee : _.identity;
-      return processTerm.call(this, function (value, req) {
-        var data = value;
-        switch (req.operation) {
-          case OPERATIONS.RETRIEVE:
-            data = performRetrieve.call(_this4, req);
-            break;
-          default:
-            break;
-        }
-        return Promise$1.each(data, iteratee).then(function (result) {
-          req.operation = OPERATIONS.EACH;
-          return result;
+      return this._rb.next(function (value, rb) {
+        return _this4._rb.value.then(function (value) {
+          rb.operation = 'EACH';
+          if (!_.isArray(value)) {
+            rb.error = 'cannot call each on single selection';
+            return null;
+          }
+          return Promise$1.each(value, _.isFunction(iteratee) ? iteratee : _.identity);
         });
       });
     }
 
     /**
-     * compares passed value to current value
-     * @param val
-     * @return {*}
+     * determines if one or more values equal the current selection
      */
 
   }, {
     key: 'eq',
-    value: function eq(val) {
-      var _this5 = this;
+    value: function eq() {
+      var _this5 = this,
+          _arguments = arguments;
 
-      return processTerm.call(this, function (value, req) {
-        var data = value;
-        switch (req.operation) {
-          case OPERATIONS.RETRIEVE:
-            data = performRetrieve.call(_this5, req);
-            break;
-          default:
-            break;
-        }
-        return Promise$1.all([val, data]).then(function (result) {
-          req.operation = OPERATIONS.EQ;
-          return _.isEqual(result[0], result[1]);
+      var args = [].concat(Array.prototype.slice.call(arguments));
+      if (!args.length) throw new Error('eq requires at least one argument');
+      return this._rb.next(function (value, rb) {
+        return _this5._rb.value.then(function (value) {
+          rb.operation = 'EQ';
+          return Promise$1.reduce([].concat(Array.prototype.slice.call(_arguments)), function (accum, item) {
+            return accum && _.isEqual(value, item);
+          }, true);
         });
       });
     }
 
     /**
-     * creates a new expression
+     * converts a native value into a vConnect object
      * @param val
-     * @return {*}
      */
 
   }, {
     key: 'expr',
     value: function expr(val) {
-      return processTerm.call(this, function (value, req) {
-        req.operation = OPERATIONS.EXPR;
+      if (val === undefined) throw new Error('cannot wrap undefined with expr');
+      return this._rb.next(function (value, rb) {
+        rb.operation = 'EXPR';
+        rb.single = !_.isArray(val);
         return val;
       });
     }
 
     /**
-     * Filters a collection
-     * @param iteratee
+     * filters out all values that do not return true from the filterer function
+     * @param filterer
      * @param options
-     * @return {*}
      */
 
   }, {
     key: 'filter',
-    value: function filter(iteratee, options) {
+    value: function filter(filterer, options) {
       var _this6 = this;
 
-      iteratee = _.isFunction(iteratee) ? iteratee : _.identity;
-      return processTerm.call(this, function (value, req) {
-        var data = value;
-        switch (req.operation) {
-          case OPERATIONS.RETRIEVE:
-            data = performRetrieve.call(_this6, req);
-            break;
-          default:
-            break;
-        }
-        return Promise$1.filter(data, iteratee, options).then(function (result) {
-          req.operation = OPERATIONS.FILTER;
-          return result;
+      return this._rb.next(function (value, rb) {
+        return _this6._rb.value.then(function (value) {
+          rb.operation = 'FILTER';
+          if (!_.isArray(value)) {
+            rb.error = 'cannot call filter on single selection';
+            return null;
+          }
+          return Promise$1.filter(value, _.isFunction(filterer) ? filterer : _.identity, options);
         });
       });
     }
 
     /**
-     * gets one or more objects by id
-     * @param id
-     * @return {*}
+     * gets one or more managed objects by id
      */
 
   }, {
     key: 'get',
     value: function get$$1() {
-      var _this7 = this;
-
       var ids = [].concat(Array.prototype.slice.call(arguments));
-      return processTerm.call(this, function (value, req) {
-        _.set(req, 'args.id', ids);
-        return performRetrieve.call(_this7, req).then(function (result) {
-          req.operation = OPERATIONS.GET;
-          return ids.length > 1 ? result : _.get(result, '[0]', null);
+      return this._rb.next(function (value, rb) {
+        if (rb.operation === RETRIEVE) {
+          rb.args.id = ids;
+          rb.single = ids.length === 1;
+          return value;
+        }
+        if (!_.isArray(value)) {
+          rb.error = new Error('cannot get from non-array');
+          return null;
+        }
+        return _.filter(value, function (mo) {
+          var _$get = _.get(mo, 'moRef', {}),
+              type = _$get.type,
+              value = _$get.value;
+
+          return _.get(rb.args, 'type') === type && _.includes(ids, value);
         });
       });
     }
 
     /**
-     * returns the id value from the current selection
-     * @return {*}
+     * gets the id from the current selection or object
+     * @returns {*}
      */
 
   }, {
     key: 'id',
     value: function id() {
-      return processTerm.call(this, function (value, req) {
-        req.operation = null;
-        return _.isArray(value) ? _.map(value, function (v) {
-          return _.get(v, 'moRef.value', null);
-        }) : _.get(value, 'moRef.value', null);
+      var _this7 = this;
+
+      return this._rb.next(function (value, rb) {
+        return _this7._rb.value.then(function (value) {
+          rb.operation = 'ID';
+          return _.isArray(value) ? _.map(value, function (v) {
+            return _.get(v, 'moRef.value', null);
+          }) : _.get(value, 'moRef.value', null);
+        });
       });
     }
 
     /**
-     * Limits the number of records returned
+     * limits the number of results
      * @param limit
-     * @return {*}
+     * @returns {*}
      */
 
   }, {
     key: 'limit',
     value: function limit(_limit) {
       if (!_.isNumber(_limit)) throw new Error('invalid value for limit');
-      return processTerm.call(this, function (value, req) {
-        _.set(req, 'options.limit', Math.ceil(_limit));
-        return value;
+      return this._rb.next(function (value, rb) {
+        if (rb.single) {
+          rb.error = new Error('cannot limit single selection');
+          return null;
+        }
+        if (rb.operation === RETRIEVE) {
+          rb.options.limit = Math.ceil(_limit);
+          return value;
+        }
+        if (!_.isArray(value)) {
+          rb.error = new Error('cannot limit non-array');
+          return null;
+        }
+        return _.first(value);
       });
     }
 
     /**
-     * logs the user in or changes the token
+     * creates a new session or sets the token for the current instance
      * @param username
      * @param password
-     * @return {*}
      */
 
   }, {
     key: 'login',
     value: function login(username, password) {
-      var _this8 = this;
-
-      return processTerm.call(this, function (value, req) {
-        return _this8._client.login(username, password);
+      return this._rb.next(function (value, rb) {
+        rb.operation = 'LOGIN';
+        return rb.client.login(username, password);
       });
     }
 
     /**
-     * Logs out of the current vSphere session
-     * @return {*|Promise.<Object>}
+     * logs out the current session
      */
 
   }, {
     key: 'logout',
     value: function logout() {
-      return this._request.term.then(this._client.logout());
+      return this._rb.next(function (value, rb) {
+        rb.operation = 'LOGOUT';
+        return rb.client.logout();
+      });
     }
 
     /**
-     * performs a map operation
-     * @param iteratee
-     * @return {*}
+     * maps a selection
+     * @param mapper
+     * @param options
      */
 
   }, {
     key: 'map',
-    value: function map(iteratee, options) {
-      var _this9 = this;
+    value: function map(mapper, options) {
+      var _this8 = this;
 
-      iteratee = _.isFunction(iteratee) ? iteratee : _.identity;
-      return processTerm.call(this, function (value, req) {
-        var data = value;
-        switch (req.operation) {
-          case OPERATIONS.RETRIEVE:
-            data = performRetrieve.call(_this9, req);
-            break;
-          default:
-            break;
-        }
-        return Promise$1.map(data, iteratee, options).then(function (result) {
-          req.operation = OPERATIONS.MAP;
-          return result;
+      return this._rb.next(function (value, rb) {
+        return _this8._rb.value.then(function (value) {
+          rb.operation = 'MAP';
+          if (!_.isArray(value)) {
+            rb.error = 'cannot call map on single selection';
+            return null;
+          }
+          return Promise$1.map(value, _.isFunction(mapper) ? mapper : _.identity, options);
         });
       });
     }
@@ -1794,39 +1788,31 @@ var v = function () {
   }, {
     key: 'method',
     value: function method(name, args) {
-      var _this10 = this;
-
-      return processTerm.call(this, function (value, req) {
-        return _this10._client.method(name, args).then(function (result) {
-          req.operation = null;
-          return result;
-        });
+      return this._rb.next(function (value, rb) {
+        rb.operation = 'METHOD';
+        rb._value = undefined;
+        return rb.client.method(name, args);
       });
     }
 
     /**
-     * compares passed value to current value
-     * @param val
-     * @return {*}
+     * determines if one or more values equal the current selection
      */
 
   }, {
     key: 'ne',
-    value: function ne(val) {
-      var _this11 = this;
+    value: function ne() {
+      var _this9 = this,
+          _arguments2 = arguments;
 
-      return processTerm.call(this, function (value, req) {
-        var data = value;
-        switch (req.operation) {
-          case OPERATIONS.RETRIEVE:
-            data = performRetrieve.call(_this11, req);
-            break;
-          default:
-            break;
-        }
-        return Promise$1.map([val, data]).then(function (result) {
-          req.operation = OPERATIONS.NE;
-          return !_.isEqual(result[0], result[1]);
+      var args = [].concat(Array.prototype.slice.call(arguments));
+      if (!args.length) throw new Error('ne requires at least one argument');
+      return this._rb.next(function (value, rb) {
+        return _this9._rb.value.then(function (value) {
+          rb.operation = 'NE';
+          return Promise$1.reduce([].concat(Array.prototype.slice.call(_arguments2)), function (accum, item) {
+            return accum && !_.isEqual(value, item);
+          }, true);
         });
       });
     }
@@ -1839,9 +1825,17 @@ var v = function () {
   }, {
     key: 'not',
     value: function not() {
-      return processTerm.call(this, function (value, req) {
-        req.operation = OPERATIONS.NOT;
-        return !_.includes([true, 1, "true", "TRUE"], value);
+      var _this10 = this;
+
+      return this._rb.next(function (value, rb) {
+        return _this10._rb.value.then(function (value) {
+          rb.operation = 'NOT';
+          if (value === undefined) {
+            rb.error = new Error('cannot not an undefined value');
+            return null;
+          }
+          return _.includes([false, null], value);
+        });
       });
     }
 
@@ -1852,11 +1846,24 @@ var v = function () {
 
   }, {
     key: 'nth',
-    value: function nth(index) {
+    value: function nth(n) {
       if (!_.isNumber(index)) throw new Error('invalid value for nth');
-      return processTerm.call(this, function (value, req) {
-        _.set(req, 'options.nth', Math.ceil(index));
-        return value;
+      return this._rb.next(function (value, rb) {
+        if (rb.single) {
+          rb.error = new Error('cannot get nth on single selection');
+          return null;
+        }
+        if (rb.operation === RETRIEVE) {
+          rb.single = true;
+          rb.options.nth = Math.ceil(n);
+          return value;
+        }
+        if (!_.isArray(value)) {
+          rb.error = new Error('cannot get nth on non-array');
+          return null;
+        }
+        rb.single = true;
+        return _.nth(value, n);
       });
     }
 
@@ -1869,9 +1876,25 @@ var v = function () {
   }, {
     key: 'orderBy',
     value: function orderBy(doc) {
-      return processTerm.call(this, function (value, req) {
-        _.set(req, 'options.orderBy', doc);
-        return value;
+      return this._rb.next(function (value, rb) {
+        if (rb.single) {
+          rb.error = new Error('cannot order single selection');
+          return null;
+        }
+        if (rb.operation === RETRIEVE) {
+          rb.options.orderBy = doc;
+          return value;
+        }
+        if (!_.isArray(value)) {
+          rb.error = new Error('cannot order non-array');
+          return null;
+        }
+
+        var _orderDoc = orderDoc(doc),
+            fields = _orderDoc.fields,
+            directions = _orderDoc.directions;
+
+        return _.orderBy(value, fields, directions);
       });
     }
 
@@ -1883,19 +1906,36 @@ var v = function () {
   }, {
     key: 'pluck',
     value: function pluck$$1() {
-      var propList = buildPropList([].concat(Array.prototype.slice.call(arguments)));
-      return processTerm.call(this, function (value, req) {
-        var currentProps = _.get(req, 'args.properties', propList);
+      var _arguments3 = arguments;
+
+      return this._rb.next(function (value, rb) {
+        rb.allData = false;
+        var propList = buildPropList([].concat(Array.prototype.slice.call(_arguments3)));
+        var currentProps = _.get(rb.args, 'properties', propList);
         var useProps = _.intersection(propList, currentProps);
         useProps = useProps.length ? useProps : propList;
 
-        switch (req.operation) {
-          case OPERATIONS.RETRIEVE:
-            _.set(req, 'args.properties', useProps);
-            return value;
-          default:
-            return pluck(value, useProps);
+        if (rb.operation === RETRIEVE) {
+          rb.args.properties = useProps;
+          return value;
         }
+        return pluck(value, useProps);
+      });
+    }
+  }, {
+    key: 'reduce',
+    value: function reduce(reducer, initialValue) {
+      var _this11 = this;
+
+      return this._rb.next(function (value, rb) {
+        return _this11._rb.value.then(function (value) {
+          rb.operation = 'REDUCE';
+          if (!_.isArray(value)) {
+            rb.error = 'cannot call reduce on single selection';
+            return null;
+          }
+          return Promise$1.reduce(value, _.isFunction(reducer) ? reducer : _.identity, initialValue);
+        });
       });
     }
 
@@ -1909,164 +1949,109 @@ var v = function () {
   }, {
     key: 'retrieve',
     value: function retrieve(args, options) {
-      var _this12 = this;
-
-      return processTerm.call(this, function (value, req) {
-        return _this12._client.retrieve(args, options).then(function (result) {
-          req.operation = null;
-          return result;
-        });
+      return this._rb.next(function (value, rb) {
+        rb.operation = 'RETRIEVE';
+        rb._value = undefined;
+        return rb.client.retrieve(args, options);
       });
     }
 
     /**
-     * selects a value from the current result
-     * @param p
-     * @return {*}
-     */
-
-  }, {
-    key: 'value',
-    value: function value(p) {
-      var _this13 = this;
-
-      return processTerm.call(this, function (value, req) {
-        var data = Promise$1.resolve(value);
-        switch (req.operation) {
-          case OPERATIONS.RETRIEVE:
-            data = performRetrieve.call(_this13, req);
-            break;
-          default:
-            break;
-        }
-        return data.then(function (result) {
-          req.operation = null;
-
-          if (_.isString(p)) {
-            if (_.isArray(result)) {
-              return _.without(_.map(result, function (res) {
-                return _.get(res, p);
-              }), undefined);
-            } else {
-              var val = _.get(result, p);
-              if (val === undefined) {
-                req.error = new Error('no attribute "' + p + '" in object');
-              }
-              return val;
-            }
-          }
-          return result;
-        });
-      });
-    }
-
-    /**
-     * performs a reduce operation
-     * @param iteratee
-     * @param initialValue
-     * @return {*}
-     */
-
-  }, {
-    key: 'reduce',
-    value: function reduce(iteratee, initialValue) {
-      var _this14 = this;
-
-      iteratee = _.isFunction(iteratee) ? iteratee : _.identity;
-      return processTerm.call(this, function (value, req) {
-        var data = value;
-        switch (req.operation) {
-          case OPERATIONS.RETRIEVE:
-            data = performRetrieve.call(_this14, req);
-            break;
-          default:
-            break;
-        }
-        return Promise$1.reduce(data, iteratee, initialValue).then(function (result) {
-          req.operation = OPERATIONS.REDUCE;
-          return result;
-        });
-      });
-    }
-
-    /**
-     * Limits the number of records returned
-     * @param count
-     * @return {*}
+     * limits the number of results
+     * @param limit
+     * @returns {*}
      */
 
   }, {
     key: 'skip',
-    value: function (_skip) {
-      function skip(_x3) {
-        return _skip.apply(this, arguments);
-      }
-
-      skip.toString = function () {
-        return _skip.toString();
-      };
-
-      return skip;
-    }(function (count) {
-      if (!_.isNumber(count)) throw new Error('invalid value for skip');
-      return processTerm.call(this, function (value, req) {
-        _.set(req, 'options.skip', Math.ceil(skip));
-        return value;
+    value: function skip(n) {
+      if (!_.isNumber(n) || n < 1) throw new Error('invalid value for skip');
+      return this._rb.next(function (value, rb) {
+        if (rb.single) {
+          rb.error = new Error('cannot skip single selection');
+          return null;
+        }
+        if (rb.operation === RETRIEVE) {
+          rb.options.skip = Math.ceil(n);
+          return value;
+        }
+        if (!_.isArray(value)) {
+          rb.error = new Error('cannot skip non-array');
+          return null;
+        }
+        return _.slice(value, Math.ceil(n));
       });
-    })
+    }
 
     /**
-     * Sets the current type
+     * sets the managed object type of the current request chain
      * @param name
-     * @return {v}
      */
 
   }, {
     key: 'type',
     value: function type(name) {
-      var _this15 = this;
-
-      return processTerm.call(this, function (value, req) {
-        var type = _this15._client.typeResolver(name);
-        var operation = OPERATIONS.RETRIEVE;
-        if (!type) {
-          req.error = new Error('invalid type ' + name);
-          return;
+      return this._rb.next(function (value, rb) {
+        rb.args.type = rb.client.typeResolver(name);
+        // rb.args.properties = rb.args.properties || ['moRef', 'name']
+        if (!rb.args.type) {
+          rb.error = 'InvalidTypeError: "' + name + '" is not a valid type or alias';
+          return null;
         }
-        assignRequest(req, _this15._request, { operation: operation, type: type });
-        _.set(req, 'args.type', type);
-        _.set(req, 'args.properties', ['moRef', 'name']);
-        return value;
+        rb._value = undefined;
+        rb.operation = RETRIEVE;
+        rb.single = false;
+
+        return null;
       });
     }
 
     /**
-     * Performs the chain of operations
+     * resolves the current request chain
      * @param onFulfilled
      * @param onRejected
-     * @return {*|Promise.<*>}
+     * @returns {Promise.<TResult>}
      */
 
   }, {
     key: 'then',
     value: function then(onFulfilled, onRejected) {
-      var _this16 = this;
+      var _this12 = this;
 
       onFulfilled = _.isFunction(onFulfilled) ? onFulfilled : _.noop;
       onRejected = _.isFunction(onRejected) ? onRejected : _.noop;
 
-      return this._request.term.then(function (value) {
-        if (_this16._request.error) throw _this16._request.error;
+      return this._rb.value.then(function (result) {
+        _this12.operation = null;
+        return _this12._rb.error ? Promise$1.reject(_this12._rb.error) : result;
+      }).then(onFulfilled, onRejected);
+    }
 
-        switch (_this16._request.operation) {
-          case OPERATIONS.RETRIEVE:
-            return _this16._client.retrieve(_this16._request.args, _this16._request.options).then(onFulfilled, onRejected);
+    /**
+     * selects a specific value of the current selection
+     * or object if attr is supplied or the current value if no arguments
+     * @param attr
+     */
 
-          default:
-            return onFulfilled(value);
-        }
-        throw new Error('UnsupportedOperation: ' + _this16._request.operation);
-      }, onRejected);
+  }, {
+    key: 'value',
+    value: function value(attr) {
+      var _this13 = this;
+
+      return this._rb.next(function (value, rb) {
+        return _this13._rb.value.then(function (value) {
+          rb.operation = 'VALUE';
+          if (_.isString(attr)) {
+            if (_.isArray(value)) return _.without(_.map(value, function (val) {
+              return _.get(val, attr);
+            }), undefined);
+            var val = _.get(value, attr);
+            if (val === undefined) rb.error = 'no attribute "' + attr + ' in object"';
+            return val;
+          }
+          return value;
+        });
+      });
     }
   }]);
   return v;
@@ -2164,8 +2149,8 @@ var VsphereConnectClient = function (_EventEmitter) {
   return VsphereConnectClient;
 }(EventEmitter);
 
-var index = function (host, options) {
+var index$1 = function (host, options) {
   return new VsphereConnectClient(host, options);
 };
 
-module.exports = index;
+module.exports = index$1;

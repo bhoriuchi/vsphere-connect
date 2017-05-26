@@ -3,6 +3,7 @@ import Promise from 'bluebird'
 import PropertyFilterSpec from '../objects/PropertyFilterSpec'
 import graphSpec from '../common/graphSpec'
 import convertRetrievedProperties from '../common/convertRetrievedProperties'
+import orderDoc from '../common/orderDoc'
 
 function getResults (result, objects, limit, skip, nth, orderBy, moRef, fn) {
   if (!result) return Promise.resolve(objects)
@@ -15,12 +16,11 @@ function getResults (result, objects, limit, skip, nth, orderBy, moRef, fn) {
   }
 
   objs = orderBy
-    ? _.orderBy(objs, orderBy[0], orderBy[1])
+    ? _.orderBy(objs, orderBy.fields, orderBy.directions)
     : objs
 
   if (nth !== null) {
-    if (nth < 0 || nth >= objs.length - 1) return Promise.reject(new Error('nth selection out of range'))
-    return Promise.resolve(objs[nth])
+    return Promise.resolve(_.nth(objs, nth))
   }
 
   let results = _.slice(objs, skip || 0, limit || objs.length)
@@ -28,28 +28,21 @@ function getResults (result, objects, limit, skip, nth, orderBy, moRef, fn) {
 }
 
 export default function retrieve (args, options) {
-  args = _.isObject(args) ? args : {}
-  options = _.isObject(options) ? options : {}
+  args = _.isObject(args) ? _.cloneDeep(args) : {}
+  options = _.isObject(options) ? _.cloneDeep(options) : {}
 
   let limit = options.limit
   let skip = options.skip || 0
   let nth = _.isNumber(options.nth) ? Math.ceil(options.nth) : null
   let properties = _.get(args, 'properties', [])
   let moRef = true // _.includes(properties, 'moRef') || _.includes(properties, 'id')
-  let orderBy = null
+  let orderBy = options.orderBy
+    ? orderDoc(options.orderBy)
+    : null
   let fn = _.isFunction(options.resultHandler)
     ? options.resultHandler
     : result => result
   args.properties = _.without(properties, 'moRef', 'id', 'moRef.value', 'moRef.type')
-
-  if (_.isObject(options.orderBy)) {
-    orderBy = [
-      _.keys(options.orderBy),
-      _.map(options.orderBy, dir => {
-        return dir === 'desc' || dir === -1 ? 'desc' : 'asc'
-      })
-    ]
-  }
 
   if (_.isNumber(skip) && _.isNumber(limit)) limit += skip
 

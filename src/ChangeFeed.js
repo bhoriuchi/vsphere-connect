@@ -2,8 +2,8 @@ import _ from 'lodash'
 import Rx from 'rxjs'
 import EventEmitter from 'events'
 import Promise from 'bluebird'
-import PropertyFilterSpec from '../objects/PropertyFilterSpec'
-import graphSpec from '../common/graphSpec'
+import PropertyFilterSpec from './objects/PropertyFilterSpec'
+import graphSpec from './common/graphSpec'
 import Debug from 'debug'
 
 const debug = Debug('vconnect.changefeed')
@@ -31,13 +31,13 @@ function formatChange (obj) {
 }
 
 export default class ChangeFeed {
-  constructor (client, request, options) {
+  constructor (rb, options) {
     debug('creating a new changefeed')
-    debug('args %O', request.args)
-    debug('options %O', request.options)
+    debug('args %O', rb.args)
+    debug('options %O', rb.options)
 
-    this._client = client
-    this._request = request
+    this._client = rb.client
+    this._request = rb
     this._options = options
     this._interval = null
     this._emitter = new EventEmitter()
@@ -70,7 +70,8 @@ export default class ChangeFeed {
   create () {
     this._request.term.then(() => {
       let reqArgs = _.cloneDeep(this._request.args) || {}
-      reqArgs.properties = reqArgs.properties || []
+      if (this._request.allData) reqArgs.properties = []
+      reqArgs.properties = reqArgs.properties || ['moRef', 'name']
       reqArgs.properties = _.without(reqArgs.properties, 'moRef', 'id')
       let specMap = _.map(graphSpec(reqArgs), s => PropertyFilterSpec(s, this._client).spec)
       let _this = this._client.serviceContent.propertyCollector
