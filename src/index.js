@@ -4,7 +4,7 @@ import soap from 'soap-connect'
 import cacheKey from './common/cacheKey'
 import typeResolver from './common/typeResolver'
 import methods from './methods/index'
-import v from './v'
+import v from './vee'
 
 class VsphereConnectClient extends EventEmitter {
   /**

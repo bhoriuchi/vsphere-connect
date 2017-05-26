@@ -4,6 +4,37 @@ import cred from '../credentials'
 let { host, username, password } = cred
 
 let v = VSphere(host, { ignoreSSL: true })
+  .login(username, password).type('vm')
+
+v.do(v.type('vm').get('vm-16'), v.type('vm').get('vm-15'), (vm1, vm2) => {
+  return { vm1, vm2 }
+})
+  .then(console.log, console.error)
+
+/*
+v.expr(false).branch(v.type('vm').get('vm-16'), v.type('vm').get('vm-15'))
+  .then(console.log, console.error)
+
+  */
+/*
+v = v.login(username, password).type('vm')
+v
+  .get('vm-16')
+  .each(console.log)
+  .then(() => {
+    return v.get('vm-16')
+  })
+  .then(console.log)
+  .catch(console.error)
+  .finally(() => {
+    return v.logout()
+  })
+
+  */
+
+// v.expr({ a: 'aye' })('a').then(console.log, console.error)
+
+/*
 v = v.login(username, password)
 
 v.type('vm').get('vm-49')('name').default(err => {
@@ -18,7 +49,7 @@ v.type('vm').get('vm-49')('name').default(err => {
   .finally(() => {
     return v.logout()
   })
-
+*/
 /*
 v.type('vm').nth(0)('name1').then(vms => {
   console.log(JSON.stringify(vms, null, '  '))

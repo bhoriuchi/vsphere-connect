@@ -28,8 +28,8 @@ function getResults (result, objects, limit, skip, nth, orderBy, moRef, fn) {
 }
 
 export default function retrieve (args, options) {
-  args = _.isObject(args) ? args : {}
-  options = _.isObject(options) ? options : {}
+  args = _.isObject(args) ? _.cloneDeep(args) : {}
+  options = _.isObject(options) ? _.cloneDeep(options) : {}
 
   let limit = options.limit
   let skip = options.skip || 0
