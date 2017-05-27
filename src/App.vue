@@ -3,6 +3,8 @@
     navbar
     router-view
     mobile-nav
+    button.btn.btn-lg.mobile-menu-button.desktop-hide(type="button", @click="store.mobileNavShow = !store.mobileNavShow")
+      i.fa.fa-bars.fa-2x
 </template>
 
 <script>
@@ -13,6 +15,11 @@
     components: {
       Navbar,
       MobileNav
+    },
+    computed: {
+      store () {
+        return this.$deepModel('data')
+      }
     }
   }
 </script>
@@ -25,10 +32,11 @@
     text-align: center;
     color: #2c3e50;
     margin-top: 0px;
+    background-color: #fdfdfd;
   }
 
   body {
-    background-color: #fdfdfd;
+    background-color: #182756;
     position: absolute;
     overflow: auto;
     width: 100%;

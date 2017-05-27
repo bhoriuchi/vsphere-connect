@@ -5,7 +5,7 @@
         .navbar-header
           button.navbar-toggle.mobile-hamburger(type="button", data-toggle="collapse",
           data-target="#navbar", aria-expanded="true", aria-controls="navbar",
-          @click="navCollapsed = !navCollapsed")
+          @click="store.mobileNavShow = !store.mobileNavShow")
             span.sr-only Toggle Navigation
             span.icon-bar
             span.icon-bar
@@ -24,12 +24,14 @@
 </template>
 
 <script type="text/babel">
-  import Hub from '../hub'
   export default {
-    created () {
-      Hub.$on('mobilenav.collapse', () => {
-        this.navCollapsed = true
-      })
+    computed: {
+      store () {
+        return this.$deepModel('data')
+      },
+      mobileNavShow () {
+        return this.store.mobileNavShow
+      }
     },
     data () {
       return {
@@ -37,14 +39,13 @@
       }
     },
     watch: {
-      navCollapsed (val) {
+      mobileNavShow (val) {
         val
-          ? document.body.classList.remove('body-slide-left')
-          : document.body.classList.add('body-slide-left')
-        if (!val) Hub.$emit('mobilenav.show')
+          ? document.body.classList.add('body-slide-left')
+          : document.body.classList.remove('body-slide-left')
       },
       $route () {
-        this.navCollapsed = true
+        this.$vuexSet('data.mobileNavShow', false)
       }
     }
   }

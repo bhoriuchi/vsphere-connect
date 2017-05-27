@@ -1,9 +1,9 @@
 <template lang="pug">
   transition(name="mobile-menu")
-    #mobile-nav.container-fluid(v-show="show")
+    #mobile-nav.container-fluid(v-show="store.mobileNavShow")
       ul
         li
-          a(@click="collapseNav()")
+          a(@click="mobileNavShow = false")
             i.fa.fa-fw.fa-times
             span close
         li
@@ -35,14 +35,11 @@
 <script type="text/babel">
   import apiData from '@/data/api/index'
   import { forEach } from '@/assets/js/utils'
-  import Hub from '../hub'
   export default {
-    created () {
-      Hub.$on('mobilenav.show', () => {
-        this.show = true
-      })
-    },
     computed: {
+      store () {
+        return this.$deepModel('data')
+      },
       apiSubMenuData () {
         if (!this.search) return this.apiData
         let rx = new RegExp(this.search, 'i')
@@ -61,10 +58,6 @@
       }
     },
     methods: {
-      collapseNav () {
-        Hub.$emit('mobilenav.collapse')
-        this.show = false
-      },
       makeLink (name) {
         return !this.$route.path.match(/^\/.*\/.*/)
           ? `#about-${name}`
@@ -76,11 +69,6 @@
         show: false,
         apiData,
         search: ''
-      }
-    },
-    watch: {
-      $route () {
-        this.show = false
       }
     }
   }
@@ -95,8 +83,6 @@
     width: 80%;
     bottom: 0px;
     text-align: left;
-    background-color: #182756;
-    overflow-y: auto;
   }
 
   #mobile-nav ul {
