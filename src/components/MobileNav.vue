@@ -3,7 +3,7 @@
     #mobile-nav.container-fluid(v-show="store.mobileNavShow")
       ul
         li
-          a(@click="mobileNavShow = false")
+          a(@click="store.mobileNavShow = false")
             i.fa.fa-fw.fa-times
             span close
         li
@@ -83,6 +83,7 @@
     width: 80%;
     bottom: 0px;
     text-align: left;
+    background-color: #182756;
   }
 
   #mobile-nav ul {
@@ -125,6 +126,7 @@
 
   #mobile-nav .sub-menu-section {
     border-top: 3px solid #3040ad;
+    background-color: #182756;
   }
 
   .mobile-menu-enter-active {

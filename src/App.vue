@@ -3,7 +3,7 @@
     navbar
     router-view
     mobile-nav
-    button.btn.btn-lg.mobile-menu-button.desktop-hide(type="button", @click="store.mobileNavShow = !store.mobileNavShow")
+    // button.btn.btn-lg.mobile-menu-button.desktop-hide(type="button", @click="store.mobileNavShow = !store.mobileNavShow")
       i.fa.fa-bars.fa-2x
 </template>
 
@@ -36,7 +36,6 @@
   }
 
   body {
-    background-color: #182756;
     position: absolute;
     overflow: auto;
     width: 100%;

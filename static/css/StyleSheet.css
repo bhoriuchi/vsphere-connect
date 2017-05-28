@@ -52,9 +52,9 @@ p.usage {
 }
 
 .mobile-menu-button:active, .mobile-menu-button:focus {
-  outline: none;
-  background-color: #234884;
-  color: #fff;
+  outline: none !important;
+  background-color: #234884 !important;
+  color: #fff !important;
 }
 
 .fade-enter-active, .fade-leave-active {
