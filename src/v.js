@@ -92,6 +92,10 @@ export default class v {
     return new ChangeFeed(this._rb, options).create()
   }
 
+  create (build) {
+
+  }
+
   /**
    * returns the backend client
    * @returns {*}
