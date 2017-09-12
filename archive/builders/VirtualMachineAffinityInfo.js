@@ -10,7 +10,6 @@ export default class VirtualMachineAffinityInfo extends BaseBuilder {
 
   affinitySet (value) {
     if (!_.isArray(value) || !value.length) throw new Error('affinitySet requires an array of integers')
-    this.config.affinitySet = _.filter(value, _.isNumber)
-    return this
+    return this.$set('affinitySet', _.filter(value, _.isNumber))
   }
 }

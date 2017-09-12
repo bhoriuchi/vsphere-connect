@@ -10,33 +10,29 @@ export default class ResourceAllocationInfo extends BaseBuilder {
 
   expandableReservation (value) {
     if (!_.isBoolean(value)) throw new Error('expandableReservation must be a boolean')
-    this.config.expandableReservation = value
-    return this
+    return this.$set('expandableReservation', value)
   }
 
   limit (value) {
     if (!_.isNumber(value) || value < -1) throw new Error('limit must be an integer >= -1')
-    this.config.limit = value
-    return this
+    return this.$set('limit', value)
   }
 
   overheadLimit (value) {
     if (!_.isNumber(value) || value < -1) throw new Error('overheadLimit must be an integer >= -1')
-    this.config.overheadLimit = value
-    return this
+    return this.$set('overheadLimit', value)
   }
 
   reservation (value) {
     if (!_.isNumber(value) || value < 1) throw new Error('reservation must be an integer >= 1')
-    this.config.reservation = value
-    return this
+    return this.$set('reservation', value)
   }
 
   shares (build) {
-    if (!_.isFunction(build)) throw new Error('shares must supply a builder function')
-    builder = new SharesInfo(this.apiVersion)
+    if (this.$isConfigObject(build)) return this.$set('shares', build)
+    if (!_.isFunction(build)) throw new Error('shares must supply a builder function or configuration object')
+    let builder = new SharesInfo(this.apiVersion)
     build(builder)
-    this.config.shares = builder.config
-    return this
+    return this.$set('shares', builder.$config())
   }
 }

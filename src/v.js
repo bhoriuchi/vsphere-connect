@@ -92,17 +92,75 @@ export default class v {
     return new ChangeFeed(this._rb, options).create()
   }
 
-  create (build) {
+  /**
+   * sets the cluster path
+   * @param name
+   * @returns {*}
+   */
+  cluster (name) {
+    return this._rb.next((value, rb) => {
+      if (!rb.args._clusterName) {
+        rb.args._clusterName = name
 
+        if (rb.args._inventoryPath) {
+          if (rb.args._inventoryPath.match(/\/.*\/host(\/.*)?$/)) {
+            rb.args._inventoryPath = `${rb.args._inventoryPath}/${name}`
+          } else {
+            rb.args._inventoryPath = `${rb.args._inventoryPath}/host/${name}`
+          }
+        }
+      }
+
+      return value
+    })
+  }
+
+  /**
+   * create a new managed object type
+   * @param path
+   * @param configs
+   * @param options
+   */
+  create (path, config, options) {
+    if (!_.isFunction(config) && !_.isObject(config)) throw new Error('InvalidArgumentError: config must be function or object')
+    options = _.isObject(options)
+      ? options
+      : {}
+
+    let wrapConfig = (c) => {
+      c._this(path)
+      config(c)
+    }
+
+    return this._rb.next((value, rb) => {
+      rb.operation = 'CREATE'
+      return this._rb.client.create(rb.args.type, wrapConfig, options)
+    })
   }
 
   /**
    * returns the backend client
    * @returns {*}
    */
-  createClient () {
+  createClient (cb) {
     return this._rb.client._connection
-      .then(() => this._rb.client)
+      .then(() => cb(this._rb.client))
+  }
+
+  /**
+   * set the datacenter path for commands
+   * @param name
+   */
+  datacenter (name) {
+    return this._rb.next((value, rb) => {
+      if (!rb.args._datacenterName) {
+        rb.args._datacenterName = name
+        rb.args._inventoryPath = rb.args._inventoryPath
+          ? `${rb.args._inventoryPath}/${name}`
+          : `/${name}`
+      }
+      return value
+    })
   }
 
   /**
@@ -230,6 +288,20 @@ export default class v {
   }
 
   /**
+   * sets the folder path
+   * @param name
+   */
+  folder (name) {
+    return this._rb.next((value, rb) => {
+      rb.args._folderName = name
+      rb.args._inventoryPath = rb.args._inventoryPath
+        ? `${rb.args._inventoryPath}/${name}`
+        : `/${name}`
+      return value
+    })
+  }
+
+  /**
    * gets one or more managed objects by id
    */
   get () {
@@ -248,6 +320,28 @@ export default class v {
         let { type, value } = _.get(mo, 'moRef', {})
         return _.get(rb.args, 'type') === type && _.includes(ids, value)
       })
+    })
+  }
+
+  /**
+   * sets the host path
+   * @param name
+   */
+  host (name) {
+    return this._rb.next((value, rb) => {
+      if (!rb.args._hostName) {
+        rb.args._hostName = name
+
+        if (rb.args._inventoryPath) {
+          if (rb.args._inventoryPath.match(/\/.*\/host(\/.*)?$/)) {
+            rb.args._inventoryPath = `${rb.args._inventoryPath}/${name}`
+          } else {
+            rb.args._inventoryPath = `${rb.args._inventoryPath}/host/${name}`
+          }
+        }
+      }
+
+      return value
     })
   }
 
@@ -341,6 +435,26 @@ export default class v {
       rb.operation = 'METHOD'
       rb._value = undefined
       return rb.client.method(name, args)
+    })
+  }
+
+  /**
+   * gets a managed object reference from the supplied inventory path
+   * @param inventoryPath
+   */
+  moRef (inventoryPath) {
+    return this._rb.next((value, rb) => {
+      rb.operation = 'MOREF'
+
+      if (!inventoryPath && rb.args._inventoryPath) {
+        inventoryPath = rb.args._inventoryPath
+      }
+      console.log({ inventoryPath })
+      return rb.client.moRef(inventoryPath)
+        .then(moRef => {
+          rb._value = moRef
+          return moRef
+        })
     })
   }
 
@@ -446,6 +560,11 @@ export default class v {
     })
   }
 
+  /**
+   * Performs a reduce operation
+   * @param reducer
+   * @param initialValue
+   */
   reduce (reducer, initialValue) {
     return this._rb.next((value, rb) => {
       return this._rb.value.then(value => {
@@ -460,6 +579,16 @@ export default class v {
   }
 
   /**
+   * resets the request builder
+   */
+  reset () {
+    return this._rb.next((value, rb) => {
+      rb.reset()
+      return null
+    })
+  }
+
+  /**
    * call the clients retrieve method directly
    * @param args
    * @param options
@@ -469,6 +598,8 @@ export default class v {
     return this._rb.next((value, rb) => {
       rb.operation = 'RETRIEVE'
       rb._value = undefined
+      rb.args = args
+      rb.options = options
       return rb.client.retrieve(args, options)
     })
   }

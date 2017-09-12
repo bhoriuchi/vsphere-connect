@@ -19,6 +19,16 @@ export default class RequestBuilder {
     this.allData = false
   }
 
+  reset () {
+    this.operation = null
+    this.error = null
+    this.args = {}
+    this.options = {}
+    this.single = false
+    this._value = undefined
+    this.allData = false
+  }
+
   assignProps (rb) {
     rb.error = this.error
     rb.operation = this.operation

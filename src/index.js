@@ -57,32 +57,59 @@ class VsphereConnectClient extends EventEmitter {
     this._soapClient.setSecurity(securityObject)
   }
 
-  destroy () {
-    return methods.destroy.apply(this, [...arguments])
+  create (parent, type, config, options) {
+    return methods.create.apply(this, [ parent, type, config, options ])
   }
 
-  login () {
-    return methods.login.apply(this, [...arguments])
+  destroy (moRef, options) {
+    return methods.destroy.apply(this, [ moRef, options ])
+  }
+
+  // alias for destroy
+  delete (moRef, options) {
+    return this.destroy(moRef, options)
+  }
+
+  login (identity, password) {
+    return methods.login.apply(this, [ identity, password ])
   }
 
   logout () {
-    return methods.logout.apply(this, [...arguments])
+    return methods.logout.apply(this, [])
   }
 
-  method () {
-    return methods.method.apply(this, [...arguments])
+  method (name, args) {
+    return methods.method.apply(this, [ name, args ])
   }
 
-  reload () {
-    return methods.reload.apply(this, [...arguments])
+  moRef (inventoryPath) {
+    return methods.moRef.apply(this, [ inventoryPath ])
   }
 
-  rename () {
-    return methods.rename.apply(this, [...arguments])
+  reconfig (moRef, config, options) {
+    return methods.reconfig.apply(this, [ moRef, config, options ])
   }
 
-  retrieve () {
-    return methods.retrieve.apply(this, [...arguments])
+  // alias for reconfig
+  update (moRef, config, options) {
+    return this.reconfig(moRef, config, options)
+  }
+
+  reload (moRef) {
+    return methods.reload.apply(this, [ moRef ])
+  }
+
+  rename (moRef, name, options) {
+    return methods.rename.apply(this, [ moRef, name, options ])
+  }
+
+  retrieve (args, options) {
+    return methods.retrieve.apply(this, [ args, options ])
+  }
+
+  // alias for retrieve
+  find (args, options) {
+    return this.retrieve(args, options)
   }
 }
 

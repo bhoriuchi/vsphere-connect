@@ -10,19 +10,16 @@ export default class VirtualMachineConsolePreferences extends BaseBuilder {
 
   closeOnPowerOffOrSuspend (value) {
     if (!_.isBoolean(value)) throw new Error('closeOnPowerOffOrSuspend must be a boolean')
-    this.config.closeOnPowerOffOrSuspend = value
-    return this
+    return this.$set('closeOnPowerOffOrSuspend', value)
   }
 
   enterFullScreenOnPowerOn (value) {
     if (!_.isBoolean(value)) throw new Error('enterFullScreenOnPowerOn must be a boolean')
-    this.config.enterFullScreenOnPowerOn = value
-    return this
+    return this.$set('enterFullScreenOnPowerOn', value)
   }
 
   powerOnWhenOpened (value) {
     if (!_.isBoolean(value)) throw new Error('powerOnWhenOpened must be a boolean')
-    this.config.powerOnWhenOpened = value
-    return this
+    return this.$set('powerOnWhenOpened', value)
   }
 }

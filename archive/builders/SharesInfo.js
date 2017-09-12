@@ -13,8 +13,7 @@ export default class SharesInfo extends BaseBuilder {
     value = _.toLower(value)
     switch (value) {
       case 'custom', 'high', 'low', 'normal':
-        this.config.level = value
-        break
+        return this.$set('level', value)
       default:
         throw new Error(`${value} is not a valid value for level, acceptable values are "custom", "high", "low", "normal"`)
     }
@@ -23,7 +22,6 @@ export default class SharesInfo extends BaseBuilder {
 
   shares (value) {
     if (!_.isNumber(value) || value < 0) throw new Error('shares must be an integer >= 0')
-    this.config.shares = value
-    return this
+    return this.$set('shares', value)
   }
 }
