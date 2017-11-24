@@ -1,5 +1,6 @@
-node_modules
 .DS_Store
+.idea
+.vscode
+node_modules
 credentials.js
 WSDL_CACHE
-.idea

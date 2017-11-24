@@ -19,6 +19,16 @@ export default class RequestBuilder {
     this.allData = false
   }
 
+  reset () {
+    this.operation = null
+    this.error = null
+    this.args = {}
+    this.options = {}
+    this.single = false
+    this._value = undefined
+    this.allData = false
+  }
+
   assignProps (rb) {
     rb.error = this.error
     rb.operation = this.operation
@@ -34,7 +44,7 @@ export default class RequestBuilder {
   }
 
   next (handler, isDefault) {
-    let rb = new RequestBuilder(this.client, this)
+    const rb = new RequestBuilder(this.client, this)
 
     rb.term = this.term.then(value => {
       this._value = value
@@ -55,7 +65,7 @@ export default class RequestBuilder {
         case RETRIEVE:
           debug('retrieving - %o', { args: this.args, options: this.options })
           if (this.allData) this.args.properties = []
-          if (!this.args.properties) this.args.properties = ['moRef', 'name']
+          if (!this.args.properties) this.args.properties = [ 'moRef', 'name' ]
           return this.client.retrieve(this.args, this.options)
             .then(result => {
               this.operation = null

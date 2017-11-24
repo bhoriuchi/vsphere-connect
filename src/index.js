@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import EventEmitter from 'events'
-import soap from 'soap-connect'
+import soap from './soap/index'
 import cacheKey from './common/cacheKey'
 import typeResolver from './common/typeResolver'
 import methods from './methods/index'
@@ -12,26 +12,31 @@ class VsphereConnectClient extends EventEmitter {
    * @param host {String} - viServer
    * @param [options] {Object} - connection options
    * @param [options.ignoreSSL=false] {Boolean} - ignores invalid ssl
-   * @param [options.cacheKey] {Function} - cache key function whose return value will be used as the cache key name
+   * @param [options.cacheKey] {Function} - cache key function whose
+   * return value will be used as the cache key name
    * @return {v}
    */
   constructor (host, options) {
     super()
     this.loggedIn = false
 
-    if (!_.isString(host) || _.isEmpty(host)) throw new Error('missing required parameter "host"')
-
-    options = _.isObject(options) && !_.isArray(options)
+    if (!_.isString(host) || _.isEmpty(host)) {
+      throw new Error('missing required parameter "host"')
+    }
+    const opts = _.isObject(options) && !_.isArray(options)
       ? options
       : {}
 
-    options.cacheKey = _.isFunction(options.cacheKey)
-      ? options.cacheKey
+    opts.cacheKey = _.isFunction(opts.cacheKey)
+      ? opts.cacheKey
       : cacheKey
 
-    if (options.ignoreSSL) process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+    if (opts.ignoreSSL) process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
 
-    this._connection = soap.createClient(`https://${host}/sdk/vimService.wsdl`, options)
+    this._connection = soap.createClient(
+      `https://${host}/sdk/vimService.wsdl`,
+      opts
+    )
       .then(client => {
         this._soapClient = client
         this._VimPort = _.get(client, 'services.VimService.VimPort')
@@ -57,32 +62,59 @@ class VsphereConnectClient extends EventEmitter {
     this._soapClient.setSecurity(securityObject)
   }
 
-  destroy () {
-    return methods.destroy.apply(this, [...arguments])
+  create (parent, type, config, options) {
+    return methods.create.apply(this, [ parent, type, config, options ])
   }
 
-  login () {
-    return methods.login.apply(this, [...arguments])
+  destroy (moRef, options) {
+    return methods.destroy.apply(this, [ moRef, options ])
+  }
+
+  // alias for destroy
+  delete (moRef, options) {
+    return this.destroy(moRef, options)
+  }
+
+  login (identity, password) {
+    return methods.login.apply(this, [ identity, password ])
   }
 
   logout () {
-    return methods.logout.apply(this, [...arguments])
+    return methods.logout.apply(this, [])
   }
 
-  method () {
-    return methods.method.apply(this, [...arguments])
+  method (name, args) {
+    return methods.method.apply(this, [ name, args ])
   }
 
-  reload () {
-    return methods.reload.apply(this, [...arguments])
+  moRef (inventoryPath) {
+    return methods.moRef.apply(this, [ inventoryPath ])
   }
 
-  rename () {
-    return methods.rename.apply(this, [...arguments])
+  reconfig (moRef, config, options) {
+    return methods.reconfig.apply(this, [ moRef, config, options ])
   }
 
-  retrieve () {
-    return methods.retrieve.apply(this, [...arguments])
+  // alias for reconfig
+  update (moRef, config, options) {
+    return this.reconfig(moRef, config, options)
+  }
+
+  reload (moRef) {
+    return methods.reload.apply(this, [ moRef ])
+  }
+
+  rename (moRef, name, options) {
+    return methods.rename.apply(this, [ moRef, name, options ])
+  }
+
+  retrieve (args, options) {
+    return methods.retrieve.apply(this, [ args, options ])
+  }
+
+  // alias for retrieve
+  find (args, options) {
+    return this.retrieve(args, options)
   }
 }
 

@@ -4,8 +4,11 @@ import monitor from '../monitor/index'
 import MoRef from '../common/moRef'
 
 export default function rename (moRef, name, options) {
-  if (!_.isString(name)) return Promise.reject(new Error('missing name parameter in rename operation'))
-
+  if (!_.isString(name)) {
+    return Promise.reject(
+      new Error('missing name parameter in rename operation')
+    )
+  }
   try {
     return this.method('Rename_Task', {
       _this: MoRef(moRef),

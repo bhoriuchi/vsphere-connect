@@ -4,10 +4,1651 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var _ = _interopDefault(require('lodash'));
 var EventEmitter = _interopDefault(require('events'));
-var soap = _interopDefault(require('soap-connect'));
+var url = _interopDefault(require('url'));
 var Promise$1 = _interopDefault(require('bluebird'));
+var fs = _interopDefault(require('fs'));
+var path = _interopDefault(require('path'));
+var xmldom = _interopDefault(require('xmldom'));
+var request = _interopDefault(require('request'));
+var LocalStorage = _interopDefault(require('node-localstorage'));
+var xmlbuilder = _interopDefault(require('xmlbuilder'));
+var semver = _interopDefault(require('semver'));
 var Debug = _interopDefault(require('debug'));
 var Rx = _interopDefault(require('rxjs'));
+
+var SOAP = {
+  'http://schemas.xmlsoap.org/wsdl/soap/': {
+    version: '1.1',
+    ns: 'http://schemas.xmlsoap.org/wsdl/soap/',
+    envelope: 'http://schemas.xmlsoap.org/soap/envelope/',
+    encoding: 'http://schemas.xmlsoap.org/soap/encoding/',
+    contentType: 'text/xml'
+  },
+  'http://schemas.xmlsoap.org/wsdl/soap12/': {
+    version: '1.2',
+    ns: 'http://schemas.xmlsoap.org/wsdl/soap12/',
+    encoding: 'http://www.w3.org/2003/05/soap-encoding/',
+    envelope: 'http://www.w3.org/2003/05/soap-envelope',
+    contentType: 'application/soap+xml'
+  }
+};
+
+var XS_NS = 'http://www.w3.org/2001/XMLSchema';
+var XSI_NS = 'http://www.w3.org/2001/XMLSchema-instance';
+var WSDL_NS = 'http://schemas.xmlsoap.org/wsdl/';
+
+var XS_PREFIX = 'xsd';
+var XSI_PREFIX = 'xsi';
+
+var SOAPENV_PREFIX = 'soapenv';
+var SOAPENC_PREFIX = 'soapenc';
+
+
+var NODE_TYPES = {
+  ELEMENT_NODE: 1,
+  ATTRIBUTE_NODE: 2,
+  TEXT_NODE: 3,
+  CDATA_SECTION_NODE: 4,
+  ENTITY_REFERENCE_NODE: 5,
+  ENTITY_NODE: 6,
+  PROCESSING_INSTRUCTION_NODE: 7,
+  COMMENT_NODE: 8,
+  DOCUMENT_NODE: 9,
+  DOCUMENT_TYPE_NODE: 10,
+  DOCUMENT_FRAGMENT_NODE: 11,
+  NOTATION_NODE: 12
+};
+
+var HTTP_RX = /^https?:\/\/.+/i;
+var ERROR_STAUTS = { statusCode: 500 };
+var OK_STATUS = { statusCode: 200 };
+
+function loadDoc(uri, cache) {
+  var _this = this;
+
+  var encoding = _.get(this, 'options.encoding') || 'utf8';
+
+  if (!_.has(cache, uri)) {
+    cache[uri] = {};
+    var baseURI = uri.substring(0, uri.lastIndexOf('/')) + '/';
+    var isHTTP = baseURI.match(HTTP_RX);
+    this.emit('wsdl.load.start', uri);
+
+    var load = function load(err, res, body) {
+      if (err || res.statusCode !== 200) {
+        return _this.emit('wsdl.load.error', err || body || res);
+      }
+      var address = '';
+      var doc = cache[uri] = new xmldom.DOMParser().parseFromString(body);
+      var wsdlImports = doc.getElementsByTagNameNS(WSDL_NS, 'import');
+      var xsImports = doc.getElementsByTagNameNS(XS_NS, 'import');
+      var xsIncludes = doc.getElementsByTagNameNS(XS_NS, 'include');
+      _.forEach(_.union(wsdlImports, xsImports, xsIncludes), function (link) {
+        var loc = link.getAttribute('location') || link.getAttribute('schemaLocation');
+        if (isHTTP) {
+          address = url.parse(loc).host ? loc : url.resolve(baseURI, loc);
+        } else {
+          address = path.resolve(baseURI, loc);
+        }
+        _this.loadDoc(address, cache);
+      });
+      _this.emit('wsdl.load.end', uri);
+    };
+
+    if (isHTTP) {
+      return request(uri, function (err, res, body) {
+        return load(err, res, body);
+      });
+    }
+
+    // is a file
+    try {
+      return fs.readFile(uri, encoding, function (err, body) {
+        if (err) return load(err, ERROR_STAUTS, body);
+        return load(null, OK_STATUS, body);
+      });
+    } catch (err) {
+      return load(err, ERROR_STAUTS, '');
+    }
+  }
+}
+
+var any = function any(obj) {
+  return obj;
+};
+var toDate = function toDate(obj) {
+  try {
+    return new Date(obj);
+  } catch (err) {
+    return obj;
+  }
+};
+
+var xsd10 = {
+  anyType: { convert: any },
+  anySimpleType: { convert: any },
+  duration: { convert: String },
+  dateTime: { convert: toDate },
+  time: { convert: String },
+  date: { convert: toDate },
+  gYearMonth: { convert: String },
+  gYear: { convert: String },
+  gMonthDay: { convert: String },
+  gDay: { convert: String },
+  gMonth: { convert: String },
+  boolean: { convert: Boolean },
+  base64Binary: { convert: String },
+  hexBinary: { convert: String },
+  float: { convert: Number },
+  double: { convert: Number },
+  anyURI: { convert: String },
+  QName: { convert: String },
+  NOTATION: { convert: String },
+  string: { convert: String },
+  decimal: { convert: Number },
+  normalizedString: { convert: String },
+  integer: { convert: Number },
+  token: { convert: String },
+  nonPositiveInteger: { convert: Number },
+  long: { convert: Number },
+  nonNegativeInteger: { convert: Number },
+  language: { convert: String },
+  Name: { convert: String },
+  NMTOKEN: { convert: String },
+  negativeInteger: { convert: Number },
+  int: { convert: Number },
+  unsignedLong: { convert: Number },
+  positiveInteger: { convert: Number },
+  NCName: { convert: String },
+  NMTOKENS: { convert: String },
+  short: { convert: Number },
+  unsignedInt: { convert: Number },
+  ID: { convert: String },
+  IDREF: { convert: String },
+  ENTITY: { convert: String },
+  byte: { convert: String },
+  unsignedShort: { convert: Number },
+  IDREFS: { convert: String },
+  ENTITIES: { convert: String },
+  unsignedByte: { convert: String }
+};
+
+var NAMESPACES = {
+  'http://www.w3.org/2001/XMLSchema': xsd10
+};
+
+function getBuiltinNSMeta() {
+  return _.map(NAMESPACES, function (ns, name) {
+    return {
+      name: name,
+      operations: [],
+      services: [],
+      types: _.keys(ns)
+    };
+  });
+}
+
+var asyncGenerator = function () {
+  function AwaitValue(value) {
+    this.value = value;
+  }
+
+  function AsyncGenerator(gen) {
+    var front, back;
+
+    function send(key, arg) {
+      return new Promise(function (resolve, reject) {
+        var request$$1 = {
+          key: key,
+          arg: arg,
+          resolve: resolve,
+          reject: reject,
+          next: null
+        };
+
+        if (back) {
+          back = back.next = request$$1;
+        } else {
+          front = back = request$$1;
+          resume(key, arg);
+        }
+      });
+    }
+
+    function resume(key, arg) {
+      try {
+        var result = gen[key](arg);
+        var value = result.value;
+
+        if (value instanceof AwaitValue) {
+          Promise.resolve(value.value).then(function (arg) {
+            resume("next", arg);
+          }, function (arg) {
+            resume("throw", arg);
+          });
+        } else {
+          settle(result.done ? "return" : "normal", result.value);
+        }
+      } catch (err) {
+        settle("throw", err);
+      }
+    }
+
+    function settle(type, value) {
+      switch (type) {
+        case "return":
+          front.resolve({
+            value: value,
+            done: true
+          });
+          break;
+
+        case "throw":
+          front.reject(value);
+          break;
+
+        default:
+          front.resolve({
+            value: value,
+            done: false
+          });
+          break;
+      }
+
+      front = front.next;
+
+      if (front) {
+        resume(front.key, front.arg);
+      } else {
+        back = null;
+      }
+    }
+
+    this._invoke = send;
+
+    if (typeof gen.return !== "function") {
+      this.return = undefined;
+    }
+  }
+
+  if (typeof Symbol === "function" && Symbol.asyncIterator) {
+    AsyncGenerator.prototype[Symbol.asyncIterator] = function () {
+      return this;
+    };
+  }
+
+  AsyncGenerator.prototype.next = function (arg) {
+    return this._invoke("next", arg);
+  };
+
+  AsyncGenerator.prototype.throw = function (arg) {
+    return this._invoke("throw", arg);
+  };
+
+  AsyncGenerator.prototype.return = function (arg) {
+    return this._invoke("return", arg);
+  };
+
+  return {
+    wrap: function (fn) {
+      return function () {
+        return new AsyncGenerator(fn.apply(this, arguments));
+      };
+    },
+    await: function (value) {
+      return new AwaitValue(value);
+    }
+  };
+}();
+
+
+
+
+
+var classCallCheck = function (instance, Constructor) {
+  if (!(instance instanceof Constructor)) {
+    throw new TypeError("Cannot call a class as a function");
+  }
+};
+
+var createClass = function () {
+  function defineProperties(target, props) {
+    for (var i = 0; i < props.length; i++) {
+      var descriptor = props[i];
+      descriptor.enumerable = descriptor.enumerable || false;
+      descriptor.configurable = true;
+      if ("value" in descriptor) descriptor.writable = true;
+      Object.defineProperty(target, descriptor.key, descriptor);
+    }
+  }
+
+  return function (Constructor, protoProps, staticProps) {
+    if (protoProps) defineProperties(Constructor.prototype, protoProps);
+    if (staticProps) defineProperties(Constructor, staticProps);
+    return Constructor;
+  };
+}();
+
+
+
+
+
+var defineProperty = function (obj, key, value) {
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+
+  return obj;
+};
+
+
+
+var inherits = function (subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+  }
+
+  subClass.prototype = Object.create(superClass && superClass.prototype, {
+    constructor: {
+      value: subClass,
+      enumerable: false,
+      writable: true,
+      configurable: true
+    }
+  });
+  if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+};
+
+
+
+
+
+
+
+
+
+
+
+var possibleConstructorReturn = function (self, call) {
+  if (!self) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }
+
+  return call && (typeof call === "object" || typeof call === "function") ? call : self;
+};
+
+
+
+
+
+var slicedToArray = function () {
+  function sliceIterator(arr, i) {
+    var _arr = [];
+    var _n = true;
+    var _d = false;
+    var _e = undefined;
+
+    try {
+      for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+        _arr.push(_s.value);
+
+        if (i && _arr.length === i) break;
+      }
+    } catch (err) {
+      _d = true;
+      _e = err;
+    } finally {
+      try {
+        if (!_n && _i["return"]) _i["return"]();
+      } finally {
+        if (_d) throw _e;
+      }
+    }
+
+    return _arr;
+  }
+
+  return function (arr, i) {
+    if (Array.isArray(arr)) {
+      return arr;
+    } else if (Symbol.iterator in Object(arr)) {
+      return sliceIterator(arr, i);
+    } else {
+      throw new TypeError("Invalid attempt to destructure non-iterable instance");
+    }
+  };
+}();
+
+var ELEMENT_NODE = NODE_TYPES.ELEMENT_NODE;
+
+
+function getQName(qname) {
+  var _ref, _ref2;
+
+  var pfx = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+
+  var _qname$split = qname.split(':'),
+      _qname$split2 = slicedToArray(_qname$split, 2),
+      prefix = _qname$split2[0],
+      localName = _qname$split2[1];
+
+  return localName ? (_ref = {}, babelHelpers.defineProperty(_ref, pfx + 'prefix', prefix), babelHelpers.defineProperty(_ref, pfx + 'localName', localName), _ref) : (_ref2 = {}, babelHelpers.defineProperty(_ref2, pfx + 'prefix', ''), babelHelpers.defineProperty(_ref2, pfx + 'localName', prefix), _ref2);
+}
+
+function firstNode(nodes) {
+  return _.get(nodes, '0');
+}
+
+function filterEmpty(obj) {
+  return _.omitBy(obj, function (val) {
+    if (_.isArray(val) && !val.length) return true;
+    if (!val && val !== false) return true;
+  });
+}
+
+function getOperationElement(data, node) {
+  var _getQName = getQName(node.getAttribute('message'), 'm_'),
+      mPrefix = _getQName.mPrefix,
+      mLocalName = _getQName.mLocalName;
+
+  var msgNS = node.lookupNamespaceURI(mPrefix);
+  var msg = _.get(data, '["' + msgNS + '"].messages["' + mLocalName + '"]');
+  var part = _.first(msg.getElementsByTagNameNS(WSDL_NS, 'part'));
+
+  var _getQName2 = getQName(part.getAttribute('element'), 'e_'),
+      ePrefix = _getQName2.ePrefix,
+      eLocalName = _getQName2.eLocalName;
+
+  var elNS = node.lookupNamespaceURI(ePrefix);
+  var el = _.get(data, '["' + elNS + '"].elements["' + eLocalName + '"]');
+  return el;
+}
+
+function parseRef(namespaces, node, ref) {
+  var _getQName3 = getQName(ref),
+      prefix = _getQName3.prefix,
+      localName = _getQName3.localName;
+
+  var namespace = prefix ? node.lookupNamespaceURI(prefix) : node.namespaceURI || XS_NS;
+  var nsIdx = _.findIndex(namespaces, { name: namespace });
+  var typeIdx = namespaces[nsIdx].types.indexOf(localName);
+
+  // if not found, look through other namespaces
+  if (typeIdx === -1) {
+    _.forEach(namespaces, function (n, idx) {
+      typeIdx = n.types.indexOf(localName);
+      if (typeIdx !== -1) {
+        nsIdx = idx;
+        return false;
+      }
+    });
+  }
+  return [nsIdx, typeIdx];
+}
+
+function toProperty(namespaces, node, data) {
+  var obj = {};
+  _.forEach(node.attributes, function (attr) {
+    var name = attr.name;
+    var value = attr.value;
+    if (name === 'ref') {
+      var _getQName4 = getQName(value),
+          prefix = _getQName4.prefix,
+          localName = _getQName4.localName;
+
+      var elNSURI = node.lookupNamespaceURI(prefix);
+      var ref = _.get(data, '["' + elNSURI + '"].elements["' + localName + '"]');
+      if (ref) {
+        obj.name = ref.getAttribute('name');
+        obj.type = parseRef(namespaces, ref, ref.getAttribute('type'));
+      }
+    } else if (name === 'type') {
+      obj.type = parseRef(namespaces, node, value);
+    } else {
+      obj[name] = value;
+    }
+  });
+  return obj;
+}
+
+function getNodeData(node) {
+  return _.get(node, 'firstChild.data') || _.get(node, 'firstChild.nodeValue');
+}
+
+function getEndpointFromPort(client, port) {
+  var svcURL = url.parse(port.address);
+  if (svcURL.host.match(/localhost/i)) svcURL.host = client.options.endpoint;
+  return url.format(svcURL);
+}
+
+function getFirstChildElement(node) {
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = Object.keys(node.childNodes)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var key = _step.value;
+
+      var n = node.childNodes[key];
+      if (n.nodeType === ELEMENT_NODE) {
+        return n;
+      }
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+}
+
+function getTypes(data, namespaces, types) {
+  return _.map(types, function (type) {
+    var maxOccurs = null;
+    var minOccurs = null;
+    var base = void 0;
+    var attributes = [];
+    var elements = [];
+    var enumerations = [];
+    var unions = [];
+
+    _.forEach(type.childNodes, function (node) {
+      switch (node.localName) {
+        case 'sequence':
+        case 'choice':
+        case 'all':
+          maxOccurs = node.getAttribute('maxOccurs') || maxOccurs;
+          minOccurs = node.getAttribute('minOccurs') || minOccurs;
+      }
+    });
+
+    // process XSD elements
+    _.forEach(type.getElementsByTagNameNS(XS_NS, 'element'), function (node) {
+      var el = toProperty(namespaces, node, data);
+      if (node.parentNode.localName === 'choice') {
+        el.minOccurs = '0';
+        maxOccurs = node.parentNode.getAttribute('maxOccurs') || maxOccurs;
+      }
+      elements.push(el);
+    });
+
+    // process XSD anys
+    _.forEach(type.getElementsByTagNameNS(XS_NS, 'any'), function (node) {
+      elements.push(toProperty(namespaces, node, data));
+    });
+
+    // process attributes
+    _.forEach(type.getElementsByTagNameNS(XS_NS, 'attribute'), function (node) {
+      attributes.push(toProperty(namespaces, node, data));
+    });
+
+    // process anyAttributes
+    _.forEach(type.getElementsByTagNameNS(XS_NS, 'anyAttribute'), function (node) {
+      attributes.push(toProperty(namespaces, node, data));
+    });
+
+    // process attributeGroup
+    _.forEach(type.getElementsByTagNameNS(XS_NS, 'attributeGroup'), function (node) {
+      var _getQName = getQName(node.getAttribute('ref')),
+          prefix = _getQName.prefix,
+          localName = _getQName.localName;
+
+      var groupNSURI = node.lookupNamespaceURI(prefix);
+      var attrGroup = _.get(data, '["' + groupNSURI + '"].attributeGroups', localName);
+      _.forEach(attrGroup.getElementsByTagNameNS(XS_NS, 'attribute'), function (_node) {
+        attributes.push(toProperty(namespaces, _node, data));
+      });
+      _.forEach(attrGroup.getElementsByTagNameNS(XS_NS, 'anyAttribute'), function (_node) {
+        attributes.push(toProperty(namespaces, _node, data));
+      });
+    });
+
+    // process extension
+    var extension = _.get(type.getElementsByTagNameNS(XS_NS, 'extension'), '[0]', {});
+    if (_.isFunction(extension.getAttribute)) {
+      base = parseRef(namespaces, extension, extension.getAttribute('base'));
+    }
+
+    // process enums
+    if (type.localName === 'simpleType') {
+      _.forEach(type.getElementsByTagNameNS(XS_NS, 'restriction'), function (node) {
+        _.forEach(node.getElementsByTagNameNS(XS_NS, 'enumeration'), function (e) {
+          enumerations.push(e.getAttribute('value'));
+        });
+      });
+      _.forEach(type.getElementsByTagNameNS(XS_NS, 'union'), function (node) {
+        _.forEach(type.getElementsByTagNameNS(XS_NS, 'memberTypes').split(/\s+/g), function (t) {
+          unions.push(parseRef(namespaces, node, t));
+        });
+      });
+    }
+    return filterEmpty({
+      attributes: attributes,
+      base: base,
+      elements: elements,
+      enumerations: enumerations,
+      maxOccurs: maxOccurs,
+      minOccurs: minOccurs,
+      unions: unions
+    });
+  });
+}
+
+function getPortOperations(data, namespace, port) {
+  var _getQName2 = getQName(port.getAttribute('binding')),
+      prefix = _getQName2.prefix;
+
+  var bindingNS = prefix ? port.lookupNamespaceURI(prefix) : namespace;
+  var binding = _.get(data, '["' + bindingNS + '"].binding');
+  if (!binding) return [];
+  return _.map(binding.getElementsByTagNameNS(binding.namespaceURI, 'operation'), function (op) {
+    return op.getAttribute('name');
+  });
+}
+
+function getPorts(data, namespace, def) {
+  return _.map(def.ports, function (port, name) {
+    return {
+      name: name,
+      address: port.$address,
+      soapVersion: port.$soapVersion,
+      service: port.parentNode.getAttribute('name'),
+      operations: getPortOperations(data, namespace, port)
+    };
+  });
+}
+
+function processDef(data) {
+  var operations = [];
+  var services = [];
+  var types = [];
+  var namespaces = getBuiltinNSMeta();
+
+  // add empty array objects for each builtin type
+  // to keep indexes in sync
+  _.forEach(namespaces, function (ns) {
+    ns.isBuiltIn = true;
+    operations.push([]);
+    services.push([]);
+    types.push([]);
+  });
+
+  // get types and operations by namespace
+  _.forEach(data, function (def, name) {
+    namespaces.push({
+      name: name,
+      prefix: def.$prefix,
+      ports: getPorts(data, name, def),
+      services: [],
+      types: _.keys(def.types)
+    });
+  });
+
+  // add types
+  _.forEach(data, function (def) {
+    return types.push(getTypes(data, namespaces, def.types));
+  });
+
+  // add operations
+  _.forEach(data, function (def) {
+    var ops = [];
+    if (_.keys(def.ports).length) {
+      _.forEach(def.ports, function (port) {
+        var pOps = [];
+
+        var _getQName3 = getQName(port.getAttribute('binding')),
+            prefix = _getQName3.prefix;
+
+        var portNS = port.lookupNamespaceURI(prefix);
+        var binding = _.get(data, '["' + portNS + '"].binding');
+        var portOps = _.map(binding.getElementsByTagNameNS(binding.namespaceURI, 'operation'), function (op) {
+          return op.getAttribute('name');
+        });
+        _.forEach(portOps, function (name) {
+          var node = _.get(data, '["' + portNS + '"].operations["' + name + '"]');
+          var input = getOperationElement(data, _.first(node.getElementsByTagNameNS(WSDL_NS, 'input')));
+          var output = getOperationElement(data, _.first(node.getElementsByTagNameNS(WSDL_NS, 'output')));
+          pOps.push([{
+            action: _.get(data, '["' + portNS + '"].actions["' + name + '"]').getAttribute('soapAction'),
+            name: input.getAttribute('name'),
+            type: parseRef(namespaces, input, input.getAttribute('type'))
+          }, {
+            type: parseRef(namespaces, output, output.getAttribute('type'))
+          }]);
+        });
+        ops.push(pOps);
+      });
+    }
+    operations.push(ops);
+  });
+  return { namespaces: namespaces, operations: operations, services: services, types: types };
+}
+
+// set operations via interface or portType
+function setOperations(operations, portType) {
+  _.forEach(portType.childNodes, function (node) {
+    if (node.localName === 'operation') {
+      operations[node.getAttribute('name')] = node;
+    }
+  });
+}
+
+function processDoc(doc, data) {
+  /*
+   * PROCESS DEFINITIONS
+   */
+  var definitions = doc.getElementsByTagNameNS(WSDL_NS, 'definitions');
+  _.forEach(definitions, function (defNode) {
+    var ns = defNode.getAttribute('targetNamespace');
+    var nsData = data[ns] = data[ns] || {};
+    nsData.$prefix = _.findKey(defNode._nsMap, function (o) {
+      return o === ns;
+    });
+    nsData.actions = nsData.actions || {};
+    nsData.messages = nsData.messages || {};
+    nsData.operations = nsData.operations || {};
+    nsData.ports = nsData.ports || {};
+
+    _.forEach(defNode.childNodes, function (childNode) {
+      switch (childNode.localName) {
+        case 'binding':
+          nsData.binding = childNode;
+          _.forEach(childNode.childNodes, function (bindingNode) {
+            if (bindingNode.localName === 'operation') {
+              var op = bindingNode.getAttribute('name');
+              _.forEach(bindingNode.childNodes, function (node) {
+                if (node.localName === 'operation') nsData.actions[op] = node;
+              });
+            }
+          });
+          break;
+        case 'message':
+          nsData.messages[childNode.getAttribute('name')] = childNode;
+          break;
+        case 'portType':
+          setOperations(nsData.operations, childNode);
+          break;
+        case 'interface':
+          setOperations(nsData.operations, childNode);
+          break;
+        case 'service':
+          _.forEach(childNode.childNodes, function (node) {
+            if (node.localName === 'port') {
+              nsData.ports[node.getAttribute('name')] = node;
+              _.forEach(node.childNodes, function (child) {
+                if (child.localName === 'address') {
+                  var _getQName = getQName(child.tagName || child.nodeName),
+                      prefix = _getQName.prefix;
+
+                  var soapNS = child.lookupNamespaceURI(prefix);
+                  if (_.includes(_.keys(SOAP), soapNS)) {
+                    node.$address = child.getAttribute('location');
+                    node.$soapVersion = _.get(SOAP, '["' + soapNS + '"].version', '1.1');
+                  }
+                }
+              });
+            }
+          });
+          break;
+      }
+    });
+  });
+
+  /*
+   * PROCESS SCHEMAS
+   */
+  var schemas = doc.getElementsByTagNameNS(XS_NS, 'schema');
+  _.forEach(schemas, function (schemaNode) {
+    var ns = schemaNode.getAttribute('targetNamespace');
+    var nsData = data[ns] = data[ns] || {};
+    nsData.attributes = nsData.attributes || {};
+    nsData.types = nsData.types || {};
+    nsData.elements = nsData.elements || {};
+    nsData.attributeGroups = nsData.attributeGroups || {};
+
+    _.forEach(schemaNode.childNodes, function (childNode) {
+      switch (childNode.localName) {
+        case 'attribute':
+          nsData.attributes[childNode.getAttribute('name')] = childNode;
+          break;
+        case 'complexType':
+        case 'simpleType':
+          nsData.types[childNode.getAttribute('name')] = childNode;
+          break;
+        case 'element':
+          var name = childNode.getAttribute('name');
+          var el = nsData.elements[name] = childNode;
+          _.forEach(childNode.childNodes, function (node) {
+            if (_.includes(['complexType', 'simpleType'], node.localName)) {
+              node.setAttribute('name', name);
+              el.setAttribute('type', node.lookupPrefix(ns) + ':' + name);
+              nsData.types[name] = node;
+            }
+          });
+          break;
+        case 'attributeGroup':
+          nsData.attributeGroups[childNode.getAttribute('name')] = childNode;
+          break;
+      }
+    });
+  });
+}
+
+function processDocs(cache, data) {
+  _.forEach(cache, function (doc) {
+    return processDoc(doc, data);
+  });
+}
+
+var methods = {
+  loadDoc: loadDoc,
+  processDef: processDef,
+  processDocs: processDocs
+};
+
+var BASE_DIR = __dirname.replace(/^(.*\/soap-connect)(.*)$/, '$1');
+var STORAGE_PATH = path.resolve(BASE_DIR + '/.localStorage');
+var store = new LocalStorage.LocalStorage(STORAGE_PATH);
+
+function set$1(k, value) {
+  return store.setItem(k, value);
+}
+
+function get$1(k) {
+  return store.getItem(k);
+}
+
+function length() {
+  return store.length;
+}
+
+function remove(k) {
+  return store.removeItem(k);
+}
+
+function key(n) {
+  return store.key(n);
+}
+
+function clear() {
+  return store.clear();
+}
+
+var Store = {
+  STORAGE_PATH: STORAGE_PATH,
+  store: store,
+  set: set$1,
+  get: get$1,
+  length: length,
+  remove: remove,
+  key: key,
+  clear: clear
+};
+
+/*
+ * Strategy adapted from vSphere JS SDK
+ * https://labs.vmware.com/flings/vsphere-sdk-for-javascript#summary
+ */
+
+var WSDL = function (_EventEmitter) {
+  inherits(WSDL, _EventEmitter);
+
+  function WSDL(address) {
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+    var _ret;
+
+    var cacheKey = arguments[2];
+    classCallCheck(this, WSDL);
+
+    var _this = possibleConstructorReturn(this, (WSDL.__proto__ || Object.getPrototypeOf(WSDL)).call(this));
+
+    _this.cacheKey = cacheKey || address;
+    _this.address = address;
+    _this.options = options;
+    var data = {};
+
+    _.forEach(methods, function (method, name) {
+      _this[name] = method.bind(_this);
+    });
+
+    return _ret = new Promise(function (resolve, reject) {
+      var resolving = [];
+      var cache = {};
+      var useCache = _.get(_this.options, 'cache', true);
+
+      if (useCache) {
+        var rawMetadata = Store.get(_this.cacheKey);
+        if (rawMetadata) {
+          _this.metadata = JSON.parse(rawMetadata);
+          return resolve(_this);
+        }
+      }
+
+      _this.on('wsdl.load.error', reject);
+      _this.on('wsdl.load.start', function (doc) {
+        return resolving.push(doc);
+      });
+      _this.on('wsdl.load.end', function (doc) {
+        var idx = resolving.indexOf(doc);
+        if (idx >= 0) resolving.splice(idx, 1);
+        if (!resolving.length) {
+          _this.removeAllListeners();
+
+          // process wsdl
+          _this.processDocs(cache, data);
+          _this.metadata = _this.processDef(data);
+
+          // store the metadata
+          if (useCache) Store.set(_this.cacheKey, JSON.stringify(_this.metadata));
+
+          // resolve the WSDL object
+          return resolve(_this);
+        }
+      });
+      _this.loadDoc(_this.address, cache);
+    }), babelHelpers.possibleConstructorReturn(_this, _ret);
+  }
+
+  createClass(WSDL, [{
+    key: 'getType',
+    value: function getType(t) {
+      var _t = slicedToArray(t, 2),
+          ns = _t[0],
+          type = _t[1];
+
+      return _.get(this.metadata, 'types[' + ns + '][' + type + ']');
+    }
+  }, {
+    key: 'getTypeByLocalNSPrefix',
+    value: function getTypeByLocalNSPrefix(nsPrefix, localName) {
+      var nsIdx = _.findIndex(this.metadata.namespaces, { prefix: nsPrefix });
+      var ns = _.get(this.metadata.namespaces, '[' + nsIdx + ']');
+      var typeIdx = ns.types.indexOf(localName);
+      return [nsIdx, typeIdx];
+    }
+  }, {
+    key: 'getTypeByLocalNS',
+    value: function getTypeByLocalNS(nsURI, localName) {
+      var nsIdx = _.findIndex(this.metadata.namespaces, { name: nsURI });
+      var ns = _.get(this.metadata.namespaces, '[' + nsIdx + ']');
+      var typeIdx = ns.types.indexOf(localName);
+      return [nsIdx, typeIdx];
+    }
+  }, {
+    key: 'getTypeAttribute',
+    value: function getTypeAttribute(node) {
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = Object.keys(node.attributes)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var key$$1 = _step.value;
+
+          var n = node.attributes[key$$1];
+          if (n.localName === 'type') {
+            return n;
+          }
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+    }
+  }, {
+    key: 'getOp',
+    value: function getOp(o) {
+      var _o = slicedToArray(o, 3),
+          ns = _o[0],
+          port = _o[1],
+          op = _o[2];
+
+      return _.get(this.metadata, 'operations[' + ns + '][' + port + '][' + op + ']');
+    }
+  }, {
+    key: 'getTypeName',
+    value: function getTypeName(t) {
+      var _t2 = slicedToArray(t, 2),
+          ns = _t2[0],
+          type = _t2[1];
+
+      return _.get(this.metadata, 'namespaces[' + ns + '].types[' + type + ']');
+    }
+  }, {
+    key: 'getTypeRoot',
+    value: function getTypeRoot(t) {
+      var root = this.getType(t).base;
+      return root ? this.getTypeRoot(root) : t;
+    }
+  }, {
+    key: 'getNSPrefix',
+    value: function getNSPrefix(t) {
+      var _t3 = slicedToArray(t, 1),
+          ns = _t3[0];
+
+      return _.get(this.metadata, 'namespaces[' + ns + '].prefix');
+    }
+  }, {
+    key: 'getNSURIByPrefix',
+    value: function getNSURIByPrefix(prefix) {
+      return _.get(_.find(this.metadata.namespaces, { prefix: prefix }), 'name');
+    }
+  }, {
+    key: 'getTypeByQName',
+    value: function getTypeByQName(qname, fallbackNSURI) {
+      var _getQName = getQName(qname),
+          prefix = _getQName.prefix,
+          localName = _getQName.localName;
+
+      var nsURI = prefix ? this.getNSURIByPrefix(prefix) : fallbackNSURI;
+      return this.getTypeByLocalNS(nsURI, localName);
+    }
+  }, {
+    key: 'isBuiltInType',
+    value: function isBuiltInType(t) {
+      var _t4 = slicedToArray(t, 1),
+          ns = _t4[0];
+
+      return _.get(this.metadata, 'namespaces[' + ns + '].isBuiltIn') === true;
+    }
+  }, {
+    key: 'isEnumType',
+    value: function isEnumType(t) {
+      return _.has(this.getType(t), 'enumerations');
+    }
+  }, {
+    key: 'isSimpleType',
+    value: function isSimpleType(t) {
+      return this.isBuiltInType(t) || this.isEnumType(t);
+    }
+  }, {
+    key: 'isMany',
+    value: function isMany(typeDef) {
+      if (!typeDef.maxOccurs) return false;
+      var maxOccurs = typeDef.maxOccurs === 'unbounded' ? 2 : Number(maxOccurs);
+      return maxOccurs > 1;
+    }
+  }, {
+    key: 'isRequired',
+    value: function isRequired(typeDef) {
+      return Number(typeDef.minOccurs) > 0;
+    }
+  }, {
+    key: 'convertValue',
+    value: function convertValue(type, value) {
+      if (this.isEnumType(type)) return value;
+      var t = this.getType(type);
+      return t.convert ? t.convert(value) : value;
+    }
+  }]);
+  return WSDL;
+}(EventEmitter);
+
+var WSDL$1 = function (address) {
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  var cacheKey = arguments[2];
+
+  return new WSDL(address, options, cacheKey);
+};
+
+// Strategy taken from node-soap/strong-soap
+
+var Security$1 = function () {
+  function Security() {
+    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+    classCallCheck(this, Security);
+
+    this.options = options;
+  }
+
+  createClass(Security, [{
+    key: 'addOptions',
+    value: function addOptions(options) {
+      _.merge(this.options, options);
+    }
+  }, {
+    key: 'addHttpHeaders',
+    value: function addHttpHeaders(headers) {
+      _.noop(headers);
+    }
+  }, {
+    key: 'addSoapHeaders',
+    value: function addSoapHeaders(headerElement) {
+      _.noop(headerElement);
+    }
+  }, {
+    key: 'postProcess',
+    value: function postProcess(envelopeElement, headerElement, bodyElement) {
+      _.noop(envelopeElement, headerElement, bodyElement);
+    }
+  }]);
+  return Security;
+}();
+
+var BasicSecurity = function (_Security) {
+  inherits(BasicSecurity, _Security);
+
+  function BasicSecurity(username, password, options) {
+    classCallCheck(this, BasicSecurity);
+
+    var _this = possibleConstructorReturn(this, (BasicSecurity.__proto__ || Object.getPrototypeOf(BasicSecurity)).call(this, options));
+
+    _this.credential = new Buffer(username + ':' + password).toString('base64');
+    return _this;
+  }
+
+  createClass(BasicSecurity, [{
+    key: 'addHttpHeaders',
+    value: function addHttpHeaders(headers) {
+      headers.Authorization = 'Basic ' + this.credential;
+    }
+  }]);
+  return BasicSecurity;
+}(Security$1);
+
+var BasicSecurity$1 = function (username, password, options) {
+  return new BasicSecurity(username, password, options);
+};
+
+var BearerSecurity = function (_Security) {
+  inherits(BearerSecurity, _Security);
+
+  function BearerSecurity(token, options) {
+    classCallCheck(this, BearerSecurity);
+
+    var _this = possibleConstructorReturn(this, (BearerSecurity.__proto__ || Object.getPrototypeOf(BearerSecurity)).call(this, options));
+
+    _this.token = token;
+    return _this;
+  }
+
+  createClass(BearerSecurity, [{
+    key: 'addHttpHeaders',
+    value: function addHttpHeaders(headers) {
+      headers.Authorization = 'Bearer ' + this.token;
+    }
+  }]);
+  return BearerSecurity;
+}(Security$1);
+
+var BearerSecurity$1 = function (token, options) {
+  return new BearerSecurity(token, options);
+};
+
+var CookieSecurity = function (_Security) {
+  inherits(CookieSecurity, _Security);
+
+  function CookieSecurity(cookie, options) {
+    classCallCheck(this, CookieSecurity);
+
+    var _this = possibleConstructorReturn(this, (CookieSecurity.__proto__ || Object.getPrototypeOf(CookieSecurity)).call(this, options));
+
+    var _cookie = _.get(cookie, 'set-cookie', cookie);
+    var cookies = _.map(_.castArray(_cookie), function (c) {
+      return c.split(';')[0];
+    });
+
+    _this.cookie = cookies.join('; ');
+    return _this;
+  }
+
+  createClass(CookieSecurity, [{
+    key: 'addHttpHeaders',
+    value: function addHttpHeaders(headers) {
+      headers.Cookie = this.cookie;
+    }
+  }]);
+  return CookieSecurity;
+}(Security$1);
+
+var CookieSecurity$1 = function (cookie, options) {
+  return new CookieSecurity(cookie, options);
+};
+
+var Security = {
+  Security: Security$1,
+  BasicSecurity: BasicSecurity$1,
+  BearerSecurity: BearerSecurity$1,
+  CookieSecurity: CookieSecurity$1
+};
+
+function createTypes(wsdl) {
+  var types = {};
+  var nsCount = 1;
+
+  // add convert functions to builtins
+  var nsIdx = 0;
+  _.forEach(NAMESPACES, function (ns) {
+    var typeIdx = 0;
+    _.forEach(ns, function (type) {
+      wsdl.metadata.types[nsIdx][typeIdx] = _.cloneDeep(type);
+      typeIdx++;
+    });
+    nsIdx++;
+  });
+
+  // add extendedBy to keep track of inheritance
+  _.forEach(wsdl.metadata.types, function (namespace, _nsIdx) {
+    _.forEach(namespace, function (type, typeIdx) {
+      if (type.base) {
+        var t = wsdl.getType(type.base);
+        if (t) {
+          t.extendedBy = t.extendedBy || [];
+          t.extendedBy.push([_nsIdx, typeIdx]);
+        }
+      }
+    });
+  });
+
+  _.forEach(wsdl.metadata.namespaces, function (namespace, _nsIdx) {
+    var prefix = 'ns' + nsCount;
+    if (namespace.prefix) {
+      prefix = namespace.prefix;
+    } else if (namespace.name === XS_NS) {
+      wsdl.metadata.namespaces[_nsIdx].prefix = XS_PREFIX;
+      prefix = XS_PREFIX;
+    } else {
+      wsdl.metadata.namespaces[_nsIdx].prefix = prefix;
+      nsCount++;
+    }
+    _.forEach(namespace.types, function (typeName, typeIdx) {
+      _.set(types, '["' + prefix + '"]["' + typeName + '"]', function (data) {
+        // TODO: implement this
+        _.noop(data, typeIdx);
+      });
+    });
+  });
+  return types;
+}
+
+function getExtProps(wsdl, type) {
+  var ext = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+  _.forEach(type.extendedBy, function (extType) {
+    var name = wsdl.getTypeName(extType);
+    var typeInfo = wsdl.getType(extType);
+    if (!_.has(ext, '["' + name + '"]')) {
+      ext[name] = {
+        type: extType,
+        props: _.union(_.map(typeInfo.elements, 'name'), _.map(typeInfo.attributes, 'name'))
+      };
+      getExtProps(wsdl, typeInfo, ext);
+    }
+  });
+  return ext;
+}
+
+function typeMatch(wsdl, type, data) {
+  // check for an explicitly defined type and return
+  // it if found and remove it from the object
+  var explicitType = _.get(data, '["@' + XSI_PREFIX + ':type"]');
+  if (_.isString(explicitType) && explicitType.indexOf(':') !== -1) {
+    delete data['@' + XSI_PREFIX + ':type']; // remove from the object
+
+    var _explicitType$split = explicitType.split(':'),
+        _explicitType$split2 = slicedToArray(_explicitType$split, 2),
+        nsPrefix = _explicitType$split2[0],
+        localName = _explicitType$split2[1];
+
+    return wsdl.getTypeByLocalNSPrefix(nsPrefix, localName);
+  }
+
+  // otherwise look for the best match
+  var bestMatch = type;
+  var info = wsdl.getType(type);
+  var props = _.union(_.map(info.elements, 'name'), _.map(info.attributes, 'name'));
+  var dataKeys = _.keys(data);
+  var inter = _.intersection(props, dataKeys).length;
+  if (inter === dataKeys.length) return bestMatch;
+  var ext = getExtProps(wsdl, info);
+
+  _.forEach(ext, function (e) {
+    var currentInter = _.intersection(e.props, dataKeys).length;
+    if (currentInter > inter) {
+      inter = currentInter;
+      bestMatch = e.type;
+    }
+  });
+
+  return bestMatch;
+}
+
+function serialize(wsdl, typeCoord, data) {
+  var context = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+  var parentType = context.parentType,
+      _nsUsed = context.nsUsed;
+
+  var obj = {};
+  var prefix = wsdl.getNSPrefix(typeCoord);
+  var type = wsdl.getType(typeCoord);
+  var base = type.base;
+  var nsUsed = _nsUsed ? _.union(_nsUsed, [prefix]) : [prefix];
+
+  if (base) {
+    obj = !wsdl.isBuiltInType(base) ? serialize(wsdl, base, data, context).obj : { '#text': data.value };
+  }
+
+  // set element values
+  _.forEach(type.elements, function (el) {
+    if (el.name && el.type) {
+      var val = _.get(data, '["' + el.name + '"]');
+      if (val !== undefined) {
+        if (wsdl.isMany(el)) {
+          if (_.isArray(val)) {
+            obj[prefix + ':' + el.name] = _.map(val, function (v) {
+              var t = typeMatch(wsdl, el.type, v);
+              var typeName = wsdl.getTypeName(t);
+              var typePrefix = wsdl.getNSPrefix(t);
+              var isSimple = wsdl.isSimpleType(t);
+
+              return isSimple ? wsdl.convertValue(t, v) : serialize(wsdl, t, v, {
+                parentType: [typePrefix, typeName].join(':'),
+                nsUsed: nsUsed
+              }).obj;
+            });
+          }
+        } else {
+          var t = typeMatch(wsdl, el.type, val);
+          var typeName = wsdl.getTypeName(t);
+          var typePrefix = wsdl.getNSPrefix(t);
+          var isSimple = wsdl.isSimpleType(t);
+
+          obj[prefix + ':' + el.name] = isSimple ? wsdl.convertValue(t, val) : serialize(wsdl, t, val, {
+            parentType: [typePrefix, typeName].join(':'),
+            nsUsed: nsUsed
+          }).obj;
+        }
+      }
+    }
+  });
+
+  // set attributes
+  _.forEach(type.attributes, function (attr) {
+    if (attr.name) {
+      var val = _.get(data, '["' + attr.name + '"]');
+      if (val !== undefined) {
+        if (attr.type && wsdl.isSimpleType(attr.type)) {
+          val = wsdl.convertValue(attr.type, val);
+        }
+        obj['@' + attr.name] = val;
+      }
+    }
+  });
+  if (!obj['@' + XSI_PREFIX + ':type'] && parentType) {
+    obj['@' + XSI_PREFIX + ':type'] = parentType;
+  }
+  return { obj: obj, nsUsed: nsUsed };
+}
+
+function deserialize(wsdl, type, node) {
+  var context = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+
+  if (!node.textContent) return undefined;
+  var xsiPrefix = context.xsiPrefix,
+      ignoreXSI = context.ignoreXSI;
+
+  var xsiType = node.getAttribute(xsiPrefix + ':type');
+  var _type = xsiType && !ignoreXSI ? wsdl.getTypeByQName(xsiType, node.namespaceURI) : type;
+
+  var typeDef = wsdl.getType(_type);
+  var typeIsMany = wsdl.isMany(typeDef);
+  var obj = typeIsMany ? [] : {};
+
+  if (typeDef.base) {
+    if (wsdl.isBuiltInType(typeDef.base)) {
+      obj = { value: wsdl.convertValue(typeDef.base, node.textContent) };
+    } else {
+      obj = deserialize(wsdl, typeDef.base, node, _.merge(context, { ignoreXSI: true }));
+    }
+  }
+
+  if (wsdl.isSimpleType(_type)) {
+    return wsdl.convertValue(_type, node.textContent);
+  }
+  _.forEach(typeDef.elements, function (el) {
+    var isMany = wsdl.isMany(el) || typeIsMany;
+    if (isMany && !typeIsMany && el.name) obj[el.name] = [];
+
+    _.forEach(node.childNodes, function (childNode) {
+      if (childNode.localName === el.name) {
+        var o = deserialize(wsdl, el.type, childNode, _.merge(context, { ignoreXSI: false }));
+        if (o !== undefined) {
+          if (isMany) {
+            if (typeIsMany) obj.push(o);else obj[el.name].push(o);
+          } else {
+            obj[el.name] = o;
+          }
+        }
+      }
+    });
+  });
+  _.forEach(typeDef.attributes, function (attr) {
+    var name = attr.name,
+        attrType = attr.type;
+
+    if (name && attrType) {
+      var val = node.getAttribute(name);
+      if (val) obj[name] = wsdl.convertValue(attrType, val);
+    }
+  });
+  return obj;
+}
+
+function processFault(wsdl, fault, context) {
+  var faultCode = getNodeData(firstNode(fault.getElementsByTagName('faultcode')));
+  var faultString = getNodeData(firstNode(fault.getElementsByTagName('faultstring')));
+  var faultNode = getFirstChildElement(firstNode(fault.getElementsByTagName('detail')));
+  var typeAttr = wsdl.getTypeAttribute(faultNode);
+  var faultTypeName = typeAttr.value || typeAttr.nodeValue || faultNode.localName;
+  var faultType = wsdl.getTypeByLocalNS(faultNode.namespaceURI, faultTypeName);
+
+  return {
+    faultCode: faultCode,
+    message: faultString,
+    type: faultTypeName,
+    detail: deserialize(wsdl, faultType, faultNode, context)
+  };
+}
+
+function createServices(wsdl) {
+  var _this = this;
+
+  var services = {};
+  _.forEach(wsdl.metadata.namespaces, function (namespace, nsIdx) {
+    _.forEach(namespace.ports, function (port, portIdx) {
+      var soapVars = _.find(SOAP, { version: port.soapVersion });
+      _.forEach(port.operations, function (_opName, opIdx) {
+        var opPath = '["' + port.service + '"]["' + port.name + '"]["' + _opName + '"]';
+        _.set(services, opPath, function (data, options) {
+          return new Promise$1(function (resolve, reject) {
+            var _envelope;
+
+            // adding options for future, for now, do a noop
+            var opts = _.isObject(options) ? options : {};
+            _.noop(opts);
+
+            var endpoint = getEndpointFromPort(_this, port);
+
+            var _wsdl$getOp = wsdl.getOp([nsIdx, portIdx, opIdx]),
+                _wsdl$getOp2 = slicedToArray(_wsdl$getOp, 2),
+                input = _wsdl$getOp2[0],
+                output = _wsdl$getOp2[1];
+
+            var soapAction = input.action;
+            var opName = input.name;
+            var inputTypePrefix = wsdl.getNSPrefix(input.type);
+
+            var _serialize = serialize(wsdl, input.type, data),
+                obj = _serialize.obj,
+                nsUsed = _serialize.nsUsed;
+
+            var envelope = (_envelope = {}, babelHelpers.defineProperty(_envelope, '@xmlns:' + SOAPENV_PREFIX, soapVars.envelope), babelHelpers.defineProperty(_envelope, '@xmlns:' + SOAPENC_PREFIX, soapVars.encoding), babelHelpers.defineProperty(_envelope, '@xmlns:' + XSI_PREFIX, XSI_NS), babelHelpers.defineProperty(_envelope, '@xmlns:' + XS_PREFIX, XS_NS), _envelope);
+            var header = {};
+            var xmlBody = {};
+
+            _.forEach(_.union(nsUsed, [inputTypePrefix]), function (prefix) {
+              xmlBody['@xmlns:' + prefix] = wsdl.getNSURIByPrefix(prefix);
+            });
+
+            xmlBody[inputTypePrefix + ':' + opName] = obj;
+            envelope[SOAPENV_PREFIX + ':Header'] = header;
+            envelope[SOAPENV_PREFIX + ':Body'] = xmlBody;
+
+            var inputXML = xmlbuilder.create(defineProperty({}, SOAPENV_PREFIX + ':Envelope', envelope)).end({
+              pretty: true,
+              encoding: _this.options.encoding || 'UTF-8'
+            });
+
+            var headers = {
+              'Content-Type': soapVars.contentType,
+              'Content-Length': inputXML.length,
+              SOAPAction: soapAction,
+              'User-Agent': _this.options.userAgent
+            };
+            _this._security.addHttpHeaders(headers);
+
+            var requestObj = { headers: headers, url: endpoint, body: inputXML };
+            _this.emit('soap.request', requestObj);
+            request.post(requestObj, function (error, res, body) {
+              if (error) {
+                var errResponse = { error: error, res: res, body: body };
+                _this.emit('soap.error', errResponse);
+                return reject(errResponse);
+              }
+              _this.lastResponse = res;
+              var doc = new xmldom.DOMParser().parseFromString(body);
+              var soapEnvelope = firstNode(doc.getElementsByTagNameNS(soapVars.envelope, 'Envelope'));
+              var soapBody = firstNode(doc.getElementsByTagNameNS(soapVars.envelope, 'Body'));
+              var soapFault = firstNode(soapBody.getElementsByTagNameNS(soapVars.envelope, 'Fault'));
+              var xsiPrefix = _.findKey(soapEnvelope._nsMap, function (nsuri) {
+                return nsuri === XSI_NS;
+              });
+              var context = { xsiPrefix: xsiPrefix };
+
+              if (soapFault) {
+                var fault = processFault(wsdl, soapFault, context);
+                _this.emit('soap.fault', { fault: fault, res: res, body: body });
+                return reject(fault);
+              }
+
+              var result = deserialize(wsdl, output.type, getFirstChildElement(soapBody), context);
+              _this.emit('soap.response', { res: res, body: body });
+              return resolve(result);
+            });
+          });
+        });
+      });
+    });
+  });
+  return services;
+}
+
+/*
+ * The purpose of this library is to allow the developer to specify
+ * or provide a function that can be used to identify the key to store
+ * the metadata cache in localstorage
+ * when using a function, the done callback should provide the key
+ */
+var tools = {
+  lodash: _,
+  request: request,
+  xmldom: xmldom,
+  xmlbuilder: xmlbuilder
+};
+
+function cacheKey(key, wsdl, done) {
+  if (_.isString(key)) return done(null, key);else if (_.isFunction(key)) return key(tools, wsdl, done);
+  return done();
+}
+
+var VERSION = '0.1.0';
+
+var SoapConnectClient = function (_EventEmitter) {
+  inherits(SoapConnectClient, _EventEmitter);
+
+  function SoapConnectClient(wsdlAddress, options) {
+    var _ret;
+
+    classCallCheck(this, SoapConnectClient);
+
+    var _this = possibleConstructorReturn(this, (SoapConnectClient.__proto__ || Object.getPrototypeOf(SoapConnectClient)).call(this));
+
+    if (!_.isString(wsdlAddress)) throw new Error('No WSDL provided');
+    _this.options = _.isObject(options) ? options : {};
+
+    _this.options.endpoint = _this.options.endpoint || url.parse(wsdlAddress).host;
+    _this.options.userAgent = _this.options.userAgent || 'soap-connect/' + VERSION;
+    _this.types = {};
+    _this.lastResponse = null;
+    _this._security = new Security.Security();
+
+    if (_this.options.ignoreSSL) {
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    }
+
+    return _ret = new Promise(function (resolve, reject) {
+      return cacheKey(_this.options.cacheKey, wsdlAddress, function (error, _cacheKey) {
+        if (error) return reject(error);
+
+        return WSDL(wsdlAddress, _this.options, _cacheKey).then(function (wsdlInstance) {
+          _this.wsdl = wsdlInstance;
+          _this.types = createTypes(wsdlInstance);
+          _this.services = createServices.call(_this, wsdlInstance);
+          return resolve(_this);
+        }, reject);
+      });
+    }), babelHelpers.possibleConstructorReturn(_this, _ret);
+  }
+
+  createClass(SoapConnectClient, [{
+    key: 'setSecurity',
+    value: function setSecurity(security) {
+      if (!(security instanceof Security.Security)) {
+        throw new Error('Invalid security object');
+      }
+      this._security = security;
+    }
+  }]);
+  return SoapConnectClient;
+}(EventEmitter);
+
+var createClient = function (mainWSDL, options) {
+  return new SoapConnectClient(mainWSDL, options);
+};
+
+var soap = {
+  createClient: createClient,
+  Cache: Store,
+  Security: Security,
+  SoapConnectClient: SoapConnectClient
+};
 
 /*
  * cacheKey function to allow re-use of cache on same api version and type
@@ -16,23 +1657,28 @@ var REQUEST_TIMEOUT = 2000;
 
 var SI_XML = '<?xml version="1.0"?>\n<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/">\n  <soapenv:Body xmlns:vim25="urn:vim25">\n    <vim25:RetrieveServiceContent>\n      <vim25:_this type="ServiceInstance">ServiceInstance</vim25:_this>\n    </vim25:RetrieveServiceContent>\n  </soapenv:Body>\n</soapenv:Envelope>';
 
-function cacheKey(tools, wsdl, done) {
-  var request = tools.request,
-      xmldom = tools.xmldom;
+function cacheKey$1(tools, wsdl, done) {
+  var request$$1 = tools.request,
+      xmldom$$1 = tools.xmldom;
 
-  var url = wsdl.replace(/.wsdl.*$/, '');
-  var headers = { 'Content-Type': 'text/xml', 'Content-Length': SI_XML.length };
+  var url$$1 = wsdl.replace(/.wsdl.*$/, '');
+  var headers = {
+    'Content-Type': 'text/xml',
+    'Content-Length': SI_XML.length
+  };
 
-  request.post({ headers: headers, url: url, body: SI_XML, timeout: REQUEST_TIMEOUT }, function (err, res, body) {
+  request$$1.post({ headers: headers, url: url$$1, body: SI_XML, timeout: REQUEST_TIMEOUT }, function (err, res, body) {
     try {
       if (err) return done(err);
-      var doc = new xmldom.DOMParser().parseFromString(body);
+      var doc = new xmldom$$1.DOMParser().parseFromString(body);
       var apiType = _.get(doc.getElementsByTagName('apiType'), '[0].textContent');
       var apiVersion = _.get(doc.getElementsByTagName('apiVersion'), '[0].textContent');
-      if (apiType && apiVersion) return done(null, 'VMware-' + apiType + '-' + apiVersion);
-      return done(null, null);
-    } catch (err) {
-      return done(null, null);
+      if (apiType && apiVersion) {
+        return done(null, 'VMware-' + apiType + '-' + apiVersion);
+      }
+      throw new Error('Unable to determine cache key');
+    } catch (error) {
+      return done(error, null);
     }
   });
 }
@@ -238,10 +1884,9 @@ types['2.5'] = {
     }
   },
   VirtualMachineSnapshot: {}
-};
 
-// Required update to all ManagedEntities
-ManagedEntity = _.merge({}, ManagedEntity, {
+  // Required update to all ManagedEntities
+};ManagedEntity = _.merge({}, ManagedEntity, {
   alarmActionsEnabled: 'xsd:boolean',
   tag: 'vim25:ArrayOfTag'
 });
@@ -450,8 +2095,9 @@ types['6.5'] = _.merge({}, types['6.0'], {
 });
 
 /*
- * Resolves the vim type name without case sensetivity and adds friendly shortcuts
- * like vm for VirtualMachine host for HostSystem, etc.
+ * Resolves the vim type name without case sensetivity
+ * and adds friendly shortcuts like vm for VirtualMachine
+ * host for HostSystem, etc.
  */
 var ALIAS = {
   cluster: 'ClusterComputeResource',
@@ -464,7 +2110,8 @@ var ALIAS = {
 
 function typeResolver(apiVersion) {
   var typeMap = _.cloneDeep(ALIAS);
-  var types$$1 = _.get(types, apiVersion) || _.get(types, _.last(_.keys(types))); // default to latest apiVersion
+  // default to latest apiVersion
+  var types$$1 = _.get(types, apiVersion) || _.get(types, _.last(_.keys(types)));
   _.forEach(types$$1, function (v, k) {
     typeMap[_.toLower(k)] = k;
   });
@@ -473,77 +2120,479 @@ function typeResolver(apiVersion) {
   };
 }
 
-var classCallCheck = function (instance, Constructor) {
-  if (!(instance instanceof Constructor)) {
-    throw new TypeError("Cannot call a class as a function");
-  }
-};
+function moRef(type, value) {
+  var t = _.isString(type) ? type : _.get(type, 'type');
+  var v = _.isString(type) ? value : _.get(type, 'value', _.get(type, 'id'));
 
-var createClass = function () {
-  function defineProperties(target, props) {
-    for (var i = 0; i < props.length; i++) {
-      var descriptor = props[i];
-      descriptor.enumerable = descriptor.enumerable || false;
-      descriptor.configurable = true;
-      if ("value" in descriptor) descriptor.writable = true;
-      Object.defineProperty(target, descriptor.key, descriptor);
+  if (!t || !v) throw new Error('cannot resolve moRef, missing type info');
+  return { type: t, value: v };
+}
+
+function isMoRef(value) {
+  return _.isString(_.get(value, 'type')) && _.isString(_.get(value, 'value', _.get(value, 'id')));
+}
+
+var BaseBuilder = function () {
+  function BaseBuilder(client, defaultConfig) {
+    classCallCheck(this, BaseBuilder);
+
+    this._resolve = Promise.resolve();
+    this.client = client;
+    this.apiVersion = client.apiVersion.match(/^\d+\.\d+$/) ? this.client.apiVersion + '.0' : this.client.apiVersion;
+    this._config = defaultConfig;
+  }
+
+  /**
+   * Creates a copy of the config and returns it
+   */
+
+
+  createClass(BaseBuilder, [{
+    key: '$config',
+    value: function $config() {
+      return _.merge({}, this._config);
     }
-  }
 
-  return function (Constructor, protoProps, staticProps) {
-    if (protoProps) defineProperties(Constructor.prototype, protoProps);
-    if (staticProps) defineProperties(Constructor, staticProps);
-    return Constructor;
-  };
+    /**
+     * Gets a value from the config object
+     * @param path
+     * @param defaultValue
+     */
+
+  }, {
+    key: '$get',
+    value: function $get(path$$1, defaultValue) {
+      return _.get(this._config, path$$1, defaultValue);
+    }
+
+    /**
+     * Manually sets a configuration value at the specific path
+     * @param path
+     * @param value
+     */
+
+  }, {
+    key: '$set',
+    value: function $set(path$$1, value) {
+      _.set(this._config, path$$1, value);
+      return this;
+    }
+  }, {
+    key: '$push',
+    value: function $push(path$$1, value) {
+      var obj = this.$get(path$$1);
+      if (!_.isArray(obj)) this.$set(path$$1, []);
+      obj = this.$get(path$$1);
+      obj.push(value);
+      return this;
+    }
+
+    /**
+     * Merges a subset of configuration into the main config
+     * @returns {VirtualMachineConfigBuilder}
+     */
+
+  }, {
+    key: '$merge',
+    value: function $merge() {
+      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      this._config = _.merge.apply(this, args.unshift(this._config));
+      return this;
+    }
+
+    /**
+     * Checks if the api version is greater than or equal to the required version
+     * @param requiredVersion - must be in semver format major.minor.patch
+     * @returns {*}
+     */
+
+  }, {
+    key: '$versionGTE',
+    value: function $versionGTE(requiredVersion) {
+      return semver.gte(this.apiVersion, requiredVersion);
+    }
+
+    /**
+     * Checks if the values passed is formatted as a moref
+     * @param value
+     * @returns {*}
+     */
+
+  }, {
+    key: '$isMoRef',
+    value: function $isMoRef(value) {
+      return isMoRef(value);
+    }
+
+    /**
+     * converts a type and value to a moref
+     * @param type
+     * @param value
+     * @returns {{type, value}|*}
+     */
+
+  }, {
+    key: '$moRef',
+    value: function $moRef(type, value) {
+      return moRef(type, value);
+    }
+
+    /**
+     * resolves a moref by path or moref
+     * @param value
+     * @param field
+     * @returns {BaseBuilder}
+     */
+
+  }, {
+    key: '$resolveMoRef',
+    value: function $resolveMoRef(value, field) {
+      var _this = this;
+
+      this._resolve = this._resolve.then(function () {
+        var getMoRef = _.isString(value) ? _this.client.moRef(value) : _this.$isMoRef(value) ? Promise.resolve(value) : Promise.reject(new Error('invalid moRef supplied for "' + field + '"'));
+        return getMoRef.then(function (_moRef) {
+          return _this.$set(field, _moRef);
+        });
+      });
+
+      return this;
+    }
+  }, {
+    key: '$resolveAndSet',
+    value: function $resolveAndSet(value, path$$1) {
+      var _this2 = this;
+
+      this._resolve = this._resolve.then(function () {
+        _this2.$set(path$$1, value);
+      });
+
+      return this;
+    }
+
+    /**
+     * checks if the value is a potential config object
+     * @param value
+     * @returns {boolean}
+     */
+
+  }, {
+    key: '$isConfigObject',
+    value: function $isConfigObject(value) {
+      return _.isObject(value) && !_.isBuffer(value) && !_.isDate(value) && _.keys(value).length;
+    }
+
+    /**
+     * Adds dynamic data to the config
+     * @param key
+     * @param value
+     * @returns {BaseBuilder}
+     */
+
+  }, {
+    key: 'dynamicData',
+    value: function dynamicData(key, value) {
+      this.$set(key, value);
+      return this;
+    }
+  }]);
+  return BaseBuilder;
 }();
 
+function nicTypeMapper(type) {
+  switch (_.toLower(type)) {
+    case 'vmxnet':
+    case 'vmxnet3':
+    case 'virtualvmxnet3':
+      return 'VirtualVmxnet3';
+    case 'vmxnet2':
+    case 'virtualvmxnet2':
+      return 'VirtualVmxnet2';
+    case 'e1000':
+    case 'virtuale1000':
+      return 'VirtualE1000';
+    case 'e1000e':
+    case 'virtuale1000e':
+      return 'VirtualE1000e';
+    case 'pcnet32':
+    case 'pcnet':
+    case 'virtualpcnet32':
+      return 'VirtualPCNet32';
+    case 'sriov':
+    case 'sriovethernetcard':
+    case 'virtualsriovethernetcard':
+      return 'VirtualSriovEthernetCard';
+    default:
+      return 'VirtualE1000';
+  }
+}
 
+function nicBackingMapper(networkType) {
+  switch (_.toLower(networkType)) {
+    case 'network':
+      return 'VirtualEthernetCardNetworkBackingInfo';
+    case 'distributedvirtualportgroup':
+      return 'VirtualEthernetCardDistributedVirtualPortBackingInfo';
+    default:
+      return 'VirtualEthernetCardNetworkBackingInfo';
+  }
+}
 
+// import SpecProxy from './SpecProxy'
+var INV_PATH_RX = /^(\/.*)\/(host|vm|datastore|network)(\/.*)?$/;
 
+var CreateVirtualMachineArgs = function (_BaseBuilder) {
+  inherits(CreateVirtualMachineArgs, _BaseBuilder);
 
+  function CreateVirtualMachineArgs(client) {
+    classCallCheck(this, CreateVirtualMachineArgs);
 
+    var _this2 = possibleConstructorReturn(this, (CreateVirtualMachineArgs.__proto__ || Object.getPrototypeOf(CreateVirtualMachineArgs)).call(this, client, {}));
 
-
-
-var inherits = function (subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    _this2._dcPath = null;
+    _this2._name = null;
+    _this2._datastore = null;
+    return _this2;
   }
 
-  subClass.prototype = Object.create(superClass && superClass.prototype, {
-    constructor: {
-      value: subClass,
-      enumerable: false,
-      writable: true,
-      configurable: true
+  createClass(CreateVirtualMachineArgs, [{
+    key: '_this',
+    value: function _this(value) {
+      var match = value.match(INV_PATH_RX);
+      if (match) this._dcPath = match[1];
+      this.$resolveMoRef(value, '_this');
+      return this;
     }
-  });
-  if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-};
+  }, {
+    key: 'pool',
+    value: function pool(value) {
+      var _value = value;
+      if (_.isString(_value)) {
+        _value = _value.replace(new RegExp('^' + this._dcPath + '/?'), '').replace(/^host\/?/, '');
+        _value = this._dcPath + '/host/' + _value;
+      }
+      this.$resolveMoRef(_value, 'pool');
+      return this;
+    }
+  }, {
+    key: 'host',
+    value: function host(value) {
+      var _value = value;
+      if (_.isString(_value)) {
+        _value = _value.replace(new RegExp('^' + this._dcPath + '/?'), '').replace(/^host\/?/, '');
+        _value = this._dcPath + '/host/' + _value;
+      }
+      this.$resolveMoRef(_value, 'host');
+      return this;
+    }
+  }, {
+    key: 'config',
+    value: function config(spec) {
+      var _this3 = this;
 
+      this._resolve = this._resolve.then(function () {
+        _this3.$merge(spec);
+      });
+      return this;
+    }
 
+    /*
+     * Shortcut methods
+     */
 
+  }, {
+    key: 'name',
+    value: function name(value) {
+      var _this4 = this;
 
+      this._resolve = this._resolve.then(function () {
+        _this4._name = value;
+        _this4.$set('config.name', value);
+      });
+      return this;
+    }
+  }, {
+    key: 'memory',
+    value: function memory(size) {
+      var _this5 = this;
 
+      this._resolve = this._resolve.then(function () {
+        var mem = 512;
+        if (_.isNumber(size)) {
+          return _this5.$set('config.memoryMB', Math.floor(size));
+        } else if (_.isString(size)) {
+          var match = size.match(/^(\d+)(m|mb|g|gb|t|tb)?$/i);
+          if (match && match[1]) {
+            mem = Math.floor(Number(match[1]));
 
+            switch (match[2]) {
+              case 'm':
+              case 'mb':
+                return _this5.$set('config.memoryMB', mem);
+              case 'g':
+              case 'gb':
+                return _this5.$set('config.memoryMB', mem * 1024);
+              case 't':
+              case 'tb':
+                return _this5.$set('config.memoryMB', mem * 1024 * 1024);
+              default:
+                return _this5.$set('config.memoryMB', mem);
+            }
+          }
+        }
+        throw new Error('invalid memory size');
+      });
+      return this;
+    }
+  }, {
+    key: 'cpus',
+    value: function cpus(cores, coresPerSocket) {
+      var _this6 = this;
 
+      this._resolve = this._resolve.then(function () {
+        if (!_.isNumber(cores)) throw new Error('cpu cores must be integer');
+        _this6.$set('config.numCPUs', Math.floor(cores));
 
+        if (_this6.$versionGTE('5.0.0') && _.isNumber(coresPerSocket)) {
+          _this6.$set('config.coresPerSocket', Math.floor(coresPerSocket));
+        }
+      });
+      return this;
+    }
+  }, {
+    key: 'addNic',
+    value: function addNic(network, type, options) {
+      var _this7 = this;
 
+      var opts = _.isObject(options) ? options : {};
+      var _network = network;
 
+      if (_.isString(_network)) {
+        _network = _network.replace(new RegExp('^' + this._dcPath + '/?'), '').replace(/^network\/?/, '');
+        _network = this._dcPath + '/network/' + _network;
+      }
+      this._resolve = this._resolve.then(function () {
+        // get the network details
+        var getMoRef = _.isString(_network) ? _this7.client.moRef(_network) : _this7.$isMoRef(_network) ? Promise$1.resolve(_network) : Promise$1.reject(new Error('invalid moRef supplied for "network"'));
 
-var possibleConstructorReturn = function (self, call) {
-  if (!self) {
-    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+        return getMoRef.then(function (moRef) {
+          return _this7.client.retrieve({
+            type: moRef.type,
+            id: moRef.value,
+            properties: moRef.type === 'DistributedVirtualPortgroup' ? ['name', 'config.distributedVirtualSwitch'] : ['name']
+          }).then(function (net) {
+            var n = _.first(net);
+            var netName = _.get(n, 'name', 'VM Network');
+            return moRef.type === 'DistributedVirtualPortgroup' ? _this7.client.retrieve({
+              type: _.get(n, 'config.distributedVirtualSwitch.type'),
+              id: _.get(n, 'config.distributedVirtualSwitch.value'),
+              properties: ['uuid']
+            }).then(function (dvs) {
+              return {
+                name: netName,
+                uuid: _.get(dvs, '[0].uuid')
+              };
+            }) : { name: netName };
+          }).then(function (net) {
+            if (!_.isArray(_this7.$get('config.deviceChange'))) {
+              _this7.$set('config.deviceChange', []);
+            }
+            var key = _this7.$get('config.deviceChange').length;
+            var change = _.merge({
+              operation: 'add',
+              device: {
+                '@xsi:type': 'vim25:' + nicTypeMapper(type),
+                backing: {
+                  '@xsi:type': 'vim25:' + nicBackingMapper(moRef.type),
+                  deviceName: net.name,
+                  useAutoDetect: true,
+                  network: moRef,
+                  port: net.uuid ? { switchUuid: net.uuid } : undefined
+                },
+                connectable: {
+                  connected: true,
+                  startConnected: true,
+                  allowGuestControl: true
+                },
+                deviceInfo: {
+                  label: 'NetworkAdapter ' + (key + 1),
+                  summary: net.name
+                },
+                key: key,
+                addressType: 'generated',
+                wakeOnLanEnabled: true,
+                present: true
+              }
+            }, opts);
+
+            _this7.$push('config.deviceChange', change);
+          });
+        });
+      });
+
+      return this;
+    }
+  }, {
+    key: '_args',
+    get: function get$$1() {
+      var _this8 = this;
+
+      return this._resolve.then(function () {
+        return _this8.$config();
+      });
+    }
+  }]);
+  return CreateVirtualMachineArgs;
+}(BaseBuilder);
+
+// import monitor from '../monitor/index'
+// import { isMoRef } from '../common/moRef'
+/**
+ * THIS IS A WORK IN PROGRESS
+ */
+
+/**
+ *
+ * @param parent {String|Object} - parent path or moref
+ * @param type
+ * @param config
+ * @param options
+ * @returns {*|Promise.<*>|Promise.<TResult>}
+ */
+function create(type, config, options) {
+  _.noop(options);
+  try {
+    var _type = this.typeResolver(type);
+
+    switch (_type) {
+      case 'VirtualMachine':
+        if (_.isFunction(config)) {
+          var vmArgs = new CreateVirtualMachineArgs(this);
+          config(vmArgs);
+          return vmArgs._args;
+        }
+        return Promise$1.resolve(config);
+      default:
+        throw new Error('"' + type + '" is not supported in create operation');
+    }
+
+    // return this.createSpec(moRef, type, config, options)
+  } catch (err) {
+    return Promise$1.reject(err);
   }
-
-  return call && (typeof call === "object" || typeof call === "function") ? call : self;
-};
+}
 
 var ONE_MINUTE_IN_MS = 60000;
 var ONE_SECOND_IN_MS = 1000;
 var FIRST_INTERVAL = 500;
 var ERROR = 'error';
 var SUCCESS = 'success';
+// const QUEUED = 'queued'
+// const RUNNING = 'running'
+
 var TaskMonitor = function () {
   function TaskMonitor(client, taskId, options) {
     var _this = this;
@@ -562,7 +2611,9 @@ var TaskMonitor = function () {
       _this.timeout = _.isNumber(timeout) && timeout > _this.interval ? Math.floor(timeout) : ONE_MINUTE_IN_MS;
       _this.resolve = resolve;
       _this.reject = reject;
-      _this.monitor(FIRST_INTERVAL); // short first interval for quick tasks like rename
+
+      // short first interval for quick tasks like rename
+      _this.monitor(FIRST_INTERVAL);
     });
   }
 
@@ -580,7 +2631,9 @@ var TaskMonitor = function () {
           var task = _.get(result, '[0]');
           var state = _.get(task, 'info.state');
 
-          if (!state) return _this2.reject(new Error('task ' + _this2.taskId + ' was not found'));
+          if (!state) {
+            return _this2.reject(new Error('task ' + _this2.taskId + ' was not found'));
+          }
           _this2.client.emit('task.state', { id: _this2.taskId, state: state });
 
           switch (state) {
@@ -589,7 +2642,7 @@ var TaskMonitor = function () {
             case SUCCESS:
               return _this2.resolve(task);
             default:
-              return Date.now() - _this2.start >= _this2.timeout ? _this2.reject(new Error('the task monitor timed out, the task may still complete successfully')) : _this2.monitor(_this2.interval);
+              return Date.now() - _this2.start >= _this2.timeout ? _this2.reject(new Error('the task monitor timed out, ' + 'the task may still complete successfully')) : _this2.monitor(_this2.interval);
           }
         }, _this2.reject);
       }, interval);
@@ -606,14 +2659,6 @@ var monitor = {
   task: task
 };
 
-function moRef(type, value) {
-  var t = _.isString(type) ? type : _.get(type, 'type');
-  var v = _.isString(type) ? value : _.get(type, 'value', _.get(type, 'id'));
-
-  if (!t || !v) throw new Error('cannot resolve moRef, missing type info');
-  return { type: t, value: v };
-}
-
 function destroy(moRef$$1, options) {
   var _this = this;
 
@@ -628,7 +2673,7 @@ function destroy(moRef$$1, options) {
   }
 }
 
-var CookieSecurity = soap.Security.CookieSecurity;
+var CookieSecurity$2 = soap.Security.CookieSecurity;
 
 function getToken(headers) {
   return _.get(_.get(headers, 'set-cookie[0]', '').match(/"(.*)"/), '[1]', null);
@@ -649,10 +2694,10 @@ function login(username, password) {
   // token auth
   if (token) {
     if (isHostAgent) {
-      return Promise$1.reject(new Error('token authentication is no supported on host, use username/password'));
+      return Promise$1.reject(new Error('token authentication is ' + 'no supported on host, use username/password'));
     }
     this._token = token;
-    this.setSecurity(CookieSecurity('vmware_soap_session="' + this._token + '"'));
+    this.setSecurity(CookieSecurity$2('vmware_soap_session="' + this._token + '"'));
 
     return this.retrieve({
       type: 'SessionManager',
@@ -663,22 +2708,19 @@ function login(username, password) {
       _this._session = _.get(sessions, '[0].currentSession');
       return _this._session;
     });
+  } else if (username && password) {
+    return this.method('Login', {
+      _this: this.serviceContent.sessionManager,
+      userName: username,
+      password: password
+    }).then(function (session) {
+      _this.loggedIn = true;
+      _this._soapClient.setSecurity(CookieSecurity$2(_this._soapClient.lastResponse.headers));
+      _this._token = getToken(_this._soapClient.lastResponse.headers);
+      _this._session = session;
+      return _this._session;
+    });
   }
-
-  // basic auth
-  else if (username && password) {
-      return this.method('Login', {
-        _this: this.serviceContent.sessionManager,
-        userName: username,
-        password: password
-      }).then(function (session) {
-        _this.loggedIn = true;
-        _this._soapClient.setSecurity(CookieSecurity(_this._soapClient.lastResponse.headers));
-        _this._token = getToken(_this._soapClient.lastResponse.headers);
-        _this._session = session;
-        return _this._session;
-      }, console.error);
-    }
 
   return Promise$1.reject('no credentials provided');
 }
@@ -756,19 +2798,49 @@ var ObjectReferenceError = function (_VSphereConnectError) {
 
   function ObjectReferenceError() {
     classCallCheck(this, ObjectReferenceError);
-    return possibleConstructorReturn(this, (ObjectReferenceError.__proto__ || Object.getPrototypeOf(ObjectReferenceError)).call(this, 'ObjectReferenceError', ERR_OBJECT_REF, 'Object reference cannot be determined. Please supply' + 'either a valid moRef object ({ type, value }) or type and id'));
+    return possibleConstructorReturn(this, (ObjectReferenceError.__proto__ || Object.getPrototypeOf(ObjectReferenceError)).call(this, 'ObjectReferenceError', ERR_OBJECT_REF, 'Object reference ' + 'cannot be determined. Please supply' + 'either a valid moRef object ({ type, value }) or type and id'));
   }
 
   return ObjectReferenceError;
 }(VSphereConnectError);
 
 function method(name, args) {
-  args = _.isObject(args) ? args : {};
-  var method = _.get(this._VimPort, '["' + name + '"]');
+  var _args = _.isObject(args) ? args : {};
+  var _method = _.get(this._VimPort, '["' + name + '"]');
 
-  return _.isFunction(method) ? method(args).then(function (result) {
+  return _.isFunction(_method) ? method(_args).then(function (result) {
     return _.get(result, 'returnval', result);
   }) : Promise$1.reject(new InvalidMethodError(name));
+}
+
+function moRef$2(inventoryPath) {
+  try {
+    return this.method('FindByInventoryPath', {
+      _this: this.serviceContent.searchIndex,
+      inventoryPath: inventoryPath
+    });
+  } catch (error) {
+    return Promise$1.reject(error);
+  }
+}
+
+function reconfig(moRef, config, options) {
+  var _this = this;
+
+  try {
+    var type = this.typeResolver(type);
+    var spec = this.updateSpec(moRef, config, options);
+    switch (type) {
+      case 'VirtualMachine':
+        return this.method('ReconfigVM_Task', spec).then(function (task$$1) {
+          return _.get(options, 'async') === false ? monitor.task(_this, _.get(task$$1, 'value'), options) : task$$1;
+        });
+      default:
+        throw new Error('"' + type + '" is not supported in update operation');
+    }
+  } catch (err) {
+    return Promise$1.reject(err);
+  }
 }
 
 function reload(moRef$$1) {
@@ -786,8 +2858,9 @@ function reload(moRef$$1) {
 function rename(moRef$$1, name, options) {
   var _this = this;
 
-  if (!_.isString(name)) return Promise$1.reject(new Error('missing name parameter in rename operation'));
-
+  if (!_.isString(name)) {
+    return Promise$1.reject(new Error('missing name parameter in rename operation'));
+  }
   try {
     return this.method('Rename_Task', {
       _this: moRef(moRef$$1),
@@ -803,11 +2876,11 @@ function rename(moRef$$1, name, options) {
 var TraversalSpec = function () {
   function TraversalSpec(_ref) {
     var type = _ref.type,
-        path = _ref.path;
+        path$$1 = _ref.path;
     classCallCheck(this, TraversalSpec);
 
     this.type = type;
-    this.path = path;
+    this.path = path$$1;
   }
 
   createClass(TraversalSpec, [{
@@ -871,11 +2944,10 @@ var ObjectSpec = function () {
           skip: true,
           selectSet: [SelectionSpec$1(this.obj).spec]
         }];
-      } else {
-        return _.map(this.obj.id, function (id) {
-          return { obj: moRef(_this.obj.type, id) };
-        });
       }
+      return _.map(this.obj.id, function (id) {
+        return { obj: moRef(_this.obj.type, id) };
+      });
     }
   }]);
   return ObjectSpec;
@@ -940,17 +3012,21 @@ var PropertyFilterSpec = function () {
 
       type = type || this.obj.type;
       container = container || this.obj.container || this.client.serviceContent.rootFolder;
-      recursive = this.obj.recursive === false ? false : true;
-
+      recursive = this.obj.recursive !== false;
       var listSpec = _.get(types, '["' + this.client.apiVersion + '"]["' + type + '"].listSpec');
       if (!listSpec && !this.obj.id.length) {
-        return Promise$1.reject('Unable to list vSphere type, try with a specific object id');
+        return Promise$1.reject('Unable to list vSphere type, ' + 'try with a specific object id');
       }
 
       // get the container view if no object specified
       // this is used for listing entire collections of object types
       if (!this.obj.id.length && listSpec.type === 'ContainerView') {
-        resolveView = this.client.method('CreateContainerView', { _this: viewManager, container: container, type: type, recursive: recursive });
+        resolveView = this.client.method('CreateContainerView', {
+          _this: viewManager,
+          container: container,
+          type: type,
+          recursive: recursive
+        });
       }
 
       return resolveView.then(function (containerView) {
@@ -973,10 +3049,13 @@ var PropertyFilterSpec$1 = function (obj, client) {
 function graphSpec(specSet) {
   var types = {};
 
-  _.forEach(_.isArray(specSet) ? specSet : [specSet], function (spec) {
+  _.forEach(_.isArray(specSet) ? specSet : [specSet], function (_spec) {
+    var spec = _spec;
     if (_.isString(spec)) spec = { type: spec };
     if (!spec.type) return;
-    if (!_.has(types, spec.type)) _.set(types, spec.type, { ids: [], props: [] });
+    if (!_.has(types, spec.type)) {
+      _.set(types, spec.type, { ids: [], props: [] });
+    }
     if (spec.id) {
       var ids = _.isArray(spec.id) ? spec.id : [spec.id];
       types[spec.type].ids = _.union(types[spec.type].ids, ids);
@@ -1043,24 +3122,24 @@ function getResults(result, objects, limit, skip, nth, orderBy, moRef, fn) {
 function retrieve(args, options) {
   var _this3 = this;
 
-  args = _.isObject(args) ? _.cloneDeep(args) : {};
-  options = _.isObject(options) ? _.cloneDeep(options) : {};
+  var _args = _.isObject(args) ? _.cloneDeep(args) : {};
+  var _options = _.isObject(options) ? _.cloneDeep(options) : {};
 
-  var limit = options.limit;
-  var skip = options.skip || 0;
-  var nth = _.isNumber(options.nth) ? Math.ceil(options.nth) : null;
-  var properties = _.get(args, 'properties', []);
-  var moRef = true; // _.includes(properties, 'moRef') || _.includes(properties, 'id')
-  var orderBy = options.orderBy ? orderDoc(options.orderBy) : null;
-  var fn = _.isFunction(options.resultHandler) ? options.resultHandler : function (result) {
+  var limit = _options.limit;
+  var skip = _options.skip || 0;
+  var nth = _.isNumber(_options.nth) ? Math.ceil(_options.nth) : null;
+  var properties = _.get(_args, 'properties', []);
+  var moRef = true;
+  var orderBy = _options.orderBy ? orderDoc(_options.orderBy) : null;
+  var fn = _.isFunction(_options.resultHandler) ? _options.resultHandler : function (result) {
     return result;
   };
-  args.properties = _.without(properties, 'moRef', 'id', 'moRef.value', 'moRef.type');
+  _args.properties = _.without(properties, 'moRef', 'id', 'moRef.value', 'moRef.type');
 
   if (_.isNumber(skip) && _.isNumber(limit)) limit += skip;
 
   var retrieveMethod = this._VimPort.RetrievePropertiesEx ? 'RetrievePropertiesEx' : 'RetrieveProperties';
-  var specMap = _.map(graphSpec(args), function (s) {
+  var specMap = _.map(graphSpec(_args), function (s) {
     return PropertyFilterSpec$1(s, _this3).spec;
   });
   var _this = this.serviceContent.propertyCollector;
@@ -1072,11 +3151,14 @@ function retrieve(args, options) {
   });
 }
 
-var methods = {
+var methods$1 = {
+  create: create,
   destroy: destroy,
   login: login,
   logout: logout,
   method: method,
+  moRef: moRef$2,
+  reconfig: reconfig,
   reload: reload,
   rename: rename,
   retrieve: retrieve
@@ -1103,6 +3185,17 @@ var RequestBuilder = function () {
   }
 
   createClass(RequestBuilder, [{
+    key: 'reset',
+    value: function reset() {
+      this.operation = null;
+      this.error = null;
+      this.args = {};
+      this.options = {};
+      this.single = false;
+      this._value = undefined;
+      this.allData = false;
+    }
+  }, {
     key: 'assignProps',
     value: function assignProps(rb) {
       rb.error = this.error;
@@ -1170,7 +3263,9 @@ var CHANGE = 'change';
 
 function getId(obj) {
   var moRef = obj.moRef || obj.obj;
-  return _.get(moRef, 'type', 'unknown') + '-' + _.get(moRef, 'value', 'unknown');
+  var type = _.get(moRef, 'type', 'unknown');
+  var id = _.get(moRef, 'value', 'unknown');
+  return type + '-' + id;
 }
 
 function formatChange(obj) {
@@ -1241,10 +3336,14 @@ var ChangeFeed = function () {
 
         return Promise$1.all(specMap).then(function (specSet) {
           debug$1('specMap %j', specSet);
-          return _this3._client.method('CreatePropertyCollector', { _this: _this }).then(function (_this) {
-            _this3.collector = _this;
+          return _this3._client.method('CreatePropertyCollector', { _this: _this }).then(function (collector) {
+            _this3.collector = collector;
             return Promise$1.each(specSet, function (spec) {
-              return _this3._client.method('CreateFilter', { _this: _this, spec: spec, partialUpdates: false });
+              return _this3._client.method('CreateFilter', {
+                _this: collector,
+                spec: spec,
+                partialUpdates: false
+              });
             });
           });
         }).then(function () {
@@ -1276,17 +3375,16 @@ var ChangeFeed = function () {
 
         var changes = _.map(objectSet, function (obj) {
           var id = getId(obj);
-          var change = {
-            old_val: null,
-            new_val: null
-          };
+          var change = {};
+          change['old_val'] = null;
+          change['new_val'] = null;
 
           if (obj.kind === CREATED) {
-            change.new_val = formatChange(obj);
+            change['new_val'] = formatChange(obj);
             _.set(creates, id, change.new_val);
           } else {
             var newVal = _.cloneDeep(_.get(_this4.currentVal, id, {}));
-            change.old_val = _.cloneDeep(newVal);
+            change['old_val'] = _.cloneDeep(newVal);
 
             if (obj.kind === DESTROYED) {
               destroys.push(id);
@@ -1314,7 +3412,7 @@ var ChangeFeed = function () {
                 }
               });
               _.set(updates, id, newVal);
-              change.new_val = newVal;
+              change['new_val'] = newVal;
             } else {
               debug$1('unhandled kind %s', obj.kind);
             }
@@ -1390,10 +3488,10 @@ function pluck(obj, props) {
 
 function makeDotPath(obj) {
   var list = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
-  var path = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
+  var path$$1 = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
 
   _.forEach(obj, function (val, key) {
-    var prop = path.slice(0);
+    var prop = path$$1.slice(0);
     prop.push(key);
     if (val === true) list.push(prop.join('.'));else makeDotPath(val, list, prop);
   });
@@ -1418,9 +3516,8 @@ function processBranch(args, resolve, reject) {
       return (val instanceof v ? val._rb.value : Promise$1.resolve(_.isFunction(val) ? val() : val)).then(resolve, reject);
     } else if (args.length === 1) {
       return (las instanceof v ? las._rb.value : Promise$1.resolve(_.isFunction(las) ? las() : las)).then(resolve, reject);
-    } else {
-      return processBranch(args, resolve, reject);
     }
+    return processBranch(args, resolve, reject);
   }, reject);
 }
 
@@ -1462,16 +3559,19 @@ var v = function () {
   }, {
     key: 'branch',
     value: function branch() {
-      var args = [].concat(Array.prototype.slice.call(arguments));
-      return this._rb.next(function (value, rb) {
-        args = args.length === 2 ? _.union([value], args) : args;
+      for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
 
-        if (args.length < 3 || args.length % 2 !== 1) {
+      return this._rb.next(function (value, rb) {
+        var _args = args.length === 2 ? _.union([value], args) : args;
+
+        if (_args.length < 3 || _args.length % 2 !== 1) {
           rb.error = 'branch has an invalid number of arguments';
           return;
         }
         return new Promise$1(function (resolve, reject) {
-          return processBranch(args, resolve, reject);
+          return processBranch(_args, resolve, reject);
         });
       });
     }
@@ -1489,17 +3589,88 @@ var v = function () {
     }
 
     /**
+     * sets the cluster path
+     * @param name
+     * @returns {*}
+     */
+
+  }, {
+    key: 'cluster',
+    value: function cluster(name) {
+      return this._rb.next(function (value, rb) {
+        if (!rb.args._clusterName) {
+          rb.args._clusterName = name;
+
+          if (rb.args._inventoryPath) {
+            if (rb.args._inventoryPath.match(/\/.*\/host(\/.*)?$/)) {
+              rb.args._inventoryPath = rb.args._inventoryPath + '/' + name;
+            } else {
+              rb.args._inventoryPath = rb.args._inventoryPath + '/host/' + name;
+            }
+          }
+        }
+
+        return value;
+      });
+    }
+
+    /**
+     * create a new managed object type
+     * @param path
+     * @param configs
+     * @param options
+     */
+
+  }, {
+    key: 'create',
+    value: function create(path$$1, config, options) {
+      var _this = this;
+
+      if (!_.isFunction(config) && !_.isObject(config)) {
+        throw new Error('InvalidArgumentError: config must be ' + 'function or object');
+      }
+      var opts = _.isObject(options) ? options : {};
+
+      var wrapConfig = function wrapConfig(c) {
+        c._this(path$$1);
+        config(c);
+      };
+
+      return this._rb.next(function (value, rb) {
+        rb.operation = 'CREATE';
+        return _this._rb.client.create(rb.args.type, wrapConfig, opts);
+      });
+    }
+
+    /**
      * returns the backend client
      * @returns {*}
      */
 
   }, {
     key: 'createClient',
-    value: function createClient() {
-      var _this = this;
+    value: function createClient(cb) {
+      var _this2 = this;
 
       return this._rb.client._connection.then(function () {
-        return _this._rb.client;
+        return cb(_this2._rb.client);
+      });
+    }
+
+    /**
+     * set the datacenter path for commands
+     * @param name
+     */
+
+  }, {
+    key: 'datacenter',
+    value: function datacenter(name) {
+      return this._rb.next(function (value, rb) {
+        if (!rb.args._datacenterName) {
+          rb.args._datacenterName = name;
+          rb.args._inventoryPath = rb.args._inventoryPath ? rb.args._inventoryPath + '/' + name : '/' + name;
+        }
+        return value;
       });
     }
 
@@ -1511,13 +3682,13 @@ var v = function () {
   }, {
     key: 'default',
     value: function _default(val) {
-      var _this2 = this;
+      var _this3 = this;
 
-      return this._rb.next(function (value, rb) {
-        return _this2._rb.value.then(function (value) {
+      return this._rb.next(function (_value, rb) {
+        return _this3._rb.value.then(function (value) {
           rb.operation = 'DEFAULT';
-          var error = _this2._rb.error ? _this2._rb.error : value === undefined ? new Error('NoResultsError: the selection has no results') : null;
-          _this2._rb.error = null;
+          var error = _this3._rb.error ? _this3._rb.error : value === undefined ? new Error('NoResultsError: the selection has no results') : null;
+          _this3._rb.error = null;
           rb.error = null;
 
           return error ? _.isFunction(val) ? val(error) : val : value;
@@ -1533,13 +3704,13 @@ var v = function () {
   }, {
     key: 'destroy',
     value: function destroy(options) {
-      var _this3 = this;
+      var _this4 = this;
 
       return this._rb.next(function () {
-        return _this3._rb.value.then(function (value) {
-          _this3.operation = 'DESTROY';
+        return _this4._rb.value.then(function (value) {
+          _this4.operation = 'DESTROY';
           return Promise$1.map(_.castArray(value), function (mo) {
-            return _this3._rb.client.destroy(mo.moRef, options);
+            return _this4._rb.client.destroy(mo.moRef, options);
           });
         });
       });
@@ -1552,35 +3723,40 @@ var v = function () {
   }, {
     key: 'do',
     value: function _do() {
-      var args = [].concat(Array.prototype.slice.call(arguments));
+      for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+        args[_key2] = arguments[_key2];
+      }
+
       var fn = _.last(args);
       if (!_.isFunction(fn)) throw new Error('invalid value for do');
 
-      return this._rb.next(function (value, rb) {
+      return this._rb.next(function (value) {
         var params = _.map(args.length > 1 ? args.slice(0, args.length - 1) : [value], function (param) {
+
           return param instanceof v ? param._rb.value : _.isFunction(param) ? param() : param;
         });
 
         return Promise$1.map(params, function (param) {
           return param;
-        }).then(function (params) {
-          return fn.apply(null, params);
+        }).then(function (_params) {
+          return fn.apply(null, _params);
         });
       });
     }
 
     /**
-     * iterates over a set of values and executes an iteratee function on their values
+     * iterates over a set of values and executes
+     * an iteratee function on their values
      * @param iteratee
      */
 
   }, {
     key: 'each',
     value: function each(iteratee) {
-      var _this4 = this;
+      var _this5 = this;
 
-      return this._rb.next(function (value, rb) {
-        return _this4._rb.value.then(function (value) {
+      return this._rb.next(function (_value, rb) {
+        return _this5._rb.value.then(function (value) {
           rb.operation = 'EACH';
           if (!_.isArray(value)) {
             rb.error = 'cannot call each on single selection';
@@ -1598,15 +3774,17 @@ var v = function () {
   }, {
     key: 'eq',
     value: function eq() {
-      var _this5 = this,
-          _arguments = arguments;
+      var _this6 = this;
 
-      var args = [].concat(Array.prototype.slice.call(arguments));
+      for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+        args[_key3] = arguments[_key3];
+      }
+
       if (!args.length) throw new Error('eq requires at least one argument');
-      return this._rb.next(function (value, rb) {
-        return _this5._rb.value.then(function (value) {
+      return this._rb.next(function (_value, rb) {
+        return _this6._rb.value.then(function (value) {
           rb.operation = 'EQ';
-          return Promise$1.reduce([].concat(Array.prototype.slice.call(_arguments)), function (accum, item) {
+          return Promise$1.reduce(args, function (accum, item) {
             return accum && _.isEqual(value, item);
           }, true);
         });
@@ -1638,10 +3816,10 @@ var v = function () {
   }, {
     key: 'filter',
     value: function filter(filterer, options) {
-      var _this6 = this;
+      var _this7 = this;
 
-      return this._rb.next(function (value, rb) {
-        return _this6._rb.value.then(function (value) {
+      return this._rb.next(function (_value, rb) {
+        return _this7._rb.value.then(function (value) {
           rb.operation = 'FILTER';
           if (!_.isArray(value)) {
             rb.error = 'cannot call filter on single selection';
@@ -1653,13 +3831,31 @@ var v = function () {
     }
 
     /**
+     * sets the folder path
+     * @param name
+     */
+
+  }, {
+    key: 'folder',
+    value: function folder(name) {
+      return this._rb.next(function (value, rb) {
+        rb.args._folderName = name;
+        rb.args._inventoryPath = rb.args._inventoryPath ? rb.args._inventoryPath + '/' + name : '/' + name;
+        return value;
+      });
+    }
+
+    /**
      * gets one or more managed objects by id
      */
 
   }, {
     key: 'get',
     value: function get$$1() {
-      var ids = [].concat(Array.prototype.slice.call(arguments));
+      for (var _len4 = arguments.length, ids = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+        ids[_key4] = arguments[_key4];
+      }
+
       return this._rb.next(function (value, rb) {
         if (rb.operation === RETRIEVE) {
           rb.args.id = ids;
@@ -1673,10 +3869,35 @@ var v = function () {
         return _.filter(value, function (mo) {
           var _$get = _.get(mo, 'moRef', {}),
               type = _$get.type,
-              value = _$get.value;
+              _value = _$get.value;
 
-          return _.get(rb.args, 'type') === type && _.includes(ids, value);
+          return _.get(rb.args, 'type') === type && _.includes(ids, _value);
         });
+      });
+    }
+
+    /**
+     * sets the host path
+     * @param name
+     */
+
+  }, {
+    key: 'host',
+    value: function host(name) {
+      return this._rb.next(function (value, rb) {
+        if (!rb.args._hostName) {
+          rb.args._hostName = name;
+
+          if (rb.args._inventoryPath) {
+            if (rb.args._inventoryPath.match(/\/.*\/host(\/.*)?$/)) {
+              rb.args._inventoryPath = rb.args._inventoryPath + '/' + name;
+            } else {
+              rb.args._inventoryPath = rb.args._inventoryPath + '/host/' + name;
+            }
+          }
+        }
+
+        return value;
       });
     }
 
@@ -1688,13 +3909,13 @@ var v = function () {
   }, {
     key: 'id',
     value: function id() {
-      var _this7 = this;
+      var _this8 = this;
 
-      return this._rb.next(function (value, rb) {
-        return _this7._rb.value.then(function (value) {
+      return this._rb.next(function (_value, rb) {
+        return _this8._rb.value.then(function (value) {
           rb.operation = 'ID';
-          return _.isArray(value) ? _.map(value, function (v) {
-            return _.get(v, 'moRef.value', null);
+          return _.isArray(value) ? _.map(value, function (val) {
+            return _.get(val, 'moRef.value', null);
           }) : _.get(value, 'moRef.value', null);
         });
       });
@@ -1764,10 +3985,10 @@ var v = function () {
   }, {
     key: 'map',
     value: function map(mapper, options) {
-      var _this8 = this;
+      var _this9 = this;
 
-      return this._rb.next(function (value, rb) {
-        return _this8._rb.value.then(function (value) {
+      return this._rb.next(function (_value, rb) {
+        return _this9._rb.value.then(function (value) {
           rb.operation = 'MAP';
           if (!_.isArray(value)) {
             rb.error = 'cannot call map on single selection';
@@ -1796,21 +4017,46 @@ var v = function () {
     }
 
     /**
+     * gets a managed object reference from the supplied inventory path
+     * @param inventoryPath
+     */
+
+  }, {
+    key: 'moRef',
+    value: function moRef(inventoryPath) {
+      var _inventoryPath = inventoryPath;
+      return this._rb.next(function (value, rb) {
+        rb.operation = 'MOREF';
+
+        if (!_inventoryPath && rb.args._inventoryPath) {
+          _inventoryPath = rb.args._inventoryPath;
+        }
+
+        return rb.client.moRef(_inventoryPath).then(function (moRef) {
+          rb._value = moRef;
+          return moRef;
+        });
+      });
+    }
+
+    /**
      * determines if one or more values equal the current selection
      */
 
   }, {
     key: 'ne',
     value: function ne() {
-      var _this9 = this,
-          _arguments2 = arguments;
+      var _this10 = this;
 
-      var args = [].concat(Array.prototype.slice.call(arguments));
+      for (var _len5 = arguments.length, args = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+        args[_key5] = arguments[_key5];
+      }
+
       if (!args.length) throw new Error('ne requires at least one argument');
-      return this._rb.next(function (value, rb) {
-        return _this9._rb.value.then(function (value) {
+      return this._rb.next(function (_value, rb) {
+        return _this10._rb.value.then(function (value) {
           rb.operation = 'NE';
-          return Promise$1.reduce([].concat(Array.prototype.slice.call(_arguments2)), function (accum, item) {
+          return Promise$1.reduce(args, function (accum, item) {
             return accum && !_.isEqual(value, item);
           }, true);
         });
@@ -1825,10 +4071,10 @@ var v = function () {
   }, {
     key: 'not',
     value: function not() {
-      var _this10 = this;
+      var _this11 = this;
 
-      return this._rb.next(function (value, rb) {
-        return _this10._rb.value.then(function (value) {
+      return this._rb.next(function (_value, rb) {
+        return _this11._rb.value.then(function (value) {
           rb.operation = 'NOT';
           if (value === undefined) {
             rb.error = new Error('cannot not an undefined value');
@@ -1847,7 +4093,7 @@ var v = function () {
   }, {
     key: 'nth',
     value: function nth(n) {
-      if (!_.isNumber(index)) throw new Error('invalid value for nth');
+      if (!_.isNumber(n)) throw new Error('invalid value for nth');
       return this._rb.next(function (value, rb) {
         if (rb.single) {
           rb.error = new Error('cannot get nth on single selection');
@@ -1906,11 +4152,13 @@ var v = function () {
   }, {
     key: 'pluck',
     value: function pluck$$1() {
-      var _arguments3 = arguments;
+      for (var _len6 = arguments.length, args = Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+        args[_key6] = arguments[_key6];
+      }
 
       return this._rb.next(function (value, rb) {
         rb.allData = false;
-        var propList = buildPropList([].concat(Array.prototype.slice.call(_arguments3)));
+        var propList = buildPropList(args);
         var currentProps = _.get(rb.args, 'properties', propList);
         var useProps = _.intersection(propList, currentProps);
         useProps = useProps.length ? useProps : propList;
@@ -1922,13 +4170,20 @@ var v = function () {
         return pluck(value, useProps);
       });
     }
+
+    /**
+     * Performs a reduce operation
+     * @param reducer
+     * @param initialValue
+     */
+
   }, {
     key: 'reduce',
     value: function reduce(reducer, initialValue) {
-      var _this11 = this;
+      var _this12 = this;
 
-      return this._rb.next(function (value, rb) {
-        return _this11._rb.value.then(function (value) {
+      return this._rb.next(function (_value, rb) {
+        return _this12._rb.value.then(function (value) {
           rb.operation = 'REDUCE';
           if (!_.isArray(value)) {
             rb.error = 'cannot call reduce on single selection';
@@ -1936,6 +4191,19 @@ var v = function () {
           }
           return Promise$1.reduce(value, _.isFunction(reducer) ? reducer : _.identity, initialValue);
         });
+      });
+    }
+
+    /**
+     * resets the request builder
+     */
+
+  }, {
+    key: 'reset',
+    value: function reset() {
+      return this._rb.next(function (value, rb) {
+        rb.reset();
+        return null;
       });
     }
 
@@ -1952,6 +4220,8 @@ var v = function () {
       return this._rb.next(function (value, rb) {
         rb.operation = 'RETRIEVE';
         rb._value = undefined;
+        rb.args = args;
+        rb.options = options;
         return rb.client.retrieve(args, options);
       });
     }
@@ -2016,15 +4286,15 @@ var v = function () {
   }, {
     key: 'then',
     value: function then(onFulfilled, onRejected) {
-      var _this12 = this;
+      var _this13 = this;
 
-      onFulfilled = _.isFunction(onFulfilled) ? onFulfilled : _.noop;
-      onRejected = _.isFunction(onRejected) ? onRejected : _.noop;
+      var _onFulfilled = _.isFunction(onFulfilled) ? onFulfilled : _.noop;
+      var _onRejected = _.isFunction(onRejected) ? onRejected : _.noop;
 
       return this._rb.value.then(function (result) {
-        _this12.operation = null;
-        return _this12._rb.error ? Promise$1.reject(_this12._rb.error) : result;
-      }).then(onFulfilled, onRejected);
+        _this13.operation = null;
+        return _this13._rb.error ? Promise$1.reject(_this13._rb.error) : result;
+      }).then(_onFulfilled, _onRejected);
     }
 
     /**
@@ -2036,15 +4306,17 @@ var v = function () {
   }, {
     key: 'value',
     value: function value(attr) {
-      var _this13 = this;
+      var _this14 = this;
 
-      return this._rb.next(function (value, rb) {
-        return _this13._rb.value.then(function (value) {
+      return this._rb.next(function (_value, rb) {
+        return _this14._rb.value.then(function (value) {
           rb.operation = 'VALUE';
           if (_.isString(attr)) {
-            if (_.isArray(value)) return _.without(_.map(value, function (val) {
-              return _.get(val, attr);
-            }), undefined);
+            if (_.isArray(value)) {
+              return _.without(_.map(value, function (val) {
+                return _.get(val, attr);
+              }), undefined);
+            }
             var val = _.get(value, attr);
             if (val === undefined) rb.error = 'no attribute "' + attr + ' in object"';
             return val;
@@ -2065,7 +4337,8 @@ var VsphereConnectClient = function (_EventEmitter) {
    * @param host {String} - viServer
    * @param [options] {Object} - connection options
    * @param [options.ignoreSSL=false] {Boolean} - ignores invalid ssl
-   * @param [options.cacheKey] {Function} - cache key function whose return value will be used as the cache key name
+   * @param [options.cacheKey] {Function} - cache key function whose
+   * return value will be used as the cache key name
    * @return {v}
    */
   function VsphereConnectClient(host, options) {
@@ -2077,15 +4350,16 @@ var VsphereConnectClient = function (_EventEmitter) {
 
     _this.loggedIn = false;
 
-    if (!_.isString(host) || _.isEmpty(host)) throw new Error('missing required parameter "host"');
+    if (!_.isString(host) || _.isEmpty(host)) {
+      throw new Error('missing required parameter "host"');
+    }
+    var opts = _.isObject(options) && !_.isArray(options) ? options : {};
 
-    options = _.isObject(options) && !_.isArray(options) ? options : {};
+    opts.cacheKey = _.isFunction(opts.cacheKey) ? opts.cacheKey : cacheKey$1;
 
-    options.cacheKey = _.isFunction(options.cacheKey) ? options.cacheKey : cacheKey;
+    if (opts.ignoreSSL) process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-    if (options.ignoreSSL) process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
-    _this._connection = soap.createClient('https://' + host + '/sdk/vimService.wsdl', options).then(function (client) {
+    _this._connection = soap.createClient('https://' + host + '/sdk/vimService.wsdl', opts).then(function (client) {
       _this._soapClient = client;
       _this._VimPort = _.get(client, 'services.VimService.VimPort');
 
@@ -2102,7 +4376,7 @@ var VsphereConnectClient = function (_EventEmitter) {
       return { connected: true };
     });
 
-    return _ret = new v(_this), possibleConstructorReturn(_this, _ret);
+    return _ret = new v(_this), babelHelpers.possibleConstructorReturn(_this, _ret);
   }
 
   createClass(VsphereConnectClient, [{
@@ -2111,46 +4385,85 @@ var VsphereConnectClient = function (_EventEmitter) {
       this._soapClient.setSecurity(securityObject);
     }
   }, {
+    key: 'create',
+    value: function create(parent, type, config, options) {
+      return methods$1.create.apply(this, [parent, type, config, options]);
+    }
+  }, {
     key: 'destroy',
-    value: function destroy() {
-      return methods.destroy.apply(this, [].concat(Array.prototype.slice.call(arguments)));
+    value: function destroy(moRef, options) {
+      return methods$1.destroy.apply(this, [moRef, options]);
+    }
+
+    // alias for destroy
+
+  }, {
+    key: 'delete',
+    value: function _delete(moRef, options) {
+      return this.destroy(moRef, options);
     }
   }, {
     key: 'login',
-    value: function login() {
-      return methods.login.apply(this, [].concat(Array.prototype.slice.call(arguments)));
+    value: function login(identity, password) {
+      return methods$1.login.apply(this, [identity, password]);
     }
   }, {
     key: 'logout',
     value: function logout() {
-      return methods.logout.apply(this, [].concat(Array.prototype.slice.call(arguments)));
+      return methods$1.logout.apply(this, []);
     }
   }, {
     key: 'method',
-    value: function method() {
-      return methods.method.apply(this, [].concat(Array.prototype.slice.call(arguments)));
+    value: function method(name, args) {
+      return methods$1.method.apply(this, [name, args]);
+    }
+  }, {
+    key: 'moRef',
+    value: function moRef(inventoryPath) {
+      return methods$1.moRef.apply(this, [inventoryPath]);
+    }
+  }, {
+    key: 'reconfig',
+    value: function reconfig(moRef, config, options) {
+      return methods$1.reconfig.apply(this, [moRef, config, options]);
+    }
+
+    // alias for reconfig
+
+  }, {
+    key: 'update',
+    value: function update(moRef, config, options) {
+      return this.reconfig(moRef, config, options);
     }
   }, {
     key: 'reload',
-    value: function reload() {
-      return methods.reload.apply(this, [].concat(Array.prototype.slice.call(arguments)));
+    value: function reload(moRef) {
+      return methods$1.reload.apply(this, [moRef]);
     }
   }, {
     key: 'rename',
-    value: function rename() {
-      return methods.rename.apply(this, [].concat(Array.prototype.slice.call(arguments)));
+    value: function rename(moRef, name, options) {
+      return methods$1.rename.apply(this, [moRef, name, options]);
     }
   }, {
     key: 'retrieve',
-    value: function retrieve() {
-      return methods.retrieve.apply(this, [].concat(Array.prototype.slice.call(arguments)));
+    value: function retrieve(args, options) {
+      return methods$1.retrieve.apply(this, [args, options]);
+    }
+
+    // alias for retrieve
+
+  }, {
+    key: 'find',
+    value: function find(args, options) {
+      return this.retrieve(args, options);
     }
   }]);
   return VsphereConnectClient;
 }(EventEmitter);
 
-var index$1 = function (host, options) {
+var index = function (host, options) {
   return new VsphereConnectClient(host, options);
 };
 
-module.exports = index$1;
+module.exports = index;

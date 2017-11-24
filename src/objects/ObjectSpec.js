@@ -11,16 +11,17 @@ export class ObjectSpec {
     if (!this.obj.id.length) {
       return [
         {
-          obj: this.obj.containerView ? this.obj.containerView : moRef(this.obj.listSpec.type, this.obj.listSpec.id),
+          obj: this.obj.containerView
+            ? this.obj.containerView
+            : moRef(this.obj.listSpec.type, this.obj.listSpec.id),
           skip: true,
-          selectSet: [SelectionSpec(this.obj).spec]
+          selectSet: [ SelectionSpec(this.obj).spec ]
         }
       ]
-    } else {
-      return _.map(this.obj.id, id => {
-        return { obj: moRef(this.obj.type, id) }
-      })
     }
+    return _.map(this.obj.id, id => {
+      return { obj: moRef(this.obj.type, id) }
+    })
   }
 }
 
