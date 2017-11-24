@@ -1,8 +1,12 @@
 import _ from 'lodash'
 import Promise from 'bluebird'
-import monitor from '../monitor/index'
-import { isMoRef } from '../common/moRef'
+// import monitor from '../monitor/index'
+// import { isMoRef } from '../common/moRef'
 import { CreateVirtualMachineArgs } from '../spec/VirtualMachine'
+
+/**
+ * THIS IS A WORK IN PROGRESS
+ */
 
 /**
  *
@@ -13,29 +17,23 @@ import { CreateVirtualMachineArgs } from '../spec/VirtualMachine'
  * @returns {*|Promise.<*>|Promise.<TResult>}
  */
 export default function create (type, config, options) {
+  _.noop(options)
   try {
-    type = this.typeResolver(type)
+    const _type = this.typeResolver(type)
 
-    switch (type) {
+    switch (_type) {
       case 'VirtualMachine':
         if (_.isFunction(config)) {
-          let vmArgs = new CreateVirtualMachineArgs(this)
+          const vmArgs = new CreateVirtualMachineArgs(this)
           config(vmArgs)
           return vmArgs._args
-        } else {
-          return Promise.resolve(config)
         }
-
+        return Promise.resolve(config)
       default:
         throw new Error(`"${type}" is not supported in create operation`)
     }
 
-    let args = this.createSpec(moRef, type, config, options)
-    return args
-
-
-
-
+    // return this.createSpec(moRef, type, config, options)
   } catch (err) {
     return Promise.reject(err)
   }

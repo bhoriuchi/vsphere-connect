@@ -1,13 +1,13 @@
 import _ from 'lodash'
 
-let types = {}
+const types = {}
 
 const containerView = {
   type: 'ContainerView',
   path: 'view'
 }
 
-let ExtensibleManagedObject = {
+const ExtensibleManagedObject = {
   availableField: 'vim25:ArrayOfCustomFieldDef',
   value: 'vim25:ArrayOfCustomFieldValue'
 }
@@ -27,7 +27,7 @@ let ManagedEntity = _.merge({}, ExtensibleManagedObject, {
   triggeredAlarmState: 'vim25:ArrayOfAlarmState'
 })
 
-let ComputeResource = _.merge({}, ManagedEntity, {
+const ComputeResource = _.merge({}, ManagedEntity, {
   configurationEx: 'vim25:ComputeResourceConfigInfo',
   datastore: 'vim25:ArrayOfManagedObjectReference',
   environmentBrowser: 'vim25:ManagedObjectReference',
@@ -209,7 +209,7 @@ ManagedEntity = _.merge({}, ManagedEntity, {
   tag: 'vim25:ArrayOfTag'
 })
 
-let DistributedVirtualSwitch = _.merge({}, ManagedEntity, {
+const DistributedVirtualSwitch = _.merge({}, ManagedEntity, {
   capability: 'vim25:DVSCapability',
   config: 'vim25:DVSConfigInfo',
   networkResourcePool: 'vim25:ArrayOfDVSNetworkResourcePool',

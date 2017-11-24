@@ -1,7 +1,7 @@
 import _ from 'lodash'
-import BaseBuilder from "./BaseBuilder"
+import BaseBuilder from './BaseBuilder'
 import Promise from 'bluebird'
-import SpecProxy from './SpecProxy'
+// import SpecProxy from './SpecProxy'
 import { nicTypeMapper, nicBackingMapper } from '../common/typeMapping'
 
 const INV_PATH_RX = /^(\/.*)\/(host|vm|datastore|network)(\/.*)?$/
@@ -15,27 +15,33 @@ export class CreateVirtualMachineArgs extends BaseBuilder {
   }
 
   _this (value) {
-    let match = value.match(INV_PATH_RX)
+    const match = value.match(INV_PATH_RX)
     if (match) this._dcPath = match[1]
     this.$resolveMoRef(value, '_this')
     return this
   }
 
   pool (value) {
-    if (_.isString(value)) {
-      value = value.replace(new RegExp(`^${this._dcPath}/?`), '').replace(/^host\/?/, '')
-      value = `${this._dcPath}/host/${value}`
+    let _value = value
+    if (_.isString(_value)) {
+      _value = _value
+        .replace(new RegExp(`^${this._dcPath}/?`), '')
+        .replace(/^host\/?/, '')
+      _value = `${this._dcPath}/host/${_value}`
     }
-    this.$resolveMoRef(value, 'pool')
+    this.$resolveMoRef(_value, 'pool')
     return this
   }
 
   host (value) {
-    if (_.isString(value)) {
-      value = value.replace(new RegExp(`^${this._dcPath}/?`), '').replace(/^host\/?/, '')
-      value = `${this._dcPath}/host/${value}`
+    let _value = value
+    if (_.isString(_value)) {
+      _value = _value
+        .replace(new RegExp(`^${this._dcPath}/?`), '')
+        .replace(/^host\/?/, '')
+      _value = `${this._dcPath}/host/${_value}`
     }
-    this.$resolveMoRef(value, 'host')
+    this.$resolveMoRef(_value, 'host')
     return this
   }
 
@@ -64,7 +70,7 @@ export class CreateVirtualMachineArgs extends BaseBuilder {
       if (_.isNumber(size)) {
         return this.$set('config.memoryMB', Math.floor(size))
       } else if (_.isString(size)) {
-        let match = size.match(/^(\d+)(m|mb|g|gb|t|tb)?$/i)
+        const match = size.match(/^(\d+)(m|mb|g|gb|t|tb)?$/i)
         if (match && match[1]) {
           mem = Math.floor(Number(match[1]))
 
@@ -102,20 +108,23 @@ export class CreateVirtualMachineArgs extends BaseBuilder {
 
 
   addNic (network, type, options) {
-    options = _.isObject(options)
+    const opts = _.isObject(options)
       ? options
       : {}
+    let _network = network
 
-    if (_.isString(network)) {
-      network = network.replace(new RegExp(`^${this._dcPath}/?`), '').replace(/^network\/?/, '')
-      network = `${this._dcPath}/network/${network}`
+    if (_.isString(_network)) {
+      _network = _network
+        .replace(new RegExp(`^${this._dcPath}/?`), '')
+        .replace(/^network\/?/, '')
+      _network = `${this._dcPath}/network/${_network}`
     }
     this._resolve = this._resolve.then(() => {
       // get the network details
-      let getMoRef = _.isString(network)
-        ? this.client.moRef(network)
-        : this.$isMoRef(network)
-          ? Promise.resolve(network)
+      const getMoRef = _.isString(_network)
+        ? this.client.moRef(_network)
+        : this.$isMoRef(_network)
+          ? Promise.resolve(_network)
           : Promise.reject(new Error('invalid moRef supplied for "network"'))
 
       return getMoRef.then(moRef => {
@@ -123,17 +132,17 @@ export class CreateVirtualMachineArgs extends BaseBuilder {
           type: moRef.type,
           id: moRef.value,
           properties: moRef.type === 'DistributedVirtualPortgroup'
-            ? ['name', 'config.distributedVirtualSwitch']
-            : ['name']
+            ? [ 'name', 'config.distributedVirtualSwitch' ]
+            : [ 'name' ]
         })
           .then(net => {
-            let n = _.first(net)
-            let netName = _.get(n, 'name', 'VM Network')
+            const n = _.first(net)
+            const netName = _.get(n, 'name', 'VM Network')
             return moRef.type === 'DistributedVirtualPortgroup'
               ? this.client.retrieve({
                 type: _.get(n, 'config.distributedVirtualSwitch.type'),
                 id: _.get(n, 'config.distributedVirtualSwitch.value'),
-                properties: ['uuid']
+                properties: [ 'uuid' ]
               })
                 .then(dvs => {
                   return {
@@ -144,9 +153,11 @@ export class CreateVirtualMachineArgs extends BaseBuilder {
               : { name: netName }
           })
           .then(net => {
-            if (!_.isArray(this.$get('config.deviceChange'))) this.$set('config.deviceChange', [])
-            let key = this.$get('config.deviceChange').length
-            let change = _.merge({
+            if (!_.isArray(this.$get('config.deviceChange'))) {
+              this.$set('config.deviceChange', [])
+            }
+            const key = this.$get('config.deviceChange').length
+            const change = _.merge({
               operation: 'add',
               device: {
                 '@xsi:type': `vim25:${nicTypeMapper(type)}`,
@@ -173,7 +184,7 @@ export class CreateVirtualMachineArgs extends BaseBuilder {
                 wakeOnLanEnabled: true,
                 present: true
               }
-            }, options)
+            }, opts)
 
             this.$push('config.deviceChange', change)
           })

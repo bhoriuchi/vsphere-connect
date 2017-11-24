@@ -1,6 +1,7 @@
 /*
- * Resolves the vim type name without case sensetivity and adds friendly shortcuts
- * like vm for VirtualMachine host for HostSystem, etc.
+ * Resolves the vim type name without case sensetivity
+ * and adds friendly shortcuts like vm for VirtualMachine
+ * host for HostSystem, etc.
  */
 import _ from 'lodash'
 import mo from './mo'
@@ -15,8 +16,9 @@ const ALIAS = {
 }
 
 export default function typeResolver (apiVersion) {
-  let typeMap = _.cloneDeep(ALIAS)
-  let types = _.get(mo, apiVersion) || _.get(mo, _.last(_.keys(mo))) // default to latest apiVersion
+  const typeMap = _.cloneDeep(ALIAS)
+   // default to latest apiVersion
+  const types = _.get(mo, apiVersion) || _.get(mo, _.last(_.keys(mo)))
   _.forEach(types, (v, k) => {
     typeMap[_.toLower(k)] = k
   })

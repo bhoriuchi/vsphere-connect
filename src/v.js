@@ -8,9 +8,9 @@ import buildPropList from './common/buildPropList'
 import { RETRIEVE } from './common/contants'
 
 function processBranch (args, resolve, reject) {
-  let condition = args.shift()
-  let val = args.shift()
-  let las = _.last(args)
+  const condition = args.shift()
+  const val = args.shift()
+  const las = _.last(args)
 
   return (
     condition instanceof v
@@ -32,9 +32,8 @@ function processBranch (args, resolve, reject) {
             : Promise.resolve(_.isFunction(las) ? las() : las)
         )
           .then(resolve, reject)
-      } else {
-        return processBranch(args, resolve, reject)
       }
+      return processBranch(args, resolve, reject)
     }, reject)
 }
 
@@ -42,7 +41,7 @@ export default class v {
   constructor (client, rb) {
     this._rb = null
 
-    let term = function (field) {
+    const term = function (field) {
       return term.value(field)
     }
     Object.setPrototypeOf(term, v.prototype)
@@ -68,18 +67,19 @@ export default class v {
   /**
    * performs an if then else
    */
-  branch () {
-    let args = [...arguments]
+  branch (...args) {
     return this._rb.next((value, rb) => {
-      args = args.length === 2
-        ? _.union([value], args)
+      const _args = args.length === 2
+        ? _.union([ value ], args)
         : args
 
-      if (args.length < 3 || args.length % 2 !== 1) {
+      if (_args.length < 3 || _args.length % 2 !== 1) {
         rb.error = 'branch has an invalid number of arguments'
         return
       }
-      return new Promise((resolve, reject) => processBranch(args, resolve, reject))
+      return new Promise(
+        (resolve, reject) => processBranch(_args, resolve, reject)
+      )
     })
   }
 
@@ -122,19 +122,22 @@ export default class v {
    * @param options
    */
   create (path, config, options) {
-    if (!_.isFunction(config) && !_.isObject(config)) throw new Error('InvalidArgumentError: config must be function or object')
-    options = _.isObject(options)
+    if (!_.isFunction(config) && !_.isObject(config)) {
+      throw new Error('InvalidArgumentError: config must be '
+        + 'function or object')
+    }
+    const opts = _.isObject(options)
       ? options
       : {}
 
-    let wrapConfig = (c) => {
+    const wrapConfig = c => {
       c._this(path)
       config(c)
     }
 
     return this._rb.next((value, rb) => {
       rb.operation = 'CREATE'
-      return this._rb.client.create(rb.args.type, wrapConfig, options)
+      return this._rb.client.create(rb.args.type, wrapConfig, opts)
     })
   }
 
@@ -168,10 +171,10 @@ export default class v {
    * @param val
    */
   default (val) {
-    return this._rb.next((value, rb) => {
+    return this._rb.next((_value, rb) => {
       return this._rb.value.then(value => {
         rb.operation = 'DEFAULT'
-        let error = this._rb.error
+        const error = this._rb.error
           ? this._rb.error
           : value === undefined
             ? new Error('NoResultsError: the selection has no results')
@@ -206,36 +209,47 @@ export default class v {
   /**
    * performs one or more operations and feeds them into a handler function
    */
-  do () {
-    let args = [...arguments]
-    let fn = _.last(args)
+  do (...args) {
+    const fn = _.last(args)
     if (!_.isFunction(fn)) throw new Error('invalid value for do')
 
-    return this._rb.next((value, rb) => {
-      let params = _.map(args.length > 1 ? args.slice(0, args.length - 1) : [value], param => {
-        return param instanceof v ? param._rb.value : _.isFunction(param) ? param() : param
+    return this._rb.next(value => {
+      const params = _.map(args.length > 1
+        ? args.slice(0, args.length - 1)
+        : [ value ], param => {
+
+        return param instanceof v
+          ? param._rb.value
+          : _.isFunction(param)
+            ? param()
+            : param
       })
 
       return Promise.map(params, param => param)
-        .then(params => {
-          return fn.apply(null, params)
+        .then(_params => {
+          return fn.apply(null, _params)
         })
     })
   }
 
   /**
-   * iterates over a set of values and executes an iteratee function on their values
+   * iterates over a set of values and executes
+   * an iteratee function on their values
    * @param iteratee
    */
   each (iteratee) {
-    return this._rb.next((value, rb) => {
+    return this._rb.next((_value, rb) => {
       return this._rb.value.then(value => {
         rb.operation = 'EACH'
         if (!_.isArray(value)) {
           rb.error = 'cannot call each on single selection'
           return null
         }
-        return Promise.each(value, _.isFunction(iteratee) ? iteratee : _.identity)
+        return Promise.each(
+          value, _.isFunction(iteratee)
+          ? iteratee
+          : _.identity
+        )
       })
     })
   }
@@ -243,13 +257,12 @@ export default class v {
   /**
    * determines if one or more values equal the current selection
    */
-  eq () {
-    let args = [...arguments]
+  eq (...args) {
     if (!args.length) throw new Error('eq requires at least one argument')
-    return this._rb.next((value, rb) => {
+    return this._rb.next((_value, rb) => {
       return this._rb.value.then(value => {
         rb.operation = 'EQ'
-        return Promise.reduce([...arguments], (accum, item) => {
+        return Promise.reduce(args, (accum, item) => {
           return accum && _.isEqual(value, item)
         }, true)
       })
@@ -275,14 +288,18 @@ export default class v {
    * @param options
    */
   filter (filterer, options) {
-    return this._rb.next((value, rb) => {
+    return this._rb.next((_value, rb) => {
       return this._rb.value.then(value => {
         rb.operation = 'FILTER'
         if (!_.isArray(value)) {
           rb.error = 'cannot call filter on single selection'
           return null
         }
-        return Promise.filter(value, _.isFunction(filterer) ? filterer : _.identity, options)
+        return Promise.filter(
+          value, _.isFunction(filterer)
+            ? filterer
+            : _.identity, options
+        )
       })
     })
   }
@@ -304,8 +321,7 @@ export default class v {
   /**
    * gets one or more managed objects by id
    */
-  get () {
-    let ids = [...arguments]
+  get (...ids) {
     return this._rb.next((value, rb) => {
       if (rb.operation === RETRIEVE) {
         rb.args.id = ids
@@ -317,8 +333,8 @@ export default class v {
         return null
       }
       return _.filter(value, mo => {
-        let { type, value } = _.get(mo, 'moRef', {})
-        return _.get(rb.args, 'type') === type && _.includes(ids, value)
+        const { type, value: _value } = _.get(mo, 'moRef', {})
+        return _.get(rb.args, 'type') === type && _.includes(ids, _value)
       })
     })
   }
@@ -350,11 +366,11 @@ export default class v {
    * @returns {*}
    */
   id () {
-    return this._rb.next((value, rb) => {
+    return this._rb.next((_value, rb) => {
       return this._rb.value.then(value => {
         rb.operation = 'ID'
         return _.isArray(value)
-          ? _.map(value, v => _.get(v, 'moRef.value', null))
+          ? _.map(value, val => _.get(val, 'moRef.value', null))
           : _.get(value, 'moRef.value', null)
       })
     })
@@ -412,14 +428,18 @@ export default class v {
    * @param options
    */
   map (mapper, options) {
-    return this._rb.next((value, rb) => {
+    return this._rb.next((_value, rb) => {
       return this._rb.value.then(value => {
         rb.operation = 'MAP'
         if (!_.isArray(value)) {
           rb.error = 'cannot call map on single selection'
           return null
         }
-        return Promise.map(value, _.isFunction(mapper) ? mapper : _.identity, options)
+        return Promise.map(
+          value, _.isFunction(mapper)
+            ? mapper
+            : _.identity, options
+        )
       })
     })
   }
@@ -443,14 +463,15 @@ export default class v {
    * @param inventoryPath
    */
   moRef (inventoryPath) {
+    let _inventoryPath = inventoryPath
     return this._rb.next((value, rb) => {
       rb.operation = 'MOREF'
 
-      if (!inventoryPath && rb.args._inventoryPath) {
-        inventoryPath = rb.args._inventoryPath
+      if (!_inventoryPath && rb.args._inventoryPath) {
+        _inventoryPath = rb.args._inventoryPath
       }
-      console.log({ inventoryPath })
-      return rb.client.moRef(inventoryPath)
+
+      return rb.client.moRef(_inventoryPath)
         .then(moRef => {
           rb._value = moRef
           return moRef
@@ -461,13 +482,12 @@ export default class v {
   /**
    * determines if one or more values equal the current selection
    */
-  ne () {
-    let args = [...arguments]
+  ne (...args) {
     if (!args.length) throw new Error('ne requires at least one argument')
-    return this._rb.next((value, rb) => {
+    return this._rb.next((_value, rb) => {
       return this._rb.value.then(value => {
         rb.operation = 'NE'
-        return Promise.reduce([...arguments], (accum, item) => {
+        return Promise.reduce(args, (accum, item) => {
           return accum && !_.isEqual(value, item)
         }, true)
       })
@@ -479,14 +499,14 @@ export default class v {
    * @return {*}
    */
   not () {
-    return this._rb.next((value, rb) => {
+    return this._rb.next((_value, rb) => {
       return this._rb.value.then(value => {
         rb.operation = 'NOT'
         if (value === undefined) {
           rb.error = new Error('cannot not an undefined value')
           return null
         }
-        return _.includes([false, null], value)
+        return _.includes([ false, null ], value)
       })
     })
   }
@@ -496,7 +516,7 @@ export default class v {
    * @param index
    */
   nth (n) {
-    if (!_.isNumber(index)) throw new Error('invalid value for nth')
+    if (!_.isNumber(n)) throw new Error('invalid value for nth')
     return this._rb.next((value, rb) => {
       if (rb.single) {
         rb.error = new Error('cannot get nth on single selection')
@@ -535,7 +555,7 @@ export default class v {
         rb.error = new Error('cannot order non-array')
         return null
       }
-      let { fields, directions } = orderDoc(doc)
+      const { fields, directions } = orderDoc(doc)
       return _.orderBy(value, fields, directions)
     })
   }
@@ -544,11 +564,11 @@ export default class v {
    * Filters down the fields that will be returned
    * @return {v}
    */
-  pluck () {
+  pluck (...args) {
     return this._rb.next((value, rb) => {
       rb.allData = false
-      let propList = buildPropList([...arguments])
-      let currentProps = _.get(rb.args, 'properties', propList)
+      const propList = buildPropList(args)
+      const currentProps = _.get(rb.args, 'properties', propList)
       let useProps = _.intersection(propList, currentProps)
       useProps = useProps.length ? useProps : propList
 
@@ -566,14 +586,18 @@ export default class v {
    * @param initialValue
    */
   reduce (reducer, initialValue) {
-    return this._rb.next((value, rb) => {
+    return this._rb.next((_value, rb) => {
       return this._rb.value.then(value => {
         rb.operation = 'REDUCE'
         if (!_.isArray(value)) {
           rb.error = 'cannot call reduce on single selection'
           return null
         }
-        return Promise.reduce(value, _.isFunction(reducer) ? reducer : _.identity, initialValue)
+        return Promise.reduce(
+          value, _.isFunction(reducer)
+            ? reducer
+            : _.identity, initialValue
+        )
       })
     })
   }
@@ -656,10 +680,10 @@ export default class v {
    * @returns {Promise.<TResult>}
    */
   then (onFulfilled, onRejected) {
-    onFulfilled = _.isFunction(onFulfilled)
+    const _onFulfilled = _.isFunction(onFulfilled)
       ? onFulfilled
       : _.noop
-    onRejected = _.isFunction(onRejected)
+    const _onRejected = _.isFunction(onRejected)
       ? onRejected
       : _.noop
 
@@ -669,7 +693,7 @@ export default class v {
         ? Promise.reject(this._rb.error)
         : result
     })
-      .then(onFulfilled, onRejected)
+      .then(_onFulfilled, _onRejected)
   }
 
   /**
@@ -678,12 +702,16 @@ export default class v {
    * @param attr
    */
   value (attr) {
-    return this._rb.next((value, rb) => {
+    return this._rb.next((_value, rb) => {
       return this._rb.value.then(value => {
         rb.operation = 'VALUE'
         if (_.isString(attr)) {
-          if (_.isArray(value)) return _.without(_.map(value, val => _.get(val, attr)), undefined)
-          let val = _.get(value, attr)
+          if (_.isArray(value)) {
+            return _.without(
+              _.map(value, val => _.get(val, attr)
+            ), undefined)
+          }
+          const val = _.get(value, attr)
           if (val === undefined) rb.error = `no attribute "${attr} in object"`
           return val
         }

@@ -1,6 +1,6 @@
 import _ from 'lodash'
 import semver from 'semver'
-import { isMoRef, moRef } from "../../src/common/moRef"
+import { isMoRef, moRef } from '../../src/common/moRef'
 
 export default class BaseBuilder {
   constructor (client, defaultConfig) {
@@ -50,8 +50,8 @@ export default class BaseBuilder {
    * Merges a subset of configuration into the main config
    * @returns {VirtualMachineConfigBuilder}
    */
-  $merge () {
-    this._config = _.merge.apply(this, [...arguments].unshift(this._config))
+  $merge (...args) {
+    this._config = _.merge.apply(this, args.unshift(this._config))
     return this
   }
 
@@ -91,12 +91,12 @@ export default class BaseBuilder {
    */
   $resolveMoRef (value, field) {
     this._resolve = this._resolve.then(() => {
-      let getMoRef = _.isString(value)
+      const getMoRef = _.isString(value)
         ? this.client.moRef(value)
         : this.$isMoRef(value)
           ? Promise.resolve(value)
           : Promise.reject(new Error(`invalid moRef supplied for "${field}"`))
-      return getMoRef.then(moRef => this.$set(field, moRef))
+      return getMoRef.then(_moRef => this.$set(field, _moRef))
     })
 
     return this
@@ -116,7 +116,10 @@ export default class BaseBuilder {
    * @returns {boolean}
    */
   $isConfigObject (value) {
-    return _.isObject(value) && !_.isBuffer(value) && !_.isDate(value) && _.keys(value).length
+    return _.isObject(value)
+      && !_.isBuffer(value)
+      && !_.isDate(value)
+      && _.keys(value).length
   }
 
   /**

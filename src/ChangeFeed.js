@@ -15,12 +15,14 @@ const DESTROYED = 'leave'
 const CHANGE = 'change'
 
 function getId (obj) {
-  let moRef = obj.moRef || obj.obj
-  return `${_.get(moRef, 'type', 'unknown')}-${_.get(moRef, 'value', 'unknown')}`
+  const moRef = obj.moRef || obj.obj
+  const type = _.get(moRef, 'type', 'unknown')
+  const id = _.get(moRef, 'value', 'unknown')
+  return `${type}-${id}`
 }
 
 function formatChange (obj) {
-  let val = {
+  const val = {
     moRef: obj.obj
   }
   _.forEach(obj.changeSet, change => {
@@ -49,7 +51,7 @@ export default class ChangeFeed {
 
     debug('using method %s', this._waitMethod)
 
-    let intervalMS = _.get(options, 'interval')
+    const intervalMS = _.get(options, 'interval')
     this._intervalMS = _.isNumber(intervalMS)
       ? Math.ceil(intervalMS)
       : DEFAULT_INTERVAL_MS
@@ -69,12 +71,14 @@ export default class ChangeFeed {
 
   create () {
     this._request.term.then(() => {
-      let reqArgs = _.cloneDeep(this._request.args) || {}
+      const reqArgs = _.cloneDeep(this._request.args) || {}
       if (this._request.allData) reqArgs.properties = []
-      reqArgs.properties = reqArgs.properties || ['moRef', 'name']
+      reqArgs.properties = reqArgs.properties || [ 'moRef', 'name' ]
       reqArgs.properties = _.without(reqArgs.properties, 'moRef', 'id')
-      let specMap = _.map(graphSpec(reqArgs), s => PropertyFilterSpec(s, this._client).spec)
-      let _this = this._client.serviceContent.propertyCollector
+      const specMap = _.map(graphSpec(reqArgs), s => {
+        return PropertyFilterSpec(s, this._client).spec
+      })
+      const _this = this._client.serviceContent.propertyCollector
       this._VimPort = this._client._VimPort
       this._waitMethod = this._VimPort.WaitForUpdatesEx
         ? 'WaitForUpdatesEx'
@@ -84,10 +88,17 @@ export default class ChangeFeed {
         .then(specSet => {
           debug('specMap %j', specSet)
           return this._client.method('CreatePropertyCollector', { _this })
-            .then(_this => {
-              this.collector = _this
+            .then(collector => {
+              this.collector = collector
               return Promise.each(specSet, spec => {
-                return this._client.method('CreateFilter', { _this, spec, partialUpdates: false })
+                return this._client.method(
+                  'CreateFilter',
+                  {
+                    _this: collector,
+                    spec,
+                    partialUpdates: false
+                  }
+                )
               })
             })
         })
@@ -104,30 +115,29 @@ export default class ChangeFeed {
   }
 
   diff (set, firstRun) {
-    let objectSet = _.get(set, 'filterSet[0].objectSet')
+    const objectSet = _.get(set, 'filterSet[0].objectSet')
 
     if (firstRun) {
       _.forEach(objectSet, obj => {
         this.currentVal[getId(obj)] = formatChange(obj)
       })
     } else {
-      let creates = {}
-      let destroys = []
-      let updates = {}
+      const creates = {}
+      const destroys = []
+      const updates = {}
 
-      let changes = _.map(objectSet, obj => {
-        let id = getId(obj)
-        let change = {
-          old_val: null,
-          new_val: null
-        }
+      const changes = _.map(objectSet, obj => {
+        const id = getId(obj)
+        const change = {}
+        change['old_val'] = null
+        change['new_val'] = null
 
         if (obj.kind === CREATED) {
-          change.new_val = formatChange(obj)
+          change['new_val'] = formatChange(obj)
           _.set(creates, id, change.new_val)
         } else {
-          let newVal = _.cloneDeep(_.get(this.currentVal, id, {}))
-          change.old_val = _.cloneDeep(newVal)
+          const newVal = _.cloneDeep(_.get(this.currentVal, id, {}))
+          change['old_val'] = _.cloneDeep(newVal)
 
           if (obj.kind === DESTROYED) {
             destroys.push(id)
@@ -151,7 +161,7 @@ export default class ChangeFeed {
               }
             })
             _.set(updates, id, newVal)
-            change.new_val = newVal
+            change['new_val'] = newVal
           } else {
             debug('unhandled kind %s', obj.kind)
           }

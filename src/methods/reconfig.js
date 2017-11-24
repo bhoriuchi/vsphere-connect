@@ -4,8 +4,8 @@ import monitor from '../monitor/index'
 
 export default function reconfig (moRef, config, options) {
   try {
-    type = this.typeResolver(type)
-    let spec = this.updateSpec(moRef, config, options)
+    const type = this.typeResolver(type)
+    const spec = this.updateSpec(moRef, config, options)
     switch (type) {
       case 'VirtualMachine':
         return this.method('ReconfigVM_Task', spec)

@@ -3,7 +3,7 @@ export class PropertySpec {
     this.obj = obj
   }
   get spec () {
-    let hasProps = this.obj.properties.length > 0
+    const hasProps = this.obj.properties.length > 0
     return {
       all: !hasProps,
       pathSet: this.obj.properties,
