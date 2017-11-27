@@ -2,5 +2,7 @@
 .idea
 .vscode
 node_modules
+dist
+src/soap/cache/.localStorage
 credentials.js
 WSDL_CACHE

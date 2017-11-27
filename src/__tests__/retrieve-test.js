@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { describe, it } from 'mocha'
 import { expect } from 'chai'
-import VConnect from '../index'
+import VConnect from '../../dist/index'
 
 // get connection details from the env
 const vcenter = process.env.VCONNECT_VCENTER

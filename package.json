@@ -13,7 +13,7 @@
   },
   "scripts": {
     "lint": "eslint src",
-    "build:src": "rollup -c build/rollup.config.js && uglifyjs index.js > index.min.js",
+    "build:src": "babel src --optional runtime --ignore __tests__ --out-dir dist/ && cp package.json dist/",
     "build": "npm run lint && npm run build:src && npm run test",
     "test": "babel-node ./node_modules/.bin/_mocha $npm_package_options_mocha"
   },
@@ -36,21 +36,18 @@
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.0",
     "babel-eslint": "^8.0.1",
-    "babel-plugin-external-helpers": "^6.22.0",
-    "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-plugin-syntax-async-functions": "6.13.0",
+    "babel-plugin-syntax-async-generators": "6.13.0",
+    "babel-plugin-transform-class-properties": "6.24.1",
+    "babel-plugin-transform-flow-strip-types": "6.22.0",
+    "babel-plugin-transform-object-rest-spread": "6.23.0",
     "babel-preset-env": "^1.6.0",
-    "babel-register": "^6.26.0",
-    "babel-runtime": "^6.26.0",
-    "babelrc-rollup": "^3.0.0",
     "chai": "^4.1.2",
     "chalk": "^2.0.1",
     "eslint": "^4.8.0",
     "eslint-plugin-babel": "^4.1.2",
     "mocha": "^3.2.0",
-    "rollup": "^0.50.0",
-    "rollup-plugin-babel": "^3.0.2",
     "uglify-js": "^3.1.3"
   },
   "keywords": [
