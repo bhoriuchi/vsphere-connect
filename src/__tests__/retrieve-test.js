@@ -64,4 +64,23 @@ describe('retrieve tests', function () {
         return v.logout()
       })
   })
+
+  it('gets the child entity of the root folder', function () {
+    this.timeout(30000)
+
+    return v.login(user, pass)
+    .type('folder')
+    .get(v._rb.client.serviceContent.rootFolder.value)
+    .pluck('childEntity')('childEntity')
+    .then(result => {
+      expect(result).to.not.equal(undefined)
+    })
+    .catch(error => {
+      v.logout()
+      return Promise.reject(error)
+    })
+    .finally(() => {
+      return v.logout()
+    })
+  })
 })
