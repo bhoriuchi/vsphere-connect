@@ -1,12 +1,12 @@
-import Promise from 'bluebird'
+import Promise from 'bluebird';
 
-export default function moRef (inventoryPath) {
+export default function moRef(inventoryPath) {
   try {
     return this.method('FindByInventoryPath', {
       _this: this.serviceContent.searchIndex,
-      inventoryPath
-    })
+      inventoryPath,
+    });
   } catch (error) {
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
 }

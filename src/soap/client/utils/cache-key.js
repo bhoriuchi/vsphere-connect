@@ -4,20 +4,20 @@
  * the metadata cache in localstorage
  * when using a function, the done callback should provide the key
  */
-import _ from 'lodash'
-import request from 'request'
-import xmldom from 'xmldom'
-import xmlbuilder from 'xmlbuilder'
+import _ from 'lodash';
+import request from 'request';
+import xmldom from 'xmldom';
+import xmlbuilder from 'xmlbuilder';
 
 const tools = {
   lodash: _,
   request,
   xmldom,
-  xmlbuilder
-}
+  xmlbuilder,
+};
 
-export default function cacheKey (key, wsdl, done) {
-  if (_.isString(key)) return done(null, key)
-  else if (_.isFunction(key)) return key(tools, wsdl, done)
-  return done()
+export default function cacheKey(key, wsdl, done) {
+  if (_.isString(key)) return done(null, key);
+  else if (_.isFunction(key)) return key(tools, wsdl, done);
+  return done();
 }

@@ -8,11 +8,11 @@
     "url": "git+https://github.com/bhoriuchi/vsphere-connect.git"
   },
   "options": {
-    "mocha": "--check-leaks --full-trace src/**/__tests__/**/*-test.js",
-    "lodash": "assign,capitalize,castArray,filter,find,forEach,get,has,identity,includes,intersection,isArray,isFunction,isNumber,isObject,isString,keys,map,noop,omit,reduce,set,union,uniq,values,without"
+    "mocha": "--check-leaks --full-trace src/**/__tests__/**/*-test.js"
   },
   "scripts": {
     "lint": "eslint src",
+    "prettier": "prettier --write 'src/**/*.js'",
     "build:src": "babel src --optional runtime --ignore __tests__ --out-dir dist/ && cp package.json dist/",
     "build": "npm run lint && npm run build:src && npm run test",
     "test": "babel-node ./node_modules/.bin/_mocha $npm_package_options_mocha"
@@ -48,7 +48,8 @@
     "eslint": "^4.8.0",
     "eslint-plugin-babel": "^4.1.2",
     "mocha": "^3.2.0",
-    "uglify-js": "^3.1.3"
+    "uglify-js": "^3.1.3",
+    "prettier": "^1.11.1"
   },
   "keywords": [
     "vsphere",

@@ -1,16 +1,16 @@
-import _ from 'lodash'
+import _ from 'lodash';
 
-const types = {}
+const types = {};
 
 const containerView = {
   type: 'ContainerView',
-  path: 'view'
-}
+  path: 'view',
+};
 
 const ExtensibleManagedObject = {
   availableField: 'vim25:ArrayOfCustomFieldDef',
-  value: 'vim25:ArrayOfCustomFieldValue'
-}
+  value: 'vim25:ArrayOfCustomFieldValue',
+};
 
 let ManagedEntity = _.merge({}, ExtensibleManagedObject, {
   configIssue: 'vim25:ArrayOfEvent',
@@ -24,8 +24,8 @@ let ManagedEntity = _.merge({}, ExtensibleManagedObject, {
   parent: 'vim25:ManagedObjectReference',
   permission: 'vim25:ArrayOfPermission',
   recentTask: 'vim25:ArrayOfManagedObjectReference',
-  triggeredAlarmState: 'vim25:ArrayOfAlarmState'
-})
+  triggeredAlarmState: 'vim25:ArrayOfAlarmState',
+});
 
 const ComputeResource = _.merge({}, ManagedEntity, {
   configurationEx: 'vim25:ComputeResourceConfigInfo',
@@ -34,8 +34,8 @@ const ComputeResource = _.merge({}, ManagedEntity, {
   host: 'vim25:ArrayOfManagedObjectReference',
   network: 'vim25:ArrayOfManagedObjectReference',
   resourcePool: 'vim25:ManagedObjectReference',
-  summary: 'vim25:ComputeResourceSummary'
-})
+  summary: 'vim25:ComputeResourceSummary',
+});
 
 types['2.5'] = {
   Alarm: {},
@@ -47,12 +47,12 @@ types['2.5'] = {
       actionHistory: 'vim25:ArrayOfClusterActionHistory',
       drsFault: 'vim25:ArrayOfClusterDrsFaults',
       migrationHistory: 'vim25:ArrayOfClusterDrsMigration',
-      recommendation: 'vim25:ArrayOfClusterRecommendation'
-    })
+      recommendation: 'vim25:ArrayOfClusterRecommendation',
+    }),
   },
   ComputeResource: {
     listSpec: containerView,
-    properties: ComputeResource
+    properties: ComputeResource,
   },
   ContainerView: {},
   CustomFieldsManager: {},
@@ -63,8 +63,8 @@ types['2.5'] = {
       datastore: 'vim25:ArrayOfManagedObjectReference',
       hostFolder: 'vim25:ManagedObjectReference',
       network: 'vim25:ArrayOfManagedObjectReference',
-      vmFolder: 'vim25:ManagedObjectReference'
-    })
+      vmFolder: 'vim25:ManagedObjectReference',
+    }),
   },
   Datastore: {
     listSpec: containerView,
@@ -74,8 +74,8 @@ types['2.5'] = {
       host: 'vim25:ArrayOfDatastoreHostMount',
       info: 'vim25:DatastoreInfo',
       summary: 'vim25:DatastoreSummary',
-      vm: 'vim25:ArrayOfManagedObjectReference'
-    })
+      vm: 'vim25:ArrayOfManagedObjectReference',
+    }),
   },
   DiagnosticManager: {},
   EnvironmentBrowser: {},
@@ -88,8 +88,8 @@ types['2.5'] = {
     listSpec: containerView,
     properties: _.merge({}, ManagedEntity, {
       childEntity: 'vim25:ArrayOfManagedObjectReference',
-      childType: 'xsd:ArrayOfstring'
-    })
+      childType: 'xsd:ArrayOfstring',
+    }),
   },
   HistoryCollector: {},
   HostAutoStartManager: {},
@@ -122,8 +122,8 @@ types['2.5'] = {
       runtime: 'vim25:HostRuntimeInfo',
       summary: 'vim25:HostListSummary',
       systemResource: 'vim25:HostSystemResoureInfo',
-      vm: 'vim25:ArrayOfManagedObjectReference'
-    })
+      vm: 'vim25:ArrayOfManagedObjectReference',
+    }),
   },
   HostVMotionSystem: {},
   InventoryView: {},
@@ -131,7 +131,7 @@ types['2.5'] = {
   ListView: {},
   ManagedEntity: {
     listSpec: containerView,
-    properties: ManagedEntity
+    properties: ManagedEntity,
   },
   ManagedObjectView: {},
   Network: {
@@ -140,8 +140,8 @@ types['2.5'] = {
       host: 'vim25:ArrayOfManagedObjectReference',
       name: 'xsd:string',
       summary: 'vim25:NetworkSummary',
-      vm: 'vim25:ArrayOfManagedObjectReference'
-    })
+      vm: 'vim25:ArrayOfManagedObjectReference',
+    }),
   },
   OptionManager: {},
   PerformanceManager: {},
@@ -156,15 +156,15 @@ types['2.5'] = {
       resourcePool: 'vim25:ArrayOfManagedObjectReference',
       runtime: 'vim25:ResourcePoolRuntimeInfo',
       summary: 'vim25:ResourcePoolSummary',
-      vm: 'vim25:ArrayOfManagedObjectReference'
-    }
+      vm: 'vim25:ArrayOfManagedObjectReference',
+    },
   },
   ScheduledTask: {
     listSpec: {
       type: 'ScheduledTaskManager',
       id: 'ScheduledTaskManager',
-      path: 'scheduledTask'
-    }
+      path: 'scheduledTask',
+    },
   },
   ScheduledTaskManager: {},
   SearchIndex: {},
@@ -174,8 +174,8 @@ types['2.5'] = {
     listSpec: {
       type: 'TaskManager',
       id: 'TaskManager',
-      path: 'recentTask'
-    }
+      path: 'recentTask',
+    },
   },
   TaskHistoryCollector: {},
   TaskManager: {},
@@ -197,17 +197,17 @@ types['2.5'] = {
       resourceConfig: 'vim25:ResourceConfigSpec',
       runtime: 'vim25:VirtualMachineRuntimeInfo',
       snapshot: 'vim25:VirtualMachineSnapshotInfo',
-      summary: 'vim25:VirtualMachineSummary'
-    }
+      summary: 'vim25:VirtualMachineSummary',
+    },
   },
-  VirtualMachineSnapshot: {}
-}
+  VirtualMachineSnapshot: {},
+};
 
 // Required update to all ManagedEntities
 ManagedEntity = _.merge({}, ManagedEntity, {
   alarmActionsEnabled: 'xsd:boolean',
-  tag: 'vim25:ArrayOfTag'
-})
+  tag: 'vim25:ArrayOfTag',
+});
 
 const DistributedVirtualSwitch = _.merge({}, ManagedEntity, {
   capability: 'vim25:DVSCapability',
@@ -215,120 +215,124 @@ const DistributedVirtualSwitch = _.merge({}, ManagedEntity, {
   networkResourcePool: 'vim25:ArrayOfDVSNetworkResourcePool',
   portgroup: 'vim25:ArrayOfManagedObjectReference',
   summary: 'vim25:DVSummary',
-  uuid: 'xsd:string'
-})
+  uuid: 'xsd:string',
+});
 
-types['4.0'] = _.omit(_.merge({}, types['2.5'], {
-  ClusterProfile: {},
-  ClusterProfileManager: {},
-  ClusterComputeResource: {
-    properties: ManagedEntity
-  },
-  ComputeResource: {
-    properties: ManagedEntity
-  },
-  Datacenter: {
-    properties: _.merge({}, ManagedEntity, {
-      datastoreFolder: 'vim25:ManagedObjectReference',
-      networkFolder: 'vim25:ManagedObjectReference'
-    })
-  },
-  Datastore: {
-    properties: ManagedEntity
-  },
-  DistributedVirtualPortgroup: {
-    listSpec: containerView,
-    properties: _.merge({}, ManagedEntity, types['2.5'].Network.properties, {
-      config: 'vim25:DVPortgroupConfigInfo',
-      key: 'xsd:string',
-      portKeys: 'xsd:ArrayOfString'
-    })
-  },
-  DistributedVirtualSwitch: {
-    listSpec: containerView,
-    properties: DistributedVirtualSwitch
-  },
-  DistributedVirtualSwitchManager: {},
-  Folder: {
-    properties: ManagedEntity
-  },
-  HostKernelModuleSystem: {},
-  HostPciPassthruSystem: {},
-  HostProfile: {},
-  HostProfileManager: {},
-  HostSystem: {
-    properties: ManagedEntity
-  },
-  HostVirtualNicManager: {},
-  HttpNfcLease: {},
-  IpPoolManager: {},
-  LicenseAssignmentManager: {},
-  LocalizationManager: {},
-  Network: {
-    properties: ManagedEntity
-  },
-  OvfManager: {},
-  Profile: {},
-  ProfileComplianceManager: {},
-  ProfileManager: {},
-  ResourcePlanningManager: {},
-  ResourcePool: {
-    properties: ManagedEntity
-  },
-  VirtualApp: {
-    listSpec: containerView,
-    properties: _.merge({}, types['2.5'].ResourcePool.properties, {
-      datastore: 'vim25:ArrayOfManagedObjectReference',
-      network: 'vim25:ArrayOfManagedObjectReference',
-      vAppConfig: 'vim25:VAppConfigInfo'
-    })
-  },
-  VirtualizationManager: {},
-  VirtualMachine: {
-    properties: _.merge({}, ManagedEntity, {
-      layoutEx: 'vim25:VirtualMachineFileLayoutEx',
-      storage: 'vim25:VirtualMachineStorageInfo'
-    })
-  },
-  VirtualMachineCompatibilityChecker: {},
-  VirtualMachineProvisioningChecker: {},
-  VmwareDistributedVirtualSwitch: {
-    listSpec: containerView,
-    properties: _.merge({}, DistributedVirtualSwitch)
-  }
-}), [
-  'VirtualMachine.properties.layout'
-])
+types['4.0'] = _.omit(
+  _.merge({}, types['2.5'], {
+    ClusterProfile: {},
+    ClusterProfileManager: {},
+    ClusterComputeResource: {
+      properties: ManagedEntity,
+    },
+    ComputeResource: {
+      properties: ManagedEntity,
+    },
+    Datacenter: {
+      properties: _.merge({}, ManagedEntity, {
+        datastoreFolder: 'vim25:ManagedObjectReference',
+        networkFolder: 'vim25:ManagedObjectReference',
+      }),
+    },
+    Datastore: {
+      properties: ManagedEntity,
+    },
+    DistributedVirtualPortgroup: {
+      listSpec: containerView,
+      properties: _.merge({}, ManagedEntity, types['2.5'].Network.properties, {
+        config: 'vim25:DVPortgroupConfigInfo',
+        key: 'xsd:string',
+        portKeys: 'xsd:ArrayOfString',
+      }),
+    },
+    DistributedVirtualSwitch: {
+      listSpec: containerView,
+      properties: DistributedVirtualSwitch,
+    },
+    DistributedVirtualSwitchManager: {},
+    Folder: {
+      properties: ManagedEntity,
+    },
+    HostKernelModuleSystem: {},
+    HostPciPassthruSystem: {},
+    HostProfile: {},
+    HostProfileManager: {},
+    HostSystem: {
+      properties: ManagedEntity,
+    },
+    HostVirtualNicManager: {},
+    HttpNfcLease: {},
+    IpPoolManager: {},
+    LicenseAssignmentManager: {},
+    LocalizationManager: {},
+    Network: {
+      properties: ManagedEntity,
+    },
+    OvfManager: {},
+    Profile: {},
+    ProfileComplianceManager: {},
+    ProfileManager: {},
+    ResourcePlanningManager: {},
+    ResourcePool: {
+      properties: ManagedEntity,
+    },
+    VirtualApp: {
+      listSpec: containerView,
+      properties: _.merge({}, types['2.5'].ResourcePool.properties, {
+        datastore: 'vim25:ArrayOfManagedObjectReference',
+        network: 'vim25:ArrayOfManagedObjectReference',
+        vAppConfig: 'vim25:VAppConfigInfo',
+      }),
+    },
+    VirtualizationManager: {},
+    VirtualMachine: {
+      properties: _.merge({}, ManagedEntity, {
+        layoutEx: 'vim25:VirtualMachineFileLayoutEx',
+        storage: 'vim25:VirtualMachineStorageInfo',
+      }),
+    },
+    VirtualMachineCompatibilityChecker: {},
+    VirtualMachineProvisioningChecker: {},
+    VmwareDistributedVirtualSwitch: {
+      listSpec: containerView,
+      properties: _.merge({}, DistributedVirtualSwitch),
+    },
+  }),
+  ['VirtualMachine.properties.layout'],
+);
 
-types['4.1'] = _.omit(_.merge({}, types['4.0'], {
-  Datastore: {
-    properties: {
-      iormConfiguration: 'vim25:StorageIORMInfo'
-    }
-  },
-  HostActiveDirectoryAuthentication: {},
-  HostAuthenticationManager: {},
-  HostAuthenticationStore: {},
-  HostDirectoryStore: {},
-  HostLocalAuthentication: {},
-  HostPowerSystem: {},
-  StorageResourceManager: {},
-  VirtualApp: {
-    properties: {
-      childLink: 'vim25:ArrayOfVirtualAppLinkInfo',
-      parentVApp: 'vim25:ManagedObjectReference'
-    }
-  },
-  VirtualMachine: {
-    properties: {
-      parentVApp: 'vim25:ManagedObjectReference',
-      rootSnapshot: 'vim25:ArrayOfManagedObjectReference'
-    }
-  }
-}), [
-  'DistributedVirtualSwitch.properties.networkResourcePool',
-  'VmwareDistributedVirtualSwitch.properties.networkResourcePool'
-])
+types['4.1'] = _.omit(
+  _.merge({}, types['4.0'], {
+    Datastore: {
+      properties: {
+        iormConfiguration: 'vim25:StorageIORMInfo',
+      },
+    },
+    HostActiveDirectoryAuthentication: {},
+    HostAuthenticationManager: {},
+    HostAuthenticationStore: {},
+    HostDirectoryStore: {},
+    HostLocalAuthentication: {},
+    HostPowerSystem: {},
+    StorageResourceManager: {},
+    VirtualApp: {
+      properties: {
+        childLink: 'vim25:ArrayOfVirtualAppLinkInfo',
+        parentVApp: 'vim25:ManagedObjectReference',
+      },
+    },
+    VirtualMachine: {
+      properties: {
+        parentVApp: 'vim25:ManagedObjectReference',
+        rootSnapshot: 'vim25:ArrayOfManagedObjectReference',
+      },
+    },
+  }),
+  [
+    'DistributedVirtualSwitch.properties.networkResourcePool',
+    'VmwareDistributedVirtualSwitch.properties.networkResourcePool',
+  ],
+);
 
 types['5.0'] = _.merge({}, types['4.1'], {
   GuestAuthManager: {},
@@ -340,40 +344,41 @@ types['5.0'] = _.merge({}, types['4.1'], {
   HostImageConfigManager: {},
   HostSystem: {
     properties: {
-      licensableResource: 'vim25:HostLicensableResourceInfo'
-    }
+      licensableResource: 'vim25:HostLicensableResourceInfo',
+    },
   },
   IscsiManager: {},
   StoragePod: {
     listSpec: containerView,
     properties: _.merge({}, types['4.1'].Folder.properties, {
       podStorageDrsEntry: 'vim25:PodStorageDrsEntry',
-      summary: 'vim25:StoragePodSummary'
-    })
-  }
-})
+      summary: 'vim25:StoragePodSummary',
+    }),
+  },
+});
 
-types['5.1'] = _.omit(_.merge({}, types['5.0'], {
-  Datacenter: {
-    properties: {
-      configuration: 'vim25:DatacenterConfigInfo'
-    }
-  },
-  DistributedVirtualSwitch: {
-    properties: {
-      runtime: 'vim25:DVSRuntimeInfo'
-    }
-  },
-  VmwareDistributedVirtualSwitch: {
-    properties: {
-      runtime: 'vim25:DVSRuntimeInfo'
-    }
-  },
-  SessionManager: {},
-  SimpleCommand: {}
-}), [
-  'VirtualApp.properties.childLink'
-])
+types['5.1'] = _.omit(
+  _.merge({}, types['5.0'], {
+    Datacenter: {
+      properties: {
+        configuration: 'vim25:DatacenterConfigInfo',
+      },
+    },
+    DistributedVirtualSwitch: {
+      properties: {
+        runtime: 'vim25:DVSRuntimeInfo',
+      },
+    },
+    VmwareDistributedVirtualSwitch: {
+      properties: {
+        runtime: 'vim25:DVSRuntimeInfo',
+      },
+    },
+    SessionManager: {},
+    SimpleCommand: {},
+  }),
+  ['VirtualApp.properties.childLink'],
+);
 
 types['5.5'] = _.merge({}, types['5.1'], {
   DatastoreNamespaceManager: {},
@@ -383,9 +388,9 @@ types['5.5'] = _.merge({}, types['5.1'], {
   HostVsanSystem: {},
   OpaqueNetwork: {
     listSpec: containerView,
-    properties: _.merge({}, types['5.1'].Network.properties)
-  }
-})
+    properties: _.merge({}, types['5.1'].Network.properties),
+  },
+});
 
 types['6.0'] = _.merge({}, types['5.5'], {
   CertificateManager: {},
@@ -398,8 +403,8 @@ types['6.0'] = _.merge({}, types['5.5'], {
   MessageBusProxy: {},
   OverheadMemoryManager: {},
   VRPResourceManager: {},
-  VsanUpgradeSystem: {}
-})
+  VsanUpgradeSystem: {},
+});
 
 types['6.5'] = _.merge({}, types['6.0'], {
   CryptoManager: {},
@@ -412,11 +417,11 @@ types['6.5'] = _.merge({}, types['6.0'], {
   OpaqueNetwork: {
     properties: _.merge({}, types['6.0'].OpaqueNetwork.properties, {
       capability: 'vim25:OpaqueNetworkCapability',
-      extraConfig: 'vim25:ArrayOfOptionValue'
-    })
+      extraConfig: 'vim25:ArrayOfOptionValue',
+    }),
   },
   VcenterVStorageObjectManager: {},
-  VStorageObjectManagerBase: {}
-})
+  VStorageObjectManagerBase: {},
+});
 
-export default types
+export default types;

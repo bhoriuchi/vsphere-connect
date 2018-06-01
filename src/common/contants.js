@@ -17,7 +17,7 @@ export const OPERATIONS = {
   GTE: 'GTE',
   NOT: 'NOT',
   EXPR: 'EXPR',
-  DO: 'DO'
-}
+  DO: 'DO',
+};
 
-export const RETRIEVE = 'RETRIEVE'
+export const RETRIEVE = 'RETRIEVE';

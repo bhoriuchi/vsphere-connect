@@ -1,22 +1,22 @@
-import _ from 'lodash'
-import semver from 'semver'
-import { isMoRef, moRef } from '../../src/common/moRef'
+import _ from 'lodash';
+import semver from 'semver';
+import { isMoRef, moRef } from '../../src/common/moRef';
 
 export default class BaseBuilder {
-  constructor (client, defaultConfig) {
-    this._resolve = Promise.resolve()
-    this.client = client
+  constructor(client, defaultConfig) {
+    this._resolve = Promise.resolve();
+    this.client = client;
     this.apiVersion = client.apiVersion.match(/^\d+\.\d+$/)
       ? `${this.client.apiVersion}.0`
-      : this.client.apiVersion
-    this._config = defaultConfig
+      : this.client.apiVersion;
+    this._config = defaultConfig;
   }
 
   /**
    * Creates a copy of the config and returns it
    */
-  $config () {
-    return _.merge({}, this._config)
+  $config() {
+    return _.merge({}, this._config);
   }
 
   /**
@@ -24,8 +24,8 @@ export default class BaseBuilder {
    * @param path
    * @param defaultValue
    */
-  $get (path, defaultValue) {
-    return _.get(this._config, path, defaultValue)
+  $get(path, defaultValue) {
+    return _.get(this._config, path, defaultValue);
   }
 
   /**
@@ -33,26 +33,26 @@ export default class BaseBuilder {
    * @param path
    * @param value
    */
-  $set (path, value) {
-    _.set(this._config, path, value)
-    return this
+  $set(path, value) {
+    _.set(this._config, path, value);
+    return this;
   }
 
-  $push (path, value) {
-    let obj = this.$get(path)
-    if (!_.isArray(obj)) this.$set(path, [])
-    obj = this.$get(path)
-    obj.push(value)
-    return this
+  $push(path, value) {
+    let obj = this.$get(path);
+    if (!_.isArray(obj)) this.$set(path, []);
+    obj = this.$get(path);
+    obj.push(value);
+    return this;
   }
 
   /**
    * Merges a subset of configuration into the main config
    * @returns {VirtualMachineConfigBuilder}
    */
-  $merge (...args) {
-    this._config = _.merge.apply(this, args.unshift(this._config))
-    return this
+  $merge(...args) {
+    this._config = _.merge.apply(this, args.unshift(this._config));
+    return this;
   }
 
   /**
@@ -60,8 +60,8 @@ export default class BaseBuilder {
    * @param requiredVersion - must be in semver format major.minor.patch
    * @returns {*}
    */
-  $versionGTE (requiredVersion) {
-    return semver.gte(this.apiVersion, requiredVersion)
+  $versionGTE(requiredVersion) {
+    return semver.gte(this.apiVersion, requiredVersion);
   }
 
   /**
@@ -69,8 +69,8 @@ export default class BaseBuilder {
    * @param value
    * @returns {*}
    */
-  $isMoRef (value) {
-    return isMoRef(value)
+  $isMoRef(value) {
+    return isMoRef(value);
   }
 
   /**
@@ -79,8 +79,8 @@ export default class BaseBuilder {
    * @param value
    * @returns {{type, value}|*}
    */
-  $moRef (type, value) {
-    return moRef(type, value)
+  $moRef(type, value) {
+    return moRef(type, value);
   }
 
   /**
@@ -89,25 +89,25 @@ export default class BaseBuilder {
    * @param field
    * @returns {BaseBuilder}
    */
-  $resolveMoRef (value, field) {
+  $resolveMoRef(value, field) {
     this._resolve = this._resolve.then(() => {
       const getMoRef = _.isString(value)
         ? this.client.moRef(value)
         : this.$isMoRef(value)
           ? Promise.resolve(value)
-          : Promise.reject(new Error(`invalid moRef supplied for "${field}"`))
-      return getMoRef.then(_moRef => this.$set(field, _moRef))
-    })
+          : Promise.reject(new Error(`invalid moRef supplied for "${field}"`));
+      return getMoRef.then(_moRef => this.$set(field, _moRef));
+    });
 
-    return this
+    return this;
   }
 
-  $resolveAndSet (value, path) {
+  $resolveAndSet(value, path) {
     this._resolve = this._resolve.then(() => {
-      this.$set(path, value)
-    })
+      this.$set(path, value);
+    });
 
-    return this
+    return this;
   }
 
   /**
@@ -115,11 +115,13 @@ export default class BaseBuilder {
    * @param value
    * @returns {boolean}
    */
-  $isConfigObject (value) {
-    return _.isObject(value)
-      && !_.isBuffer(value)
-      && !_.isDate(value)
-      && _.keys(value).length
+  $isConfigObject(value) {
+    return (
+      _.isObject(value) &&
+      !_.isBuffer(value) &&
+      !_.isDate(value) &&
+      _.keys(value).length
+    );
   }
 
   /**
@@ -128,8 +130,8 @@ export default class BaseBuilder {
    * @param value
    * @returns {BaseBuilder}
    */
-  dynamicData (key, value) {
-    this.$set(key, value)
-    return this
+  dynamicData(key, value) {
+    this.$set(key, value);
+    return this;
   }
 }

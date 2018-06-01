@@ -1,11 +1,11 @@
-const any = obj => obj
+const any = obj => obj;
 const toDate = obj => {
   try {
-    return new Date(obj)
+    return new Date(obj);
   } catch (err) {
-    return obj
+    return obj;
   }
-}
+};
 
 export default {
   anyType: { convert: any },
@@ -53,5 +53,5 @@ export default {
   unsignedShort: { convert: Number },
   IDREFS: { convert: String },
   ENTITIES: { convert: String },
-  unsignedByte: { convert: String }
-}
+  unsignedByte: { convert: String },
+};

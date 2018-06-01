@@ -2,7 +2,8 @@
   "parser": "babel-eslint",
 
   "plugins": [
-    "babel"
+    "babel",
+    "prettier"
   ],
 
   "env": {
@@ -38,7 +39,8 @@
   },
 
   "rules": {
-    "array-bracket-spacing": [2, "always"],
+    "prettier/prettier": 2,
+
     "arrow-parens": [2, "as-needed"],
     "arrow-spacing": 2,
     "block-scoped-var": 0,
@@ -52,7 +54,7 @@
     "computed-property-spacing": [2, "never"],
     "consistent-return": 0,
     "consistent-this": 0,
-    "curly": [2, "multi-line"],
+    "curly": [2, "all"],
     "default-case": 0,
     "dot-location": [2, "property"],
     "dot-notation": 0,
@@ -60,7 +62,6 @@
     "eqeqeq": ["error", "smart"],
     "func-names": 0,
     "func-style": 0,
-    "generator-star-spacing": [2, {"before": false, "after": true}],
     "guard-for-in": 2,
     "handle-callback-err": [2, "error"],
     "id-length": 0,
@@ -72,7 +73,7 @@
     "linebreak-style": 2,
     "lines-around-comment": 0,
     "max-depth": 0,
-    "max-len": [1, 80, 4, {"ignoreRegExpLiterals": true }],
+    "max-len": 0,
     "max-nested-callbacks": 0,
     "max-params": 0,
     "max-statements": 0,
@@ -171,7 +172,7 @@
     "no-unneeded-ternary": 2,
     "no-unreachable": 2,
     "no-unused-expressions": 2,
-    "no-unused-vars": [2, {"vars": "all", "args": "after-used"}],
+    "no-unused-vars": [2, {"vars": "all", "args": "after-used", "argsIgnorePattern": "^_"}],
     "no-use-before-define": 0,
     "no-useless-call": 2,
     "no-useless-escape": 2,
@@ -184,20 +185,17 @@
     "object-shorthand": [2, "always"],
     "one-var": [2, "never"],
     "operator-assignment": [2, "always"],
-    "operator-linebreak": [2, "before"],
     "padded-blocks": 0,
     "prefer-const": 2,
     "prefer-reflect": 0,
     "prefer-spread": 0,
     "quote-props": [2, "as-needed", {"numbers": true}],
-    "quotes": [2, "single"],
     "radix": 2,
     "require-yield": 0,
-    "semi": ["error", "never"],
+    "semi": [2, "always"],
     "semi-spacing": [2, {"before": false, "after": true}],
     "sort-vars": 0,
     "space-before-blocks": [2, "always"],
-    "space-before-function-paren": [2, {"anonymous": "always", "named": "always"}],
     "space-in-parens": 0,
     "space-infix-ops": [2, {"int32Hint": false}],
     "space-unary-ops": [2, {"words": true, "nonwords": false}],

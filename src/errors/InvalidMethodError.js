@@ -1,13 +1,13 @@
-import VSphereConnectError from './VSphereConnectError'
+import VSphereConnectError from './VSphereConnectError';
 
-export const ERR_INVALID_METHOD = 'ERR_INVALID_METHOD'
+export const ERR_INVALID_METHOD = 'ERR_INVALID_METHOD';
 
 export default class InvalidMethodError extends VSphereConnectError {
-  constructor (method) {
+  constructor(method) {
     super(
       'InvalidMethodError',
       ERR_INVALID_METHOD,
-      `${method} is not a valid method`
-    )
+      `${method} is not a valid method`,
+    );
   }
 }

@@ -1,33 +1,28 @@
-import deserialize from './deserialize'
-import {
-  firstNode,
-  getNodeData,
-  getFirstChildElement
-} from './utils/index'
+import deserialize from './deserialize';
+import { firstNode, getNodeData, getFirstChildElement } from './utils/index';
 
-export default function processFault (wsdl, fault, context) {
+export default function processFault(wsdl, fault, context) {
   const faultCode = getNodeData(
-    firstNode(fault.getElementsByTagName('faultcode'))
-  )
+    firstNode(fault.getElementsByTagName('faultcode')),
+  );
   const faultString = getNodeData(
-    firstNode(fault.getElementsByTagName('faultstring'))
-  )
+    firstNode(fault.getElementsByTagName('faultstring')),
+  );
   const faultNode = getFirstChildElement(
-    firstNode(fault.getElementsByTagName('detail'))
-  )
-  const typeAttr = wsdl.getTypeAttribute(faultNode)
-  const faultTypeName = typeAttr.value
-    || typeAttr.nodeValue
-    || faultNode.localName
+    firstNode(fault.getElementsByTagName('detail')),
+  );
+  const typeAttr = wsdl.getTypeAttribute(faultNode);
+  const faultTypeName =
+    typeAttr.value || typeAttr.nodeValue || faultNode.localName;
   const faultType = wsdl.getTypeByLocalNS(
     faultNode.namespaceURI,
-    faultTypeName
-  )
+    faultTypeName,
+  );
 
   return {
     faultCode,
     message: faultString,
     type: faultTypeName,
-    detail: deserialize(wsdl, faultType, faultNode, context)
-  }
+    detail: deserialize(wsdl, faultType, faultNode, context),
+  };
 }

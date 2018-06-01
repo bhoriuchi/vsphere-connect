@@ -1,11 +1,11 @@
-import _ from 'lodash'
+import _ from 'lodash';
 
-export default function makeDotPath (obj, list = [], path = []) {
+export default function makeDotPath(obj, list = [], path = []) {
   _.forEach(obj, (val, key) => {
-    const prop = path.slice(0)
-    prop.push(key)
-    if (val === true) list.push(prop.join('.'))
-    else makeDotPath(val, list, prop)
-  })
-  return list
+    const prop = path.slice(0);
+    prop.push(key);
+    if (val === true) list.push(prop.join('.'));
+    else makeDotPath(val, list, prop);
+  });
+  return list;
 }

@@ -1,7 +1,7 @@
-import task from './task'
+import task from './task';
 
-export { task }
+export { task };
 
 export default {
-  task
-}
+  task,
+};

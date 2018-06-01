@@ -1,17 +1,17 @@
-import _ from 'lodash'
+import _ from 'lodash';
 
 /**
  * WORK IN PROGRESS
  */
 
-const SpecDefinition = {}
+const SpecDefinition = {};
 
 SpecDefinition.VirtualMachine = {
   _this: 'ManagedObjectReference',
   config: 'VirtualMachineConfigSpec',
-  pool: 'ManagedObjectReference'
-}
+  pool: 'ManagedObjectReference',
+};
 
-export default function buildSpec (parent, type, build, options) {
-  _.noop(parent, type, build, options)
+export default function buildSpec(parent, type, build, options) {
+  _.noop(parent, type, build, options);
 }

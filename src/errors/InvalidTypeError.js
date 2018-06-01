@@ -1,13 +1,13 @@
-import VSphereConnectError from './VSphereConnectError'
+import VSphereConnectError from './VSphereConnectError';
 
-export const ERR_INVALID_TYPE = 'ERR_INVALID_TYPE'
+export const ERR_INVALID_TYPE = 'ERR_INVALID_TYPE';
 
 export default class InvalidTypeError extends VSphereConnectError {
-  constructor (type) {
+  constructor(type) {
     super(
       'InvalidTypeError',
       ERR_INVALID_TYPE,
-      `${type} cannot be resolved to a valid vim type`
-    )
+      `${type} cannot be resolved to a valid vim type`,
+    );
   }
 }
