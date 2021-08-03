@@ -32,7 +32,7 @@
     "rxjs": "^5.5.2",
     "semver": "^5.4.1",
     "xmlbuilder": "^8.2.2",
-    "xmldom": "^0.1.27"
+    "xmldom": "^0.6.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
